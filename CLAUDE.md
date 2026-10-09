@@ -1,4 +1,4 @@
-# Ledger: purpose-aware money records for Kenyans
+# Jalada AI: purpose-aware money records for Kenyans
 
 ## What this is
 A service that works out what each transaction was for (business or personal, earned income or support, a work cost or a household cost), then categorises and saves it with its evidence. It is a personal financial record first and a tax-ready record at filing time.
