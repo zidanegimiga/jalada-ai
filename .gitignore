@@ -1,0 +1,16 @@
+# Secrets and local config
+.env
+.env.*
+
+# Personal financial data must never be committed
+data/
+*.xlsx
+*.xls
+*.pdf
+!docs/**/*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
