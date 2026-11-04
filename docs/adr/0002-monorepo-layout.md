@@ -26,13 +26,13 @@ Option 3. One repository laid out as below, with a root Makefile for common comm
 ```
 jalada-ai/
 ├── AGENTS.md, CLAUDE.md, README.md
-├── .claude/skills/       project skills
+├── .claude/skills/       project skills, local only and never committed
 ├── apps/
 │   ├── api/              FastAPI service, owns the jalada Python package
 │   ├── worker/           runs pipeline jobs, imports jalada from apps/api
 │   └── web/              Next.js app
 ├── evals/                invented fixtures, expected outputs, scoring scripts
-├── docs/                 design, adr, domain, walkthroughs
+├── docs/                 design, adr, domain
 ├── infra/                docker compose, deployment config
 └── .github/workflows/    continuous integration
 ```
