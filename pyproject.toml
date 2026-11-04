@@ -20,6 +20,10 @@ line-length = 100
 # UP: modern syntax, S: security checks, N: naming, SIM: simpler code.
 select = ["E", "W", "F", "I", "B", "UP", "S", "N", "SIM"]
 
+[tool.ruff.lint.isort]
+# Our own package, so its imports sort after third-party ones.
+known-first-party = ["jalada"]
+
 [tool.ruff.lint.per-file-ignores]
 # Tests use plain assert statements, which the security rules flag.
 "**/tests/**" = ["S101"]
@@ -27,3 +31,5 @@ select = ["E", "W", "F", "I", "B", "UP", "S", "N", "SIM"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+# Teaches mypy how Pydantic models and settings classes are built.
+plugins = ["pydantic.mypy"]
