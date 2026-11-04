@@ -1,16 +1,44 @@
 # Secrets and local config
 .env
 .env.*
+!.env.example
 
 # Personal financial data must never be committed
 data/
 *.xlsx
 *.xls
 *.pdf
+*.csv
 !docs/**/*.pdf
+
+# Invented test evidence for the evaluation suite is allowed
+!evals/fixtures/**/*.pdf
+!evals/fixtures/**/*.xlsx
+!evals/fixtures/**/*.csv
 
 # Python
 __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
