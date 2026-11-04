@@ -1,0 +1,61 @@
+# Jalada AI: rules for coding agents
+
+## The product
+Jalada AI keeps money records for Kenyans with no accountant. A user sends a receipt photo, a PDF or a forwarded M-Pesa message. A pipeline works out what the money was for, categorises it, keeps the evidence and saves it to a ledger. The ledger feeds a monthly view of money in and out and, at filing time, figures grouped the way the Kenya Revenue Authority's iTax return asks for them.
+
+Users have scattered income, many small payments, and often small or basic phones.
+
+## How we work
+The owner, Zidane, reviews every line. Do not run ahead.
+
+1. **Plan, approve, build.** Propose a short numbered plan, wait for approval, then build exactly that.
+2. **One small commit at a time.** One purpose per commit, under about 150 changed lines. Lockfiles and untouched generated files do not count, but list them. Never mix a refactor with a feature. Give Zidane the commit command to run.
+3. **Explain everything.** After each commit, walk through every new or changed file, library, type, function, variable and test. Save it as `docs/walkthroughs/NNNN-short-title.md`, numbered in commit order.
+4. **Decisions get a record.** Every library, service, data store or pattern gets an architecture decision record in `docs/adr/` before it lands in code. No new dependency without one.
+5. **Tests come with code.** Every behaviour change ships with tests. Run them and show the output. "Done" is proven, not asserted.
+6. **Ask, don't assume.** Never invent tax rules. Tax facts come from `docs/domain/` or from Zidane.
+7. **Stop at the gates.** At the end of each milestone, summarise what exists and what is next, then wait.
+
+## Architecture
+- **Ports and adapters.** Business logic depends on interfaces (ports), never on vendor libraries. Each vendor sits behind an adapter. Swapping a provider means one new adapter and one configuration change.
+- **Dependency injection.** Each app wires adapters into use cases in one composition root. No global singletons, no clients created inside functions.
+- **Backend layers.** `domain` holds pure rules with no input or output. `application` holds use cases and port interfaces. `adapters` implements ports. `api` holds thin routes that only call use cases.
+- **Configuration** comes from the environment and is validated at startup. No secrets in code, logs or tests.
+
+## Size and naming
+- Functions under about 30 lines, files under about 200, React components under about 150. Split before adding more.
+- Names say what a thing is or does. No abbreviations except widely known ones.
+- Python: `snake_case` functions and variables, `PascalCase` classes, `snake_case.py` files.
+- TypeScript: `camelCase` and `PascalCase`, `kebab-case.tsx` files.
+- One responsibility per module. If describing it needs the word "and", split it.
+
+## Security
+- All financial data is personal data under Kenya's Data Protection Act.
+- Follow the OWASP Top 10 (the Open Worldwide Application Security Project's list of common web risks).
+- Validate every input with a schema. Parameterised queries only. Rate limit sign-in and upload routes.
+- Check upload type and size. Never trust a file name.
+- Argon2 for passwords. Sessions in secure, HTTP-only cookies. Every query is scoped to the signed-in user in one place.
+- Encrypt evidence at rest and serve it only through short-lived signed links.
+- Never store an M-Pesa statement password. Never log raw financial content.
+- Users can export and delete all their data.
+
+## Product rules that never bend
+- The pipeline never decides on its own that something is taxable or deductible. Unclear items go to the review queue.
+- Raw evidence is permanent. Every ledger entry links to its original evidence and to the run that produced it.
+- The database is the source of truth. Exports are generated views, never edited back in.
+
+## Testing
+- Backend: pytest. Unit tests for the domain, use case tests with fake adapters, a few integration tests against real Postgres in Docker.
+- Frontend: Vitest with Testing Library, and Playwright for the main journeys.
+- Agent pipeline: the evaluation suite in `evals/`, run in continuous integration with pass thresholds.
+- Test data is always invented. Never commit real receipts, statements, certificates, `.env` files or keys.
+
+## Writing style
+Docs, walkthroughs and explanations use short, plain sentences. No em dashes and no emojis. Spell out every acronym the first time and say what it means.
+
+## Where things are
+- `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: Kenyan tax and M-Pesa notes, to verify rather than treat as tax advice. `docs/walkthroughs/`: one explanation per commit.
+- `.claude/skills/`: project skills in the open Agent Skills format. Read the relevant one before working in an area, and update it in the same commit as any change that affects it.
+
+## Current state
+Milestone 1 (foundations) is in progress. See the latest walkthrough for the most recent step.
