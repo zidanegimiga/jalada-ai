@@ -1,0 +1,29 @@
+# Root of the uv workspace. It is not a package itself; it lists the
+# Python packages in this repo and holds tool settings shared by all of them.
+
+[tool.uv.workspace]
+members = ["apps/api"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "pytest>=9.2",
+    "ruff>=0.17",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# E/W: style errors, F: likely bugs, I: import order, B: common pitfalls,
+# UP: modern syntax, S: security checks, N: naming, SIM: simpler code.
+select = ["E", "W", "F", "I", "B", "UP", "S", "N", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use plain assert statements, which the security rules flag.
+"**/tests/**" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
