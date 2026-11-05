@@ -5,6 +5,7 @@ on:
     paths: &python-paths
       - "apps/api/**"
       - "apps/worker/**"
+      - "evals/**"
       - "pyproject.toml"
       - "uv.lock"
       - ".python-version"
@@ -52,6 +53,8 @@ jobs:
       - run: uv run mypy
       - run: uv run --directory apps/api pytest
       - run: uv run --directory apps/worker pytest
+      - name: Pipeline evaluations
+        run: uv run python evals/run_evals.py
 
   audit:
     runs-on: ubuntu-latest

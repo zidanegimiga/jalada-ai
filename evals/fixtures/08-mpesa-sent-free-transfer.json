@@ -1,0 +1,18 @@
+{
+  "name": "mpesa-sent-free-transfer",
+  "content_type": "text/plain",
+  "text": "UK5AA00008 Confirmed. Ksh50.00 sent to AMINA HASSAN 0700000555 on 5/11/26 at 2:43 PM. New M-PESA balance is Ksh2,339.58. Transaction cost, Ksh0.00.  Amount you can transact within the day is 496,142.00. See all your balances now https://example.com/a",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "amount_cents": 5000,
+      "fee_cents": 0
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

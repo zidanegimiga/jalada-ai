@@ -1,0 +1,18 @@
+{
+  "name": "certificate-consultancy-second-payer",
+  "content_type": "application/pdf",
+  "text": "Withholding Certificate\nDate of Certificate: 20/07/2026\nCertificate Serial Number:\nKRAWHTEON0000000012\nWithholder Details\nPIN of Withholder P000000000A\nName of Withholder SAMPLE MEDIA TRUST\nWithholdee Details\nPIN of Withholdee (If available) A000000000Z\nName of Withholdee JANE WANJIKU\nDetails of Tax Withheld\nManagement, Professional Training or Consultancy Fees\nNature of Transaction\nWhich Is Over 24,000 In A Month\nTransaction Date 15/07/2026\nGross Amount of Transaction (Ksh) 120,000.00\nWithholding Tax Rate 5.00\nAmount of Tax Withheld (Ksh) 6,000.00\n",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "withholding_certificate",
+    "outcome": "proposed",
+    "fields": {
+      "amount_cents": 12000000,
+      "tax_withheld_cents": 600000
+    },
+    "category": "consultancy_fees",
+    "purpose": "business",
+    "verifier_should_reject": false
+  }
+}

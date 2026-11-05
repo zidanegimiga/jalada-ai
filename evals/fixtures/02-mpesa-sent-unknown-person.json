@@ -1,0 +1,21 @@
+{
+  "name": "mpesa-sent-unknown-person",
+  "content_type": "text/plain",
+  "text": "UK5AA00002 Confirmed. Ksh2,000.00 sent to PETER OTIENO 0722000111 on 3/11/26 at 2:43 PM. New M-PESA balance is Ksh2,339.58. Transaction cost, Ksh7.00.  Amount you can transact within the day is 496,142.00. See all your balances now https://example.com/a",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "mpesa_code": "UK5AA00002",
+      "amount_cents": 200000,
+      "direction": "out",
+      "counterparty": "PETER OTIENO",
+      "occurred_on": "2026-11-03"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

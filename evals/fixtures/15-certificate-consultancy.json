@@ -1,0 +1,21 @@
+{
+  "name": "certificate-consultancy",
+  "content_type": "application/pdf",
+  "text": "Withholding Certificate\nDate of Certificate: 20/03/2026\nCertificate Serial Number:\nKRAWHTEON0000000011\nWithholder Details\nPIN of Withholder P000000000A\nName of Withholder EXAMPLE CONSULTING LTD\nWithholdee Details\nPIN of Withholdee (If available) A000000000Z\nName of Withholdee JANE WANJIKU\nDetails of Tax Withheld\nManagement, Professional Training or Consultancy Fees\nNature of Transaction\nWhich Is Over 24,000 In A Month\nTransaction Date 03/03/2026\nGross Amount of Transaction (Ksh) 40,000.00\nWithholding Tax Rate 5.00\nAmount of Tax Withheld (Ksh) 2,000.00\n",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "withholding_certificate",
+    "outcome": "proposed",
+    "fields": {
+      "certificate_serial": "KRAWHTEON0000000011",
+      "amount_cents": 4000000,
+      "tax_withheld_cents": 200000,
+      "counterparty": "EXAMPLE CONSULTING LTD",
+      "occurred_on": "2026-03-03"
+    },
+    "category": "consultancy_fees",
+    "purpose": "business",
+    "verifier_should_reject": false
+  }
+}

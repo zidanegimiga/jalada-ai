@@ -1,0 +1,28 @@
+{
+  "name": "mpesa-sent-known-person",
+  "content_type": "text/plain",
+  "text": "UK5AA00001 Confirmed. Ksh150.00 sent to JANE  WANJIKU 0712345678 on 5/11/26 at 2:43 PM. New M-PESA balance is Ksh2,339.58. Transaction cost, Ksh7.00.  Amount you can transact within the day is 496,142.00. See all your balances now https://example.com/a",
+  "preferences": {
+    "jane wanjiku": {
+      "category": "personal_family_support",
+      "purpose": "personal",
+      "times_used": 3
+    }
+  },
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "proposed",
+    "fields": {
+      "mpesa_code": "UK5AA00001",
+      "amount_cents": 15000,
+      "direction": "out",
+      "counterparty": "JANE WANJIKU",
+      "occurred_on": "2026-11-05",
+      "fee_cents": 700
+    },
+    "category": "personal_family_support",
+    "purpose": "personal",
+    "verifier_should_reject": false
+  }
+}

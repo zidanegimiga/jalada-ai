@@ -37,4 +37,4 @@ python_version = "3.12"
 strict = true
 # Teaches mypy how Pydantic models and settings classes are built.
 plugins = ["pydantic.mypy"]
-files = ["apps/api/src", "apps/api/tests", "apps/worker/src", "apps/worker/tests"]
+files = ["apps/api/src", "apps/api/tests", "apps/worker/src", "apps/worker/tests", "evals"]

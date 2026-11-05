@@ -1,0 +1,18 @@
+{
+  "name": "certificate-other-nature",
+  "content_type": "application/pdf",
+  "text": "Withholding Certificate\nDate of Certificate: 20/05/2026\nCertificate Serial Number:\nKRAWHTEON0000000013\nWithholder Details\nPIN of Withholder P000000000A\nName of Withholder SAMPLE PROPERTIES LTD\nWithholdee Details\nPIN of Withholdee (If available) A000000000Z\nName of Withholdee JANE WANJIKU\nDetails of Tax Withheld\nRent or Lease of Property\nNature of Transaction\nWhich Is Over 24,000 In A Month\nTransaction Date 10/05/2026\nGross Amount of Transaction (Ksh) 30,000.00\nWithholding Tax Rate 10.00\nAmount of Tax Withheld (Ksh) 3,000.00\n",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "withholding_certificate",
+    "outcome": "needs_review",
+    "fields": {
+      "amount_cents": 3000000,
+      "tax_withheld_cents": 300000
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

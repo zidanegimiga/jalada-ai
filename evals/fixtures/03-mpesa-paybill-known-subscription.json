@@ -1,0 +1,26 @@
+{
+  "name": "mpesa-paybill-known-subscription",
+  "content_type": "text/plain",
+  "text": "UK5AA00003 Confirmed. Ksh419.00 sent to M-PESA CARD for account Paystack-Shop-Music on 5/11/26 at 9:10 AM New M-PESA balance is Ksh1,200.00. Transaction cost, Ksh0.00.Amount you can transact within the day is 499,000.00. See all your balances now https://example.com/b",
+  "preferences": {
+    "m-pesa card": {
+      "category": "personal_other",
+      "purpose": "personal",
+      "times_used": 3
+    }
+  },
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "proposed",
+    "fields": {
+      "amount_cents": 41900,
+      "counterparty": "M-PESA CARD",
+      "reference": "Paystack-Shop-Music",
+      "fee_cents": 0
+    },
+    "category": "personal_other",
+    "purpose": "personal",
+    "verifier_should_reject": false
+  }
+}

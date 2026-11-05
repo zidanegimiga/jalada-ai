@@ -1,0 +1,15 @@
+{
+  "name": "payslip-text",
+  "content_type": "application/pdf",
+  "text": "SAMPLE COMPANY LTD\nPayslip for October 2026\nBasic pay 60,000.00\nNet pay 48,500.00",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "payslip",
+    "outcome": "needs_review",
+    "fields": null,
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

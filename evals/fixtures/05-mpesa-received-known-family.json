@@ -1,0 +1,25 @@
+{
+  "name": "mpesa-received-known-family",
+  "content_type": "text/plain",
+  "text": "UK4AA00005 Confirmed.You have received Ksh5,000.00 from MARY ACHIENG 0733000222 on 1/11/26 at 4:44 PM New M-PESA balance is Ksh2,211.58.  See all your balances now https://example.com/c",
+  "preferences": {
+    "mary achieng 0733000222": {
+      "category": "family_support",
+      "purpose": "personal",
+      "times_used": 3
+    }
+  },
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "proposed",
+    "fields": {
+      "amount_cents": 500000,
+      "direction": "in",
+      "counterparty": "MARY ACHIENG 0733000222"
+    },
+    "category": "family_support",
+    "purpose": "personal",
+    "verifier_should_reject": false
+  }
+}

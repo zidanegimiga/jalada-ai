@@ -1,0 +1,15 @@
+{
+  "name": "free-text-note",
+  "content_type": "text/plain",
+  "text": "Lunch with a client at the cafe, 800 bob",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "free_text",
+    "outcome": "needs_review",
+    "fields": null,
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

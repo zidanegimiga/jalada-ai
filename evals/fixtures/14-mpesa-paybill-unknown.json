@@ -1,0 +1,19 @@
+{
+  "name": "mpesa-paybill-unknown",
+  "content_type": "text/plain",
+  "text": "UK5AA00014 Confirmed. Ksh1,500.00 sent to KPLC PREPAID for account 37000000001 on 2/11/26 at 9:10 AM New M-PESA balance is Ksh1,200.00. Transaction cost, Ksh0.00.Amount you can transact within the day is 499,000.00. See all your balances now https://example.com/b",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "amount_cents": 150000,
+      "counterparty": "KPLC PREPAID",
+      "reference": "37000000001"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

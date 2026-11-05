@@ -1,0 +1,18 @@
+{
+  "name": "mpesa-received-from-person-unknown",
+  "content_type": "text/plain",
+  "text": "UK4AA00007 Confirmed.You have received Ksh750.00 from JOHN DOE 0722000444 on 2/11/26 at 4:44 PM New M-PESA balance is Ksh2,211.58.  See all your balances now https://example.com/c",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "amount_cents": 75000,
+      "direction": "in"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

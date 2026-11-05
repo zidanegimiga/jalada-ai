@@ -1,0 +1,15 @@
+{
+  "name": "statement-header",
+  "content_type": "application/pdf",
+  "text": "M-PESA STATEMENT\nCustomer Name: JANE WANJIKU\nStatement Period: 01 Oct 2026 - 31 Oct 2026",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "statement",
+    "outcome": "needs_review",
+    "fields": null,
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

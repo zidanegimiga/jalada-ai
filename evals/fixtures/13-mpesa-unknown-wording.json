@@ -1,0 +1,15 @@
+{
+  "name": "mpesa-unknown-wording",
+  "content_type": "text/plain",
+  "text": "UK5AA00013 Confirmed. Ksh80.00 paid to MAMA MBOGA SHOP. on 5/11/26 at 1:00 PM.",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": null,
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

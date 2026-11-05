@@ -1,0 +1,20 @@
+{
+  "name": "mpesa-received-from-bank-unknown",
+  "content_type": "text/plain",
+  "text": "UK4AA00004 Confirmed.You have received Ksh1,000.00 from EXAMPLE BANK 1 500000 on 4/11/26 at 4:44 PM New M-PESA balance is Ksh2,211.58.  See all your balances now https://example.com/c",
+  "preferences": {},
+  "duplicate": false,
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "amount_cents": 100000,
+      "direction": "in",
+      "counterparty": "EXAMPLE BANK 1 500000",
+      "occurred_on": "2026-11-04"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}
