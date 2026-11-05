@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from jalada.application.errors import (
     ApplicationError,
     EmailAlreadyRegistered,
+    GoogleSignInFailed,
     InvalidCredentials,
     NotSignedIn,
     WeakPassword,
@@ -20,6 +21,7 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     WeakPassword: (422, "weak_password", "Use a password of at least 10 characters."),
     InvalidCredentials: (401, "invalid_credentials", "The email or password is wrong."),
     NotSignedIn: (401, "not_signed_in", "Sign in to continue."),
+    GoogleSignInFailed: (401, "google_failed", "Google sign-in did not work. Try again."),
     TooManyAttempts: (429, "too_many_attempts", "Too many attempts. Wait a minute and try again."),
 }
 

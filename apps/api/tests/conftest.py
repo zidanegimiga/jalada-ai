@@ -2,7 +2,7 @@ from collections.abc import Callable
 from datetime import timedelta
 
 import pytest
-from fakes import FakeHasher, FakeUnitOfWork, FixedClock, Store
+from fakes import FakeGoogle, FakeHasher, FakeUnitOfWork, FixedClock, Store
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -10,6 +10,7 @@ from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
 from jalada.application.authentication import Authenticator
+from jalada.application.google_sign_in import GoogleSignIn
 from jalada.config.settings import Environment, Settings
 
 pytest_plugins = ["database_fixtures"]
@@ -42,9 +43,20 @@ def authenticator(store: Store, hasher: FakeHasher, clock: FixedClock) -> Authen
 
 
 @pytest.fixture
-def make_app(authenticator: Authenticator) -> Callable[..., FastAPI]:
-    def build(environment: Environment = "test", rule: str = "100/minute") -> FastAPI:
-        services = Services(authenticator=authenticator, sign_in_limiter=RateLimiter(rule))
+def google() -> FakeGoogle:
+    return FakeGoogle()
+
+
+@pytest.fixture
+def make_app(authenticator: Authenticator, google: FakeGoogle) -> Callable[..., FastAPI]:
+    def build(
+        environment: Environment = "test", rule: str = "100/minute", with_google: bool = True
+    ) -> FastAPI:
+        services = Services(
+            authenticator=authenticator,
+            sign_in_limiter=RateLimiter(rule),
+            google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
+        )
         return create_app(make_settings(environment), services)
 
     return build

@@ -18,4 +18,6 @@ Server-side sessions in Postgres, Argon2id password hashes, and Google sign-in w
 
 ## Consequences
 - We own the security of sign-in, so it needs careful tests, including timing-safe comparisons and lockout.
+- Google sign-in uses PKCE, a `state` value and a `nonce`, kept in a ten-minute HTTP-only cookie, and the ID token's signature, issuer, audience, expiry and nonce are all checked. Authlib builds the request and exchanges the code, and `joserfc` checks the token.
+- A Google sign-in with a verified email that matches an existing account is linked to that account. Google has confirmed the address, so this does not let anyone take over an account, and it saves people from ending up with two.
 - Password reset needs email sending, which is a later decision. Until then, Google sign-in covers forgotten passwords.

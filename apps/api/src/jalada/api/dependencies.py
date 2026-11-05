@@ -3,10 +3,9 @@ from typing import Annotated
 from fastapi import Cookie, Depends, Request
 
 from jalada.api.services import Services
+from jalada.api.session_cookie import SESSION_COOKIE
 from jalada.application.errors import NotSignedIn
 from jalada.domain.users import User
-
-SESSION_COOKIE = "jalada_session"
 
 
 def get_services(request: Request) -> Services:

@@ -6,6 +6,9 @@ x-backend-environment: &backend-environment
   JALADA_DATABASE_URL: postgresql+psycopg://jalada:${POSTGRES_PASSWORD:-jalada}@postgres:5432/jalada
   # Local compose serves plain HTTP, where browsers drop Secure cookies.
   JALADA_COOKIE_SECURE: "false"
+  JALADA_PUBLIC_URL: http://localhost:3000
+  JALADA_GOOGLE_CLIENT_ID: ${JALADA_GOOGLE_CLIENT_ID:-}
+  JALADA_GOOGLE_CLIENT_SECRET: ${JALADA_GOOGLE_CLIENT_SECRET:-}
 
 services:
   postgres:

@@ -14,10 +14,22 @@ class UserCredentials:
     password_hash: str | None
 
 
+@dataclass(frozen=True)
+class GoogleProfile:
+    subject: str
+    email: str
+    email_verified: bool
+    name: str
+
+
 class UserRepository(Protocol):
-    def add(self, user: User, password_hash: str | None) -> None: ...
+    def add(
+        self, user: User, password_hash: str | None, google_subject: str | None = None
+    ) -> None: ...
     def get(self, user_id: UUID) -> User | None: ...
     def get_credentials(self, email: str) -> UserCredentials | None: ...
+    def get_by_google_subject(self, subject: str) -> User | None: ...
+    def link_google(self, user_id: UUID, subject: str) -> None: ...
 
 
 class SessionRepository(Protocol):
@@ -45,6 +57,13 @@ class UnitOfWork(Protocol):
 class PasswordHasher(Protocol):
     def hash(self, password: str) -> str: ...
     def verify(self, password_hash: str, password: str) -> bool: ...
+
+
+class GoogleIdentity(Protocol):
+    """Google's OpenID Connect sign-in. Raises GoogleSignInFailed when Google says no."""
+
+    def authorization_url(self, state: str, nonce: str, code_verifier: str) -> str: ...
+    def exchange(self, code: str, nonce: str, code_verifier: str) -> GoogleProfile: ...
 
 
 class Clock(Protocol):

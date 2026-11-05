@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account, sign in and sign out. Google sign-in, evidence capture, the pipeline, review, the ledger and the Excel export are next.
+Early. You can create an account with email or Google, sign in and sign out. Evidence capture, the pipeline, review, the ledger and the Excel export are next.
 
 ## Stack
 
@@ -94,6 +94,14 @@ Settings come from environment variables prefixed with `JALADA_`. To change them
 ```bash
 cp .env.example .env
 ```
+
+### Google sign-in
+
+Google sign-in is off until you give it credentials:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/apis/credentials), create an OAuth client ID of type "Web application".
+2. Add `http://localhost:3000/v1/auth/google/callback` as an authorised redirect URI.
+3. Put the client ID and secret in `.env` as `JALADA_GOOGLE_CLIENT_ID` and `JALADA_GOOGLE_CLIENT_SECRET`, then run `make up` again.
 
 `make up` also creates the database tables. Postgres is reachable from your machine on port 5433.
 

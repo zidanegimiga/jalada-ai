@@ -6,7 +6,13 @@ from types import TracebackType
 from typing import Self
 from uuid import UUID
 
-from jalada.application.ports import SessionRepository, UserCredentials, UserRepository
+from jalada.application.errors import GoogleSignInFailed
+from jalada.application.ports import (
+    GoogleProfile,
+    SessionRepository,
+    UserCredentials,
+    UserRepository,
+)
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 
@@ -14,15 +20,21 @@ from jalada.domain.users import User
 @dataclass
 class Store:
     users: dict[UUID, UserCredentials] = field(default_factory=dict)
+    google_subjects: dict[str, UUID] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
 
 
 class FakeUsers:
-    def __init__(self, users: dict[UUID, UserCredentials]) -> None:
+    def __init__(
+        self, users: dict[UUID, UserCredentials], google_subjects: dict[str, UUID]
+    ) -> None:
         self.rows = users
+        self.google_subjects = google_subjects
 
-    def add(self, user: User, password_hash: str | None) -> None:
+    def add(self, user: User, password_hash: str | None, google_subject: str | None = None) -> None:
         self.rows[user.id] = UserCredentials(user, password_hash)
+        if google_subject:
+            self.google_subjects[google_subject] = user.id
 
     def get(self, user_id: UUID) -> User | None:
         found = self.rows.get(user_id)
@@ -30,6 +42,13 @@ class FakeUsers:
 
     def get_credentials(self, email: str) -> UserCredentials | None:
         return next((c for c in self.rows.values() if c.user.email == email), None)
+
+    def get_by_google_subject(self, subject: str) -> User | None:
+        user_id = self.google_subjects.get(subject)
+        return self.get(user_id) if user_id else None
+
+    def link_google(self, user_id: UUID, subject: str) -> None:
+        self.google_subjects[subject] = user_id
 
 
 class FakeSessions:
@@ -54,7 +73,7 @@ class FakeUnitOfWork:
         self._store = store
 
     def __enter__(self) -> Self:
-        self._users = FakeUsers(dict(self._store.users))
+        self._users = FakeUsers(dict(self._store.users), dict(self._store.google_subjects))
         self._sessions = FakeSessions(dict(self._store.sessions))
         self.users: UserRepository = self._users
         self.sessions: SessionRepository = self._sessions
@@ -70,6 +89,7 @@ class FakeUnitOfWork:
 
     def commit(self) -> None:
         self._store.users = self._users.rows
+        self._store.google_subjects = self._users.google_subjects
         self._store.sessions = self._sessions.rows
 
 
@@ -91,3 +111,20 @@ class FixedClock:
 
     def now(self) -> datetime:
         return self.current
+
+
+class FakeGoogle:
+    """Returns a preset profile for the code "good-code" and fails for anything else."""
+
+    def __init__(self) -> None:
+        self.profile = GoogleProfile("google-123", "jane@example.com", True, "Jane Doe")
+        self.exchanged: list[tuple[str, str, str]] = []
+
+    def authorization_url(self, state: str, nonce: str, code_verifier: str) -> str:
+        return f"https://accounts.example.com/auth?state={state}"
+
+    def exchange(self, code: str, nonce: str, code_verifier: str) -> GoogleProfile:
+        self.exchanged.append((code, nonce, code_verifier))
+        if code != "good-code":
+            raise GoogleSignInFailed
+        return self.profile

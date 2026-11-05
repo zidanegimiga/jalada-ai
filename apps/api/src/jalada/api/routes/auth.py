@@ -2,23 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Request, Response, status
 
-from jalada.api.dependencies import SESSION_COOKIE, CurrentUser, ServicesDependency
+from jalada.api.dependencies import CurrentUser, ServicesDependency
 from jalada.api.errors import TooManyAttempts
 from jalada.api.schemas.auth import SignInRequest, SignUpRequest, UserResponse
-from jalada.application.authentication import IssuedSession
+from jalada.api.session_cookie import SESSION_COOKIE, set_session_cookie
 
 router = APIRouter(tags=["auth"])
-
-
-def _set_session_cookie(request: Request, response: Response, issued: IssuedSession) -> None:
-    response.set_cookie(
-        SESSION_COOKIE,
-        issued.token,
-        expires=issued.expires_at,
-        httponly=True,
-        secure=request.app.state.settings.cookie_secure,
-        samesite="lax",
-    )
 
 
 def _check_rate(request: Request, services: ServicesDependency, email: str) -> None:
@@ -33,7 +22,7 @@ def sign_up(
 ) -> UserResponse:
     _check_rate(request, services, body.email)
     issued = services.authenticator.sign_up(body.email, body.password, body.display_name)
-    _set_session_cookie(request, response, issued)
+    set_session_cookie(request, response, issued)
     return UserResponse.from_user(issued.user)
 
 
@@ -43,7 +32,7 @@ def sign_in(
 ) -> UserResponse:
     _check_rate(request, services, body.email)
     issued = services.authenticator.sign_in(body.email, body.password)
-    _set_session_cookie(request, response, issued)
+    set_session_cookie(request, response, issued)
     return UserResponse.from_user(issued.user)
 
 

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     session_days: int = Field(default=30, ge=1, le=365)
     # Browsers only send Secure cookies over HTTPS. Turn off for plain-HTTP local setups.
     cookie_secure: bool = True
+    # The address users open in their browser. Google sends them back here after sign-in.
+    public_url: str = Field(default="http://localhost:3000", pattern=r"^https?://[^/]+$")
+    # Google sign-in is switched off unless both are set.
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
 
 
 def load_settings() -> Settings:

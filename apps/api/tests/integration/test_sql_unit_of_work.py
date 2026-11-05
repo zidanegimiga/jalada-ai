@@ -69,3 +69,18 @@ def test_deleting_a_user_deletes_their_sessions(
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.sessions.get_active("b" * 64, NOW) is None
+
+
+def test_google_accounts_are_found_and_linked(session_factory: sessionmaker[DbSession]) -> None:
+    created = make_user("amina@example.com")
+    linked = make_user("jane@example.com")
+    with SqlUnitOfWork(session_factory) as work:
+        work.users.add(created, None, google_subject="google-1")
+        work.users.add(linked, "hash")
+        work.users.link_google(linked.id, "google-2")
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.users.get_by_google_subject("google-1") == created
+        assert work.users.get_by_google_subject("google-2") == linked
+        assert work.users.get_by_google_subject("google-3") is None

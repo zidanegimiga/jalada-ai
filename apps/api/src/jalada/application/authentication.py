@@ -6,11 +6,12 @@ from datetime import datetime, timedelta
 
 from jalada.application.errors import (
     EmailAlreadyRegistered,
+    GoogleSignInFailed,
     InvalidCredentials,
     NotSignedIn,
     WeakPassword,
 )
-from jalada.application.ports import Clock, PasswordHasher, UnitOfWork
+from jalada.application.ports import Clock, GoogleProfile, PasswordHasher, UnitOfWork
 from jalada.domain.sessions import Session, hash_session_token
 from jalada.domain.users import User, is_acceptable_password, normalize_email
 
@@ -60,6 +61,25 @@ class Authenticator:
             if credentials is None or stored_hash is None or not matches:
                 raise InvalidCredentials
             issued = self._start_session(work, credentials.user)
+            work.commit()
+        return issued
+
+    def sign_in_with_google(self, profile: GoogleProfile) -> IssuedSession:
+        """Match by Google id, else link the account with the same verified email, else create."""
+        if not profile.email_verified:
+            raise GoogleSignInFailed
+        email = normalize_email(profile.email)
+        with self._unit_of_work() as work:
+            user = work.users.get_by_google_subject(profile.subject)
+            credentials = None if user else work.users.get_credentials(email)
+            if credentials:
+                user = credentials.user
+                work.users.link_google(user.id, profile.subject)
+            elif user is None:
+                name = (profile.name.strip() or email.split("@")[0])[:80]
+                user = User(uuid.uuid4(), email, name, self._clock.now())
+                work.users.add(user, None, google_subject=profile.subject)
+            issued = self._start_session(work, user)
             work.commit()
         return issued
 

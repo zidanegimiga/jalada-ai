@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from jalada.api.errors import add_error_handlers
-from jalada.api.routes import auth, health
+from jalada.api.routes import auth, google, health
 from jalada.api.services import Services
 from jalada.config.settings import Settings
 
@@ -20,4 +20,5 @@ def create_app(settings: Settings, services: Services) -> FastAPI:
     add_error_handlers(app)
     app.include_router(health.router)
     app.include_router(auth.router)
+    app.include_router(google.router)
     return app

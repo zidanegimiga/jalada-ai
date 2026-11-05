@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
 
@@ -20,12 +20,13 @@ class SqlUserRepository:
     def __init__(self, db: DbSession) -> None:
         self._db = db
 
-    def add(self, user: User, password_hash: str | None) -> None:
+    def add(self, user: User, password_hash: str | None, google_subject: str | None = None) -> None:
         self._db.add(
             UserRow(
                 id=user.id,
                 email=user.email,
                 password_hash=password_hash,
+                google_subject=google_subject,
                 display_name=user.display_name,
                 created_at=user.created_at,
             )
@@ -43,6 +44,16 @@ class SqlUserRepository:
     def get_credentials(self, email: str) -> UserCredentials | None:
         row = self._db.scalars(select(UserRow).where(UserRow.email == email)).one_or_none()
         return UserCredentials(_to_user(row), row.password_hash) if row else None
+
+    def get_by_google_subject(self, subject: str) -> User | None:
+        query = select(UserRow).where(UserRow.google_subject == subject)
+        row = self._db.scalars(query).one_or_none()
+        return _to_user(row) if row else None
+
+    def link_google(self, user_id: UUID, subject: str) -> None:
+        self._db.execute(
+            update(UserRow).where(UserRow.id == user_id).values(google_subject=subject)
+        )
 
 
 class SqlSessionRepository:

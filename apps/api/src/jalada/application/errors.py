@@ -16,3 +16,7 @@ class InvalidCredentials(ApplicationError):
 
 class NotSignedIn(ApplicationError):
     pass
+
+
+class GoogleSignInFailed(ApplicationError):
+    pass
