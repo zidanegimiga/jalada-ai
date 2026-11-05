@@ -91,7 +91,7 @@ def withholding(sheet: Worksheet, report: TaxYearReport) -> None:
     money(
         sheet, total_row, 6, sum(e.tax_withheld_cents or 0 for e in report.certificates), bold=True
     )
-    widths(sheet, [12, 32, 14, 24, 16, 18, 10])
+    widths(sheet, [12, 32, 14, 24, 16, 22, 10])
 
 
 def summary(sheet: Worksheet, report: TaxYearReport) -> None:

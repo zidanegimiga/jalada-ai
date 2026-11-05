@@ -1,6 +1,7 @@
+from openpyxl.styles import Alignment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from jalada.adapters.export.cells import TITLE, header, text, widths
+from jalada.adapters.export.cells import TITLE, header, paragraph, text, widths
 from jalada.domain.tax_year import TaxYearReport
 
 GUIDE = [
@@ -54,5 +55,7 @@ def instructions(sheet: Worksheet, report: TaxYearReport) -> None:
     row = 5 + len(GUIDE) + 1
     text(sheet, row, 1, "Before you file", bold=True)
     for offset, note in enumerate(NOTES, start=1):
-        text(sheet, row + offset, 1, f"{offset}. {note}")
+        paragraph(sheet, row + offset, f"{offset}. {note}", last_column=3)
     widths(sheet, [18, 70, 48])
+    for row in range(5, 5 + len(GUIDE)):
+        sheet.cell(row, 2).alignment = Alignment(wrap_text=True, vertical="top")

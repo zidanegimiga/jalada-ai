@@ -116,3 +116,19 @@ def test_the_summary_totals_groups_and_months_without_calculating_tax(workbook: 
     assert groups["Tax withheld on certificates"] == 2000
     months = [r for r in sheet.iter_rows() if r[0].value == "March"]
     assert months[0][1].value == 40000
+
+
+def test_every_sheet_prints_one_page_wide(workbook: Workbook) -> None:
+    for sheet in workbook.worksheets:
+        assert sheet.page_setup.orientation == "landscape"
+        assert sheet.page_setup.fitToWidth == 1
+        assert sheet.sheet_properties.pageSetUpPr is not None
+        assert sheet.sheet_properties.pageSetUpPr.fitToPage
+
+
+def test_the_notes_wrap_across_the_sheet(workbook: Workbook) -> None:
+    sheet = workbook["Instructions"]
+    [note] = [c for row in sheet.iter_rows() for c in row if str(c.value).startswith("3. ")]
+
+    assert note.alignment.wrap_text
+    assert f"{note.coordinate}:C{note.row}" in {str(r) for r in sheet.merged_cells.ranges}

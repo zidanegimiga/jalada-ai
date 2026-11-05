@@ -3,8 +3,9 @@
 from datetime import date
 from decimal import Decimal
 
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.properties import PageSetupProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
 MONEY_FORMAT = "#,##0.00"
@@ -52,3 +53,19 @@ def header(sheet: Worksheet, row: int, names: list[str]) -> None:
 def widths(sheet: Worksheet, sizes: list[int]) -> None:
     for column, size in enumerate(sizes, start=1):
         sheet.column_dimensions[get_column_letter(column)].width = size
+
+
+def printable(sheet: Worksheet) -> None:
+    """Landscape, one page wide, so a printed sheet is not cut into columns."""
+    sheet.page_setup.orientation = "landscape"
+    sheet.page_setup.fitToWidth = 1
+    sheet.page_setup.fitToHeight = 0
+    sheet.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+
+
+def paragraph(sheet: Worksheet, row: int, value: str, last_column: int) -> None:
+    """Long text across several columns, wrapped, with a row tall enough to show it."""
+    text(sheet, row, 1, value)
+    sheet.merge_cells(start_row=row, start_column=1, end_row=row, end_column=last_column)
+    sheet.cell(row, 1).alignment = Alignment(wrap_text=True, vertical="top")
+    sheet.row_dimensions[row].height = 15 * (1 + len(value) // 110)

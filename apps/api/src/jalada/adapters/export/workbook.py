@@ -2,6 +2,7 @@ import io
 
 from openpyxl import Workbook
 
+from jalada.adapters.export.cells import printable
 from jalada.adapters.export.instructions import instructions
 from jalada.adapters.export.sheets import sections, summary, withholding
 from jalada.domain.tax_year import TaxYearReport
@@ -23,6 +24,8 @@ class ExcelWorkbookWriter:
         sections(workbook.create_sheet("Expenses"), report, report.expenses, last="eTIMS invoice")
         withholding(workbook.create_sheet("Withholding Tax"), report)
         summary(workbook.create_sheet("Summary"), report)
+        for sheet in workbook.worksheets:
+            printable(sheet)
         out = io.BytesIO()
         workbook.save(out)
         return out.getvalue()
