@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.channels.telegram_bot import TelegramBot
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
+from jalada.adapters.export.account_archive import ZipAccountArchive
 from jalada.adapters.export.workbook import ExcelWorkbookWriter
 from jalada.adapters.identity.google import GoogleOpenIdClient
 from jalada.adapters.models.gemini import GeminiModel
@@ -23,6 +24,7 @@ from jalada.adapters.system_clock import SystemClock
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
+from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
@@ -41,6 +43,7 @@ from jalada.pipeline.run_types import Budget
 def build_services(settings: Settings) -> Services:
     session_factory = sessionmaker(create_database_engine(settings.database_url))
     clock = SystemClock()
+    store = build_evidence_store(settings)
     authenticator = Authenticator(
         unit_of_work=lambda: SqlUnitOfWork(session_factory),
         hasher=Argon2PasswordHasher(),
@@ -49,7 +52,7 @@ def build_services(settings: Settings) -> Services:
     )
     evidence = EvidenceCapture(
         unit_of_work=lambda: SqlUnitOfWork(session_factory),
-        store=build_evidence_store(settings),
+        store=store,
         clock=clock,
     )
     sign_in_limiter = RateLimiter("5/minute")
@@ -69,6 +72,9 @@ def build_services(settings: Settings) -> Services:
             evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
         ),
         telegram_linking=telegram_linking,
+        account_export=AccountExport(
+            lambda: SqlUnitOfWork(session_factory), store, ZipAccountArchive()
+        ),
         google_sign_in=build_google_sign_in(settings, authenticator),
         telegram_capture=build_telegram_capture(
             settings, telegram_linking, evidence, sign_in_limiter, upload_limiter

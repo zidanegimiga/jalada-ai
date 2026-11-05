@@ -15,10 +15,12 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
+from jalada.adapters.export.account_archive import ZipAccountArchive
 from jalada.adapters.export.workbook import ExcelWorkbookWriter
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
+from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
@@ -112,6 +114,7 @@ def make_app(
     store: Store,
     linking: TelegramLinking,
     telegram: TelegramCapture,
+    evidence_store: FakeEvidenceStore,
 ) -> Callable[..., FastAPI]:
     def build(
         environment: Environment = "test",
@@ -134,6 +137,9 @@ def make_app(
                 "http://localhost:3000/v1/evidence/{id}/file",
             ),
             telegram_linking=linking,
+            account_export=AccountExport(
+                lambda: FakeUnitOfWork(store), evidence_store, ZipAccountArchive()
+            ),
             telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
         )

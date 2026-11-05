@@ -1,11 +1,15 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from types import TracebackType
-from typing import Any, Protocol, Self
+from typing import IO, TYPE_CHECKING, Any, Protocol, Self
 from uuid import UUID
 
 from jalada.domain.categories import Purpose
+
+if TYPE_CHECKING:
+    from jalada.application.account_export import AccountData
 from jalada.domain.entries import Entry
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
@@ -58,6 +62,15 @@ class EvidenceRepository(Protocol):
     ) -> None: ...
     def set_status(self, evidence_id: UUID, status: EvidenceStatus) -> None: ...
     def needing_entry(self, limit: int) -> list[Evidence]: ...
+    def all(self) -> list[Evidence]: ...
+
+
+@dataclass(frozen=True)
+class Revision:
+    entry_id: UUID
+    before: dict[str, Any]
+    after: dict[str, Any]
+    changed_at: datetime
 
 
 class EntryRepository(Protocol):
@@ -73,6 +86,8 @@ class EntryRepository(Protocol):
         self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
     ) -> list[Entry]: ...
     def monthly_totals(self, year: int) -> list[Total]: ...
+    def all(self) -> list[Entry]: ...
+    def revisions(self) -> list[Revision]: ...
     def has_mpesa_code(self, code: str) -> bool: ...
     def has_certificate_serial(self, serial: str) -> bool: ...
 
@@ -98,6 +113,7 @@ class PipelineRun:
 
 class RunRepository(Protocol):
     def add(self, run: PipelineRun, steps: list[StepRecord]) -> None: ...
+    def for_user(self, user_id: UUID) -> list[tuple[PipelineRun, list[StepRecord]]]: ...
 
 
 @dataclass(frozen=True)
@@ -201,6 +217,17 @@ class ProcessingNotifier(Protocol):
     """Tells the user what the pipeline made of their evidence."""
 
     def notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None: ...
+
+
+class ArchiveWriter(Protocol):
+    """Writes everything held about one user into a single downloadable file."""
+
+    content_type: str
+    extension: str
+
+    def write(
+        self, data: "AccountData", originals: Iterator[tuple[Evidence, bytes]], out: IO[bytes]
+    ) -> None: ...
 
 
 class Clock(Protocol):

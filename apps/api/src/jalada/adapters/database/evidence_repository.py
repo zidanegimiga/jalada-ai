@@ -71,6 +71,10 @@ class SqlEvidenceRepository:
         )
         return [_to_evidence(row) for row in self._db.scalars(query)]
 
+    def all(self) -> list[Evidence]:
+        query = self._mine().order_by(EvidenceRow.received_at)
+        return [_to_evidence(row) for row in self._db.scalars(query)]
+
     def _mine(self) -> Select[EvidenceRow]:
         return select(EvidenceRow).where(EvidenceRow.user_id == self._user_id)
 

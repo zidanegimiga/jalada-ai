@@ -17,6 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.adapters.database.tables import EntryRevisionRow, EntryRow
+from jalada.application.ports import Revision
 from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
@@ -96,6 +97,22 @@ class SqlEntryRepository:
         return [
             Total(int(m), Direction(str(direction)), Purpose(purpose), int(cents or 0))
             for m, direction, purpose, cents in self._db.execute(query)
+        ]
+
+    def all(self) -> list[Entry]:
+        query = self._mine().order_by(EntryRow.created_at)
+        return [_to_entry(row) for row in self._db.scalars(query)]
+
+    def revisions(self) -> list[Revision]:
+        query = (
+            select(EntryRevisionRow)
+            .join(EntryRow, EntryRow.id == EntryRevisionRow.entry_id)
+            .where(EntryRow.user_id == self._user_id)
+            .order_by(EntryRevisionRow.changed_at)
+        )
+        return [
+            Revision(row.entry_id, row.before, row.after, row.changed_at)
+            for row in self._db.scalars(query)
         ]
 
     def has_mpesa_code(self, code: str) -> bool:

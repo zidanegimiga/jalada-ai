@@ -1,10 +1,12 @@
 """Fake repositories for entries, preferences and pipeline runs."""
 
+from dataclasses import asdict
 from datetime import datetime
 from uuid import UUID
 
 from jalada.application.ports import (
     PipelineRun,
+    Revision,
 )
 from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryStatus
@@ -69,6 +71,17 @@ class FakeEntries:
     def has_certificate_serial(self, serial: str) -> bool:
         return any(e.certificate_serial == serial for e in self._mine())
 
+    def all(self) -> list[Entry]:
+        return sorted(self._mine(), key=lambda e: e.created_at)
+
+    def revisions(self) -> list[Revision]:
+        mine = {e.id for e in self._mine()}
+        return [
+            Revision(after.id, asdict(before), asdict(after), datetime.min)
+            for before, after in self._revisions
+            if after.id in mine
+        ]
+
     def _mine(self) -> list[Entry]:
         return [e for e in self.rows.values() if e.user_id == self._user_id]
 
@@ -104,3 +117,6 @@ class FakeRuns:
 
     def add(self, run: PipelineRun, steps: list[StepRecord]) -> None:
         self.rows.append((run, steps))
+
+    def for_user(self, user_id: UUID) -> list[tuple[PipelineRun, list[StepRecord]]]:
+        return [(run, steps) for run, steps in self.rows if run.user_id == user_id]

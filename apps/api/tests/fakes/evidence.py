@@ -48,6 +48,9 @@ class FakeEvidence:
         found = [e for e in self._mine() if e.status in unread and e.id not in with_entry]
         return sorted(found, key=lambda e: e.received_at)[:limit]
 
+    def all(self) -> list[Evidence]:
+        return sorted(self._mine(), key=lambda e: e.received_at)
+
     def _mine(self) -> list[Evidence]:
         return [e for e in self.rows.values() if e.user_id == self._user_id]
 
