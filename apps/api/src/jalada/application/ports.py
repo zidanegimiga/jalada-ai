@@ -1,12 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 from types import TracebackType
 from typing import Protocol, Self
 from uuid import UUID
 
-from jalada.domain.evidence import Evidence
+from jalada.domain.entries import Entry
+from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
+from jalada.pipeline.classifier import Preference
+from jalada.pipeline.process import StepRecord
 
 
 @dataclass(frozen=True)
@@ -46,6 +50,39 @@ class EvidenceRepository(Protocol):
     def get(self, evidence_id: UUID) -> Evidence | None: ...
     def get_by_fingerprint(self, sha256: str) -> Evidence | None: ...
     def list_recent(self, limit: int) -> list[Evidence]: ...
+    def set_outcome(
+        self, evidence_id: UUID, kind: EvidenceKind, status: EvidenceStatus
+    ) -> None: ...
+
+
+class EntryRepository(Protocol):
+    """Ledger entries for one user."""
+
+    def add(self, entry: Entry) -> None: ...
+    def has_mpesa_code(self, code: str) -> bool: ...
+    def has_certificate_serial(self, serial: str) -> bool: ...
+
+
+class PreferenceRepository(Protocol):
+    def all(self) -> dict[str, Preference]: ...
+
+
+@dataclass(frozen=True)
+class PipelineRun:
+    id: UUID
+    user_id: UUID
+    evidence_id: UUID
+    outcome: str
+    attempts: int
+    input_tokens: int
+    output_tokens: int
+    cost_usd: Decimal
+    started_at: datetime
+    finished_at: datetime
+
+
+class RunRepository(Protocol):
+    def add(self, run: PipelineRun, steps: list[StepRecord]) -> None: ...
 
 
 class JobQueue(Protocol):
@@ -58,8 +95,11 @@ class UnitOfWork(Protocol):
     users: UserRepository
     sessions: SessionRepository
     jobs: JobQueue
+    runs: RunRepository
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository: ...
+    def entries_for(self, user_id: UUID) -> EntryRepository: ...
+    def preferences_for(self, user_id: UUID) -> PreferenceRepository: ...
 
     def __enter__(self) -> Self: ...
     def __exit__(

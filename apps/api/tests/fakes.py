@@ -1,6 +1,6 @@
 """In-memory stand-ins for the ports, for fast tests without a database."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from types import TracebackType
 from typing import Self
@@ -8,16 +8,23 @@ from uuid import UUID
 
 from jalada.application.errors import GoogleSignInFailed
 from jalada.application.ports import (
+    EntryRepository,
     EvidenceRepository,
     GoogleProfile,
     JobQueue,
+    PipelineRun,
+    PreferenceRepository,
+    RunRepository,
     SessionRepository,
     UserCredentials,
     UserRepository,
 )
-from jalada.domain.evidence import Evidence
+from jalada.domain.entries import Entry
+from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
+from jalada.pipeline.classifier import Preference
+from jalada.pipeline.process import StepRecord
 
 
 @dataclass
@@ -26,6 +33,9 @@ class Store:
     google_subjects: dict[str, UUID] = field(default_factory=dict)
     evidence: dict[UUID, Evidence] = field(default_factory=dict)
     jobs: list[tuple[str, dict[str, str]]] = field(default_factory=list)
+    entries: dict[UUID, Entry] = field(default_factory=dict)
+    preferences: dict[UUID, dict[str, Preference]] = field(default_factory=dict)
+    runs: list[tuple[PipelineRun, list[StepRecord]]] = field(default_factory=list)
     sessions: dict[str, Session] = field(default_factory=dict)
 
 
@@ -90,6 +100,10 @@ class FakeEvidence:
     def list_recent(self, limit: int) -> list[Evidence]:
         return sorted(self._mine(), key=lambda e: e.received_at, reverse=True)[:limit]
 
+    def set_outcome(self, evidence_id: UUID, kind: EvidenceKind, status: EvidenceStatus) -> None:
+        if evidence_id in self.rows and self.rows[evidence_id].user_id == self._user_id:
+            self.rows[evidence_id] = replace(self.rows[evidence_id], kind=kind, status=status)
+
     def _mine(self) -> list[Evidence]:
         return [e for e in self.rows.values() if e.user_id == self._user_id]
 
@@ -100,6 +114,41 @@ class FakeJobs:
 
     def enqueue(self, kind: str, payload: dict[str, str]) -> None:
         self.rows.append((kind, payload))
+
+
+class FakeEntries:
+    def __init__(self, rows: dict[UUID, Entry], user_id: UUID) -> None:
+        self.rows = rows
+        self._user_id = user_id
+
+    def add(self, entry: Entry) -> None:
+        assert entry.user_id == self._user_id
+        self.rows[entry.id] = entry
+
+    def has_mpesa_code(self, code: str) -> bool:
+        return any(e.mpesa_code == code for e in self._mine())
+
+    def has_certificate_serial(self, serial: str) -> bool:
+        return any(e.certificate_serial == serial for e in self._mine())
+
+    def _mine(self) -> list[Entry]:
+        return [e for e in self.rows.values() if e.user_id == self._user_id]
+
+
+class FakePreferences:
+    def __init__(self, preferences: dict[str, Preference]) -> None:
+        self._preferences = preferences
+
+    def all(self) -> dict[str, Preference]:
+        return dict(self._preferences)
+
+
+class FakeRuns:
+    def __init__(self, rows: list[tuple[PipelineRun, list[StepRecord]]]) -> None:
+        self.rows = rows
+
+    def add(self, run: PipelineRun, steps: list[StepRecord]) -> None:
+        self.rows.append((run, steps))
 
 
 class FakeUnitOfWork:
@@ -116,10 +165,19 @@ class FakeUnitOfWork:
         self._evidence = dict(self._store.evidence)
         self._jobs = FakeJobs(list(self._store.jobs))
         self.jobs: JobQueue = self._jobs
+        self._entries = dict(self._store.entries)
+        self._runs = FakeRuns(list(self._store.runs))
+        self.runs: RunRepository = self._runs
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
         return FakeEvidence(self._evidence, user_id)
+
+    def entries_for(self, user_id: UUID) -> EntryRepository:
+        return FakeEntries(self._entries, user_id)
+
+    def preferences_for(self, user_id: UUID) -> PreferenceRepository:
+        return FakePreferences(self._store.preferences.get(user_id, {}))
 
     def __exit__(
         self,
@@ -134,6 +192,8 @@ class FakeUnitOfWork:
         self._store.google_subjects = self._users.google_subjects
         self._store.evidence = self._evidence
         self._store.jobs = self._jobs.rows
+        self._store.entries = self._entries
+        self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
 
 

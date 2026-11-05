@@ -31,7 +31,8 @@ def engine() -> Iterator[Engine]:
 def session_factory(engine: Engine) -> Iterator[sessionmaker[Session]]:
     yield sessionmaker(engine)
     with engine.begin() as connection:
-        connection.execute(text("TRUNCATE users, sessions, evidence, jobs CASCADE"))
+        # CASCADE also clears every table that refers to users.
+        connection.execute(text("TRUNCATE users, jobs CASCADE"))
 
 
 @pytest.fixture

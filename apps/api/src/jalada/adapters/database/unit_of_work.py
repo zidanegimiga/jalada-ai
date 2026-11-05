@@ -9,10 +9,15 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.database.evidence_repository import SqlEvidenceRepository
 from jalada.adapters.database.job_queue import SqlJobQueue
+from jalada.adapters.database.ledger_repository import SqlEntryRepository, SqlPreferenceRepository
 from jalada.adapters.database.repositories import SqlSessionRepository, SqlUserRepository
+from jalada.adapters.database.run_repository import SqlRunRepository
 from jalada.application.ports import (
+    EntryRepository,
     EvidenceRepository,
     JobQueue,
+    PreferenceRepository,
+    RunRepository,
     SessionRepository,
     UserRepository,
 )
@@ -32,10 +37,17 @@ class SqlUnitOfWork:
         self.users: UserRepository = SqlUserRepository(self._db)
         self.sessions: SessionRepository = SqlSessionRepository(self._db)
         self.jobs: JobQueue = SqlJobQueue(self._db, lambda: datetime.now(UTC))
+        self.runs: RunRepository = SqlRunRepository(self._db)
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
         return SqlEvidenceRepository(self._db, user_id)
+
+    def entries_for(self, user_id: UUID) -> EntryRepository:
+        return SqlEntryRepository(self._db, user_id)
+
+    def preferences_for(self, user_id: UUID) -> PreferenceRepository:
+        return SqlPreferenceRepository(self._db, user_id)
 
     def __exit__(
         self,

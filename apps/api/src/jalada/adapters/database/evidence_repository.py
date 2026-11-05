@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, update
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.adapters.database.tables import EvidenceRow
@@ -42,6 +42,13 @@ class SqlEvidenceRepository:
     def list_recent(self, limit: int) -> list[Evidence]:
         query = self._mine().order_by(EvidenceRow.received_at.desc()).limit(limit)
         return [_to_evidence(row) for row in self._db.scalars(query)]
+
+    def set_outcome(self, evidence_id: UUID, kind: EvidenceKind, status: EvidenceStatus) -> None:
+        self._db.execute(
+            update(EvidenceRow)
+            .where(EvidenceRow.user_id == self._user_id, EvidenceRow.id == evidence_id)
+            .values(kind=kind, status=status)
+        )
 
     def _mine(self) -> Select[EvidenceRow]:
         return select(EvidenceRow).where(EvidenceRow.user_id == self._user_id)
