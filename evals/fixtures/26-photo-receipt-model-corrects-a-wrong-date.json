@@ -1,0 +1,53 @@
+{
+  "name": "photo-receipt-model-corrects-a-wrong-date",
+  "content_type": "image/png",
+  "text": null,
+  "preferences": {},
+  "duplicate": false,
+  "model_replies": [
+    {
+      "kind": "receipt",
+      "occurred_on": "2027-04-11",
+      "direction": "out",
+      "amount_ksh": "250.00",
+      "counterparty": "SAMPLE SHOP",
+      "reference": null,
+      "mpesa_code": null,
+      "fee_ksh": null,
+      "tax_withheld_ksh": null,
+      "confidence": 0.9
+    },
+    {
+      "purpose": "personal",
+      "category": "personal_food",
+      "confidence": 0.9
+    },
+    {
+      "kind": "receipt",
+      "occurred_on": "2026-11-04",
+      "direction": "out",
+      "amount_ksh": "250.00",
+      "counterparty": "SAMPLE SHOP",
+      "reference": null,
+      "mpesa_code": null,
+      "fee_ksh": null,
+      "tax_withheld_ksh": null,
+      "confidence": 0.9
+    },
+    {
+      "purpose": "personal",
+      "category": "personal_food",
+      "confidence": 0.9
+    }
+  ],
+  "expected": {
+    "kind": "receipt",
+    "outcome": "proposed",
+    "fields": {
+      "occurred_on": "2026-11-04"
+    },
+    "category": "personal_food",
+    "purpose": "personal",
+    "verifier_should_reject": false
+  }
+}

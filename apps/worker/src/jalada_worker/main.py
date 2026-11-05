@@ -14,9 +14,8 @@ from jalada.adapters.text.reader import EvidenceTextReader
 from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.job_runner import JobRunner
-from jalada.composition import build_evidence_store
+from jalada.composition import build_budget, build_evidence_store, build_language_model
 from jalada.config.settings import Settings, load_settings
-from jalada.pipeline.run_types import Budget
 
 logger = logging.getLogger("jalada.worker")
 
@@ -50,7 +49,8 @@ def build_job_runner(settings: Settings) -> JobRunner:
         store=build_evidence_store(settings),
         reader=EvidenceTextReader(TesseractOcr()),
         clock=clock,
-        budget=Budget(),
+        budget=build_budget(settings),
+        model=build_language_model(settings),
     )
     return JobRunner(
         lambda: SqlUnitOfWork(session_factory), {PROCESS_EVIDENCE_JOB: processor}, clock

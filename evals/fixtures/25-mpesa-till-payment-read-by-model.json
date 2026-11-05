@@ -1,0 +1,38 @@
+{
+  "name": "mpesa-till-payment-read-by-model",
+  "content_type": "text/plain",
+  "text": "UK5AA00023 Confirmed. Ksh80.00 paid to MAMA MBOGA SHOP. on 5/11/26 at 1:00 PM. New M-PESA balance is Ksh1,120.00. Transaction cost, Ksh0.00.",
+  "preferences": {},
+  "duplicate": false,
+  "model_replies": [
+    {
+      "kind": "mpesa_message",
+      "occurred_on": "2026-11-05",
+      "direction": "out",
+      "amount_ksh": "80.00",
+      "counterparty": "MAMA MBOGA SHOP",
+      "reference": null,
+      "mpesa_code": "UK5AA00023",
+      "fee_ksh": "0.00",
+      "tax_withheld_ksh": null,
+      "confidence": 0.95
+    },
+    {
+      "purpose": "personal",
+      "category": "personal_food",
+      "confidence": 0.9
+    }
+  ],
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "proposed",
+    "fields": {
+      "amount_cents": 8000,
+      "mpesa_code": "UK5AA00023",
+      "counterparty": "MAMA MBOGA SHOP"
+    },
+    "category": "personal_food",
+    "purpose": "personal",
+    "verifier_should_reject": false
+  }
+}

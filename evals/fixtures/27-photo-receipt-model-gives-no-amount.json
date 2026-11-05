@@ -1,0 +1,29 @@
+{
+  "name": "photo-receipt-model-gives-no-amount",
+  "content_type": "image/jpeg",
+  "text": null,
+  "preferences": {},
+  "duplicate": false,
+  "model_replies": [
+    {
+      "kind": "receipt",
+      "occurred_on": "2026-11-04",
+      "direction": "out",
+      "amount_ksh": null,
+      "counterparty": "SAMPLE SHOP",
+      "reference": null,
+      "mpesa_code": null,
+      "fee_ksh": null,
+      "tax_withheld_ksh": null,
+      "confidence": 0.9
+    }
+  ],
+  "expected": {
+    "kind": "unknown",
+    "outcome": "needs_review",
+    "fields": null,
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

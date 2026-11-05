@@ -104,7 +104,7 @@ One run takes one piece of evidence for one user. Each step is its own function 
 
 **Learning:** confirming or correcting an entry upserts `counterparty_preferences`, so the next payment to the same counterparty is classified from the user's own choice.
 
-**Ports:** `LanguageModel` (extract to schema, classify), `TextFromImage` (OCR), `TextFromPdf`, `EvidenceStore` (put, signed link, delete), `JobQueue` (enqueue, claim, complete, fail), `Clock`. Fakes of each are used in tests and evaluations.
+**Ports:** `LanguageModel` (answer in JSON matching a schema, from text or a photo), `TextReader` (pasted text, PDFs, and photos through OCR), `EvidenceStore` (put, get, delete), `JobQueue` (enqueue, claim, complete, fail), `Clock`. Fakes of each are used in tests and evaluations.
 
 ### Evaluation suite
 

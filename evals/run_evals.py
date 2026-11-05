@@ -11,8 +11,11 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from replay_model import ReplayModel
+
 from jalada.domain.categories import Purpose
 from jalada.pipeline.classifier import Preference
+from jalada.pipeline.model import ImageInput
 from jalada.pipeline.process import run_pipeline
 from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
 
@@ -26,12 +29,17 @@ def run_fixture(fixture: dict[str, Any]) -> PipelineResult:
         key: Preference(p["category"], Purpose(p["purpose"]), p["times_used"])
         for key, p in fixture["preferences"].items()
     }
+    content_type = fixture["content_type"]
+    # Photos stand in as placeholder bytes: the replayed model reply is what gets scored.
+    photo = ImageInput(b"photo", content_type) if content_type.startswith("image/") else None
+    replies = fixture.get("model_replies")
     return run_pipeline(
-        EvidenceInput(fixture["text"], fixture["content_type"]),
+        EvidenceInput(fixture["text"], content_type, photo),
         preferences,
         is_duplicate=lambda _: bool(fixture["duplicate"]),
         today=TODAY,
         budget=Budget(),
+        model=ReplayModel(replies) if replies is not None else None,
     )
 
 

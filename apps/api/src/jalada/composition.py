@@ -11,6 +11,9 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
 from jalada.adapters.identity.google import GoogleOpenIdClient
+from jalada.adapters.models.gemini import GeminiModel
+from jalada.adapters.models.ollama import OllamaModel
+from jalada.adapters.models.pricing import Pricing
 from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
 from jalada.adapters.security.evidence_cipher import EvidenceCipher
 from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3_client
@@ -23,6 +26,8 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ports import EvidenceStore
 from jalada.config.settings import Settings, load_settings
+from jalada.pipeline.model import LanguageModel
+from jalada.pipeline.run_types import Budget
 
 
 def build_services(settings: Settings) -> Services:
@@ -69,6 +74,24 @@ def build_google_sign_in(settings: Settings, authenticator: Authenticator) -> Go
         redirect_uri=f"{settings.public_url}/v1/auth/google/callback",
     )
     return GoogleSignIn(google, authenticator)
+
+
+def build_language_model(settings: Settings) -> LanguageModel | None:
+    name = settings.resolved_model_name
+    if settings.model_provider == "gemini" and settings.gemini_api_key:
+        pricing = Pricing(settings.model_input_price, settings.model_output_price)
+        return GeminiModel(settings.gemini_api_key.get_secret_value(), name, pricing)
+    if settings.model_provider == "ollama":
+        return OllamaModel(settings.ollama_url, name)
+    return None
+
+
+def build_budget(settings: Settings) -> Budget:
+    return Budget(
+        max_attempts=settings.pipeline_max_attempts,
+        max_tokens=settings.pipeline_max_tokens,
+        max_cost_usd=settings.pipeline_max_cost_usd,
+    )
 
 
 def build_api() -> FastAPI:

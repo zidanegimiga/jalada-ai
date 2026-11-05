@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules and turned into proposed ledger entries. Reading photos, the review and ledger screens, the pipeline, review, the ledger and the Excel export are next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up, then turned into proposed ledger entries. The review and ledger screens, the pipeline, review, the ledger and the Excel export are next.
 
 ## Stack
 
@@ -37,6 +37,7 @@ Early. You can create an account with email or Google, upload receipts and PDFs,
 | --- | --- |
 | API and worker | Python 3.12, FastAPI, Pydantic, uv |
 | Web app | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui with Base UI |
+| Reading evidence | pdfplumber, Tesseract, Gemini or Ollama behind one interface |
 | Tests | pytest, Vitest, Testing Library |
 | Quality | ruff, mypy (strict), ESLint, pip-audit, npm audit, gitleaks |
 | Storage | PostgreSQL, S3-compatible object storage (SeaweedFS locally), evidence encrypted with AES-GCM |
@@ -96,6 +97,21 @@ Settings come from environment variables prefixed with `JALADA_`. To change them
 ```bash
 cp .env.example .env
 ```
+
+### Reading photos and unfamiliar messages
+
+Fixed formats (M-Pesa messages, withholding certificates) are read with rules. Photos go through Tesseract first. When neither works, a language model reads the evidence, if one is set up. Without one, that evidence simply waits for review.
+
+To use a local model with Ollama (about 3 GB to download):
+
+```bash
+make up-ollama
+make ollama-model
+```
+
+Then set `JALADA_MODEL_PROVIDER=ollama` in `.env` and run `make up-ollama` again. For Gemini, set `JALADA_MODEL_PROVIDER=gemini` and `JALADA_GEMINI_API_KEY`.
+
+Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set for a provider whose terms exclude training on what it is sent.
 
 ### Google sign-in
 

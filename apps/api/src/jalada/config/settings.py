@@ -1,10 +1,13 @@
-from typing import Literal
+from decimal import Decimal
+from typing import Literal, Self
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
+ModelProvider = Literal["none", "gemini", "ollama"]
+DEFAULT_MODELS = {"gemini": "gemini-2.5-flash", "ollama": "qwen2.5vl:3b"}
 
 
 class Settings(BaseSettings):
@@ -36,6 +39,36 @@ class Settings(BaseSettings):
     # Base64 encoded 32-byte keys, comma separated. The first encrypts new evidence.
     # Keep older keys after the first so evidence encrypted with them can still be read.
     evidence_keys: SecretStr
+    # The language model used when rules cannot read or classify evidence.
+    model_provider: ModelProvider = "none"
+    model_name: str | None = None
+    gemini_api_key: SecretStr | None = None
+    ollama_url: str = "http://localhost:11434"
+    # US dollars per million tokens, for the cost recorded on each run. Zero on free tiers.
+    model_input_price: Decimal = Field(default=Decimal(0), ge=0)
+    model_output_price: Decimal = Field(default=Decimal(0), ge=0)
+    # Set to true only for a provider whose terms exclude training on the data sent to it.
+    model_allowed_for_real_data: bool = False
+    # Limits for one piece of evidence.
+    pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
+    pipeline_max_tokens: int = Field(default=8000, ge=0)
+    pipeline_max_cost_usd: Decimal = Field(default=Decimal("0.02"), ge=0)
+
+    @model_validator(mode="after")
+    def check_model_settings(self) -> Self:
+        if self.model_provider == "gemini" and self.gemini_api_key is None:
+            raise ValueError("JALADA_GEMINI_API_KEY is needed for the gemini provider")
+        uses_model = self.model_provider != "none"
+        if self.environment == "production" and uses_model and not self.model_allowed_for_real_data:
+            raise ValueError(
+                "Real users' evidence may only go to a provider whose terms exclude training on "
+                "it (decision 0012). Set JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true once that is so."
+            )
+        return self
+
+    @property
+    def resolved_model_name(self) -> str:
+        return self.model_name or DEFAULT_MODELS.get(self.model_provider, "")
 
 
 def load_settings() -> Settings:
