@@ -32,6 +32,7 @@ from jalada.application.ports import EvidenceStore
 from jalada.application.tax_year_export import TaxYearExport
 from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
+from jalada.config.logging import configure_logging
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
 from jalada.pipeline.run_types import Budget
@@ -138,4 +139,5 @@ def build_budget(settings: Settings) -> Budget:
 
 def build_api() -> FastAPI:
     settings = load_settings()
+    configure_logging(settings.log_level)
     return create_app(settings, build_services(settings))
