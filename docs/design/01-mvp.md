@@ -66,7 +66,7 @@ All tables have a `uuid` primary key and `created_at`. Every table with user dat
 | `evidence` | `source` (web_upload, web_paste, telegram), `kind` (unknown, mpesa_message, statement, receipt, withholding_certificate, payslip, free_text), `storage_key`, `content_type`, `size_bytes`, `sha256`, `status` (received, processing, proposed, needs_review, confirmed, failed) | Unique on (`user_id`, `sha256`) so the same file is not processed twice. Pasted text is stored as a text object too, so all evidence lives in one place. |
 | `jobs` | `kind`, `payload` (jsonb), `status` (queued, running, done, failed), `attempts`, `run_after`, `locked_until`, `last_error` | Claimed with `SELECT ... FOR UPDATE SKIP LOCKED`. A job whose lock expires is retried. |
 | `pipeline_runs` | `evidence_id`, `outcome` (proposed, needs_review, duplicate, failed), `attempts`, `input_tokens`, `output_tokens`, `cost_usd`, `started_at`, `finished_at` | One per processing attempt of a piece of evidence. |
-| `pipeline_steps` | `run_id`, `step` (detect, extract, classify, verify), `attempt`, `input`, `output` (jsonb), `verdict`, `duration_ms`, `model`, `input_tokens`, `output_tokens` | The trace that explains how an entry was decided. Stored in the database, scoped to the user, and never written to logs. |
+| `pipeline_steps` | `run_id`, `step` (detect, extract, classify, verify), `attempt`, `input`, `output` (jsonb), `verdict`, `duration_ms` | The trace that explains how an entry was decided. Inputs describe what a step was given (kind, text length), never the raw evidence text, which stays encrypted in storage. Never written to logs. |
 
 ### Ledger
 
@@ -74,7 +74,7 @@ All tables have a `uuid` primary key and `created_at`. Every table with user dat
 | --- | --- | --- |
 | `entries` | `evidence_id`, `run_id`, `kind` (transaction, withholding_certificate), `status` (proposed, confirmed, rejected), `occurred_on`, `direction` (in, out), `amount_cents`, `counterparty`, `reference`, `mpesa_code`, `certificate_serial`, `tax_withheld_cents`, `purpose` (business, personal, unsure), `category_id`, `confidence`, `confirmed_at` | Unique on (`user_id`, `mpesa_code`) and on (`user_id`, `certificate_serial`) where not null. These are the duplicate guards. |
 | `entry_revisions` | `entry_id`, `before`, `after` (jsonb), `changed_at` | Every correction is kept, so the history of an entry is visible. |
-| `categories` | `slug`, `name`, `direction`, `purpose`, `report_group` | A fixed, seeded list. `report_group` decides which export sheet and section an entry lands in. |
+| (categories) | `slug`, `name`, `direction`, `purpose` | A fixed list in code, `domain/categories.py`. Entries store the slug. It moves to a table only if users get their own categories. |
 | `counterparty_preferences` | `user_id`, `counterparty_key`, `category_id`, `purpose`, `times_used` | Written when a user confirms or corrects an entry. The classifier checks this first. |
 
 ### Category list

@@ -25,11 +25,11 @@ Every piece of evidence goes through a short pipeline:
 3. **Classify** the purpose and category, checking your own past choices for that counterparty first.
 4. **Verify** the result: valid fields, amounts that add up, a plausible date, no duplicate M-Pesa code, and enough confidence. Anything that fails goes to review.
 
-Each run records its steps, timings and model usage, so any entry can be traced back to its evidence.
+Each run records its steps, timings and model usage, so any entry can be traced back to its evidence. The scoring script in [`evals/`](evals/) runs the pipeline over invented fixtures and fails CI if accuracy drops.
 
 ## Status
 
-Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. Reading them, the pipeline, review, the ledger and the Excel export are next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules and turned into proposed ledger entries. Reading photos, the review and ledger screens, the pipeline, review, the ledger and the Excel export are next.
 
 ## Stack
 
@@ -65,6 +65,7 @@ jalada-ai/
 │           ├── app/          routes
 │           ├── components/ui/  shadcn components
 │           └── lib/          shared helpers
+├── evals/                    invented fixtures and the pipeline scoring script
 ├── infra/                    docker compose
 ├── docs/
 │   ├── adr/                  decision records
