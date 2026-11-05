@@ -5,16 +5,12 @@ Jalada AI keeps money records for Kenyans with no accountant. A user sends a rec
 
 Users have scattered income, many small payments, and often small or basic phones.
 
-## How we work
-I review every line. Do not run ahead.
-
-1. **Plan, approve, build.** Propose a short numbered plan, wait for approval, then build exactly that.
-2. **One feature slice per commit.** Each commit is one complete, working slice with its tests, for example sign-up and sign-in end to end. Never mix a refactor with a feature. Work happens on the `dev` branch and reaches `main` through pull requests. Give me the commit command to run.
-3. **Explain everything, in chat.** After each commit, walk through every new or changed file, library, type, function, variable and test. Do not save these explanations as files. Only decisions are written down, as records in `docs/adr/`.
-4. **Decisions get a record.** Every library, service, data store or pattern gets an architecture decision record in `docs/adr/` before it lands in code. No new dependency without one.
-5. **Tests come with code.** Every behaviour change ships with tests. Run them and show the output. "Done" is proven, not asserted.
-6. **Ask, don't assume.** Never invent tax rules. Tax facts come from `docs/domain/` or from me.
-7. **Stop when a piece of work is done.** Summarise what exists and what is next, then wait.
+## How changes are made
+1. **Plan first.** Write down what a change will do before writing it.
+2. **One slice per commit.** Each commit is one complete, working piece with its tests, for example sign-up and sign-in end to end. Refactors go in commits of their own. Work happens on `dev` and reaches `main` through pull requests.
+3. **Decisions get a record.** Every library, service, data store or pattern gets a record in `docs/adr/` before it lands in code. No new dependency without one.
+4. **Tests come with code.** Every change in behaviour ships with tests, and `make check` passes before anything is committed.
+5. **No guessing about tax.** Tax facts come from `docs/domain/`, checked against the Kenya Revenue Authority.
 
 ## Architecture
 - **Ports and adapters.** Business logic depends on interfaces (ports), never on vendor libraries. Each vendor sits behind an adapter. Swapping a provider means one new adapter and one configuration change.
@@ -35,7 +31,7 @@ I review every line. Do not run ahead.
 - Validate every input with a schema. Parameterised queries only. Rate limit sign-in and upload routes.
 - Check upload type and size. Never trust a file name.
 - Argon2 for passwords. Sessions in secure, HTTP-only cookies. Every query is scoped to the signed-in user in one place.
-- Encrypt evidence at rest and serve it only through short-lived signed links.
+- Encrypt evidence at rest, and serve it only to its owner, through the API.
 - Never store an M-Pesa statement password. Never log raw financial content.
 - Users can export and delete all their data.
 
@@ -47,12 +43,13 @@ I review every line. Do not run ahead.
 ## Testing
 - Backend: pytest. Unit tests for the domain, use case tests with fake adapters, a few integration tests against real Postgres in Docker.
 - Frontend: Vitest with Testing Library, and Playwright for the main journeys.
-- Agent pipeline: the evaluation suite in `evals/`, run in continuous integration with pass thresholds.
+- Pipeline: the evaluation suite in `evals/`, run in continuous integration with pass thresholds.
 - Test data is always invented. Never commit real receipts, statements, certificates, `.env` files or keys.
 
 ## Writing style
-Docs and explanations use short, plain sentences. No em dashes and no emojis. Spell out every acronym the first time and say what it means.
+Docs use short, plain sentences. No em dashes and no emojis. Spell out every acronym the first time and say what it means.
 
 ## Where things are
-- `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: Kenyan tax and M-Pesa notes, to verify rather than treat as tax advice.
-- `.claude/skills/` and `.agents/`: project skills in the open Agent Skills format. They live only on my machine and are never committed. Read the relevant one before working in an area, and keep it up to date when a change affects it.
+- `apps/api`: the FastAPI service and the `jalada` package. `apps/worker`: runs pipeline jobs. `apps/web`: the Next.js app.
+- `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: notes on Kenyan tax, M-Pesa messages and withholding certificates, to verify rather than treat as tax advice.
+- `evals/`: invented fixtures and the pipeline scoring script. `infra/`: docker compose.
