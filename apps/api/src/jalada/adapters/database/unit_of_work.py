@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.database.evidence_repository import SqlEvidenceRepository
 from jalada.adapters.database.job_queue import SqlJobQueue
-from jalada.adapters.database.ledger_repository import SqlEntryRepository, SqlPreferenceRepository
+from jalada.adapters.database.ledger_repository import SqlEntryRepository
+from jalada.adapters.database.preference_repository import SqlPreferenceRepository
 from jalada.adapters.database.repositories import SqlSessionRepository, SqlUserRepository
 from jalada.adapters.database.run_repository import SqlRunRepository
 from jalada.application.ports import (

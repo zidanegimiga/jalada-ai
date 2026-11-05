@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+from samples import confirmed_entry
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
@@ -14,6 +15,7 @@ from jalada.application.ports import PipelineRun
 from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
+from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.domain.users import User
 from jalada.pipeline.run_types import StepRecord
 
@@ -189,3 +191,38 @@ def test_unread_evidence_without_an_entry_waits_for_one(
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.evidence_for(user.id).needing_entry(10) == []
+
+
+def test_ledger_queries_filter_page_and_total_in_postgres(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, evidence, _ = setup_evidence(session_factory)
+    rows = [
+        (date(2026, 1, 5), 4_000_000, "in", "consultancy_fees"),
+        (date(2026, 1, 20), 25_000, "out", "business_airtime_data"),
+        (date(2026, 1, 20), 5_000, "out", "business_airtime_data"),
+        (date(2026, 2, 3), 80_000, "out", "personal_food"),
+    ]
+    with SqlUnitOfWork(session_factory) as work:
+        for day, cents, direction, category in rows:
+            entry = replace(
+                confirmed_entry(user.id, day, cents, direction, category), evidence_id=evidence.id
+            )
+            work.entries_for(user.id).add(entry)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        entries = work.entries_for(user.id)
+        first = entries.confirmed(LedgerFilter(), None, 2)
+        last = first[-1]
+        assert last.occurred_on is not None
+        rest = entries.confirmed(LedgerFilter(), LedgerPosition(last.occurred_on, last.id), 10)
+        business = entries.confirmed(LedgerFilter(purpose=Purpose.BUSINESS), None, 10)
+        totals = entries.monthly_totals(2026)
+
+    assert len(first) + len(rest) == 4
+    assert {e.id for e in first}.isdisjoint({e.id for e in rest})
+    assert len(business) == 3
+    assert Total(1, Direction.OUT, Purpose.BUSINESS, 30_000) in totals
+    assert Total(1, Direction.IN, Purpose.BUSINESS, 4_000_000) in totals
+    assert Total(2, Direction.OUT, Purpose.PERSONAL, 80_000) in totals

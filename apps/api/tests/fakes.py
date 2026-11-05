@@ -21,9 +21,10 @@ from jalada.application.ports import (
     UserCredentials,
     UserRepository,
 )
-from jalada.domain.categories import Purpose
+from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
+from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 from jalada.pipeline.classifier import Preference
@@ -181,6 +182,27 @@ class FakeEntries:
         waiting = (EntryStatus.PROPOSED, EntryStatus.NEEDS_REVIEW)
         return [e for e in self._mine() if e.status in waiting][:limit]
 
+    def confirmed(
+        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+    ) -> list[Entry]:
+        found = [
+            e for e in self._mine() if e.status == EntryStatus.CONFIRMED and _keeps(filters, e)
+        ]
+        found.sort(key=lambda e: (e.occurred_on, e.id), reverse=True)
+        if after:
+            found = [
+                e for e in found if (e.occurred_on, e.id) < (after.occurred_on, after.entry_id)
+            ]
+        return found[:limit]
+
+    def monthly_totals(self, year: int) -> list[Total]:
+        sums: dict[tuple[int, Direction, Purpose], int] = {}
+        for e in self._mine():
+            if e.status == EntryStatus.CONFIRMED and e.occurred_on and e.occurred_on.year == year:
+                key = (e.occurred_on.month, e.direction or Direction.OUT, e.purpose)
+                sums[key] = sums.get(key, 0) + (e.amount_cents or 0)
+        return [Total(m, d, p, cents) for (m, d, p), cents in sums.items()]
+
     def has_mpesa_code(self, code: str) -> bool:
         return any(e.mpesa_code == code for e in self._mine())
 
@@ -189,6 +211,17 @@ class FakeEntries:
 
     def _mine(self) -> list[Entry]:
         return [e for e in self.rows.values() if e.user_id == self._user_id]
+
+
+def _keeps(filters: LedgerFilter, entry: Entry) -> bool:
+    day = entry.occurred_on
+    return not (
+        (filters.start and (day is None or day < filters.start))
+        or (filters.end and (day is None or day > filters.end))
+        or (filters.direction and entry.direction != filters.direction)
+        or (filters.purpose and entry.purpose != filters.purpose)
+        or (filters.category and entry.category != filters.category)
+    )
 
 
 class FakePreferences:

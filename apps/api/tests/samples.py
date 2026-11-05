@@ -1,5 +1,12 @@
 """Tiny made-up files with real signatures, for upload tests."""
 
+from datetime import date
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+if TYPE_CHECKING:
+    from jalada.domain.entries import Entry
+
 JPEG = b"\xff\xd8\xff\xe0" + b"\x00\x10JFIF" + b"\x00" * 50
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 50
 WEBP = b"RIFF\x24\x00\x00\x00WEBPVP8 " + b"\x00" * 50
@@ -84,3 +91,33 @@ def make_receipt_photo(lines: list[str], noise: bool = False) -> bytes:
     out = io.BytesIO()
     image.save(out, "JPEG", quality=85)
     return out.getvalue()
+
+
+def confirmed_entry(user_id: UUID, day: date, cents: int, direction: str, category: str) -> "Entry":
+    """A confirmed ledger entry, for ledger and summary tests."""
+    import uuid
+    from datetime import UTC, datetime
+
+    from jalada.domain.categories import CATEGORIES, Direction
+    from jalada.domain.entries import Entry, EntryKind, EntryStatus
+
+    return Entry(
+        uuid.uuid4(),
+        user_id,
+        uuid.uuid4(),
+        None,
+        EntryKind.TRANSACTION,
+        EntryStatus.CONFIRMED,
+        day,
+        Direction(direction),
+        cents,
+        "SOMEONE",
+        None,
+        None,
+        None,
+        None,
+        CATEGORIES[category].purpose,
+        category,
+        1.0,
+        datetime(2026, 11, 5, tzinfo=UTC),
+    )

@@ -3,14 +3,23 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, case, exists, select, update
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import (
+    ColumnElement,
+    Select,
+    and_,
+    exists,
+    extract,
+    func,
+    or_,
+    select,
+    update,
+)
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.adapters.database.tables import CounterpartyPreferenceRow, EntryRevisionRow, EntryRow
+from jalada.adapters.database.tables import EntryRevisionRow, EntryRow
 from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.pipeline.classifier import Preference
+from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
 
 PENDING = [EntryStatus.PROPOSED, EntryStatus.NEEDS_REVIEW]
 
@@ -57,6 +66,38 @@ class SqlEntryRepository:
         query = self._mine().where(EntryRow.status.in_(PENDING)).limit(limit)
         return [_to_entry(row) for row in self._db.scalars(query)]
 
+    def confirmed(
+        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+    ) -> list[Entry]:
+        query = self._mine().where(EntryRow.status == EntryStatus.CONFIRMED)
+        query = query.where(*_conditions(filters))
+        if after:
+            # Keyset paging: everything strictly older than where the last page ended.
+            query = query.where(
+                or_(
+                    EntryRow.occurred_on < after.occurred_on,
+                    and_(EntryRow.occurred_on == after.occurred_on, EntryRow.id < after.entry_id),
+                )
+            )
+        query = query.order_by(EntryRow.occurred_on.desc(), EntryRow.id.desc()).limit(limit)
+        return [_to_entry(row) for row in self._db.scalars(query)]
+
+    def monthly_totals(self, year: int) -> list[Total]:
+        month = extract("month", EntryRow.occurred_on)
+        query = (
+            select(month, EntryRow.direction, EntryRow.purpose, func.sum(EntryRow.amount_cents))
+            .where(
+                EntryRow.user_id == self._user_id,
+                EntryRow.status == EntryStatus.CONFIRMED,
+                extract("year", EntryRow.occurred_on) == year,
+            )
+            .group_by(month, EntryRow.direction, EntryRow.purpose)
+        )
+        return [
+            Total(int(m), Direction(str(direction)), Purpose(purpose), int(cents or 0))
+            for m, direction, purpose, cents in self._db.execute(query)
+        ]
+
     def has_mpesa_code(self, code: str) -> bool:
         return self._exists(EntryRow.mpesa_code == code)
 
@@ -80,45 +121,19 @@ class SqlEntryRepository:
             raise PermissionError("Entry belongs to another user")
 
 
-class SqlPreferenceRepository:
-    def __init__(self, db: DbSession, user_id: UUID) -> None:
-        self._db = db
-        self._user_id = user_id
-
-    def all(self) -> dict[str, Preference]:
-        rows = self._db.scalars(
-            select(CounterpartyPreferenceRow).where(
-                CounterpartyPreferenceRow.user_id == self._user_id
-            )
-        )
-        return {
-            row.counterparty_key: Preference(row.category, Purpose(row.purpose), row.times_used)
-            for row in rows
-        }
-
-    def remember(self, counterparty_key: str, category: str, purpose: Purpose) -> None:
-        """Save the user's choice. Choosing the same again makes it count for more."""
-        row = CounterpartyPreferenceRow
-        statement = insert(row).values(
-            user_id=self._user_id,
-            counterparty_key=counterparty_key,
-            category=category,
-            purpose=purpose,
-            times_used=1,
-        )
-        # In ON CONFLICT, the table's columns are the row already saved.
-        same_choice = (row.category == category) & (row.purpose == purpose)
-        self._db.execute(
-            statement.on_conflict_do_update(
-                index_elements=["user_id", "counterparty_key"],
-                set_={
-                    "category": category,
-                    "purpose": purpose,
-                    # A different choice starts counting again from one.
-                    "times_used": case((same_choice, row.times_used + 1), else_=1),
-                },
-            )
-        )
+def _conditions(filters: LedgerFilter) -> list[ColumnElement[bool]]:
+    conditions: list[ColumnElement[bool]] = []
+    if filters.start:
+        conditions.append(EntryRow.occurred_on >= filters.start)
+    if filters.end:
+        conditions.append(EntryRow.occurred_on <= filters.end)
+    if filters.direction:
+        conditions.append(EntryRow.direction == filters.direction)
+    if filters.purpose:
+        conditions.append(EntryRow.purpose == filters.purpose)
+    if filters.category:
+        conditions.append(EntryRow.category == filters.category)
+    return conditions
 
 
 def _record(entry: Entry) -> dict[str, Any]:

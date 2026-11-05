@@ -5,6 +5,7 @@ from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
+from jalada.application.ledger import Ledger
 
 
 @dataclass(frozen=True)
@@ -16,5 +17,6 @@ class Services:
     evidence: EvidenceCapture
     upload_limiter: RateLimiter
     review: EntryReview
+    ledger: Ledger
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None = None
