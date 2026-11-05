@@ -1,5 +1,127 @@
 # Jalada AI
 
-Purpose-aware money records for Kenyans. Jalada AI works out what each transaction was for, then categorises and saves it with its evidence. It is a personal financial record first and a tax-ready record at filing time.
+Jalada AI keeps money records for people in Kenya who don't have an accountant.
 
-The project is in the design stage. Start with [`docs/design/README.md`](docs/design/README.md).
+You send it a receipt photo, a PDF or a forwarded M-Pesa message. It works out what the money was for (business or personal, earned income or support from family, a work cost or a household cost), puts it in a category, keeps the original as evidence and saves it to a ledger. Over the month that ledger shows where your money went. At filing time it gives you the figures grouped the way the KRA iTax return asks for them.
+
+## Why I'm building it
+
+In 2025 I was salaried for part of the year, freelanced for the rest, had clients deduct withholding tax, and got support from family between jobs. When it came to filing my return, I had to rebuild the whole year from bank and M-Pesa statements and work out which deposits were income and which weren't. Receipts and withholding certificates were spread across email, WhatsApp and paper.
+
+A lot of people are in the same position: mixed income, many small payments, money for the business and for the house going through the same M-Pesa line, and often a small phone with little data. Jalada AI is meant to make keeping records take seconds, and make filing time boring.
+
+A few rules the product sticks to:
+
+- It never decides on its own that something is taxable or deductible. Anything it is unsure about goes to a review queue, and you confirm or correct it with one tap.
+- Every ledger entry links back to the original receipt, message or file, and to how it was categorised.
+- Financial data is personal data under the Data Protection Act. You can export or delete everything.
+
+## How it will work
+
+Every piece of evidence goes through a short pipeline:
+
+1. **Detect** what it is: an M-Pesa message, a statement, a receipt photo, a withholding certificate, a payslip or free text.
+2. **Extract** the date, amount, counterparty, reference and any tax amounts. Fixed formats like M-Pesa messages are parsed with rules. OCR and a language model are only used when rules can't cope.
+3. **Classify** the purpose and category, checking your own past choices for that counterparty first.
+4. **Verify** the result: valid fields, amounts that add up, a plausible date, no duplicate M-Pesa code, and enough confidence. Anything that fails goes to review.
+
+Each run records its steps, timings and model usage, so any entry can be traced back to its evidence.
+
+## Status
+
+Early. The API, the background worker and the web app all build and run, with CI, Docker and the design system in place. Sign-in, evidence capture, the pipeline, review, the ledger and the Excel export are next.
+
+## Stack
+
+| Part | Tools |
+| --- | --- |
+| API and worker | Python 3.12, FastAPI, Pydantic, uv |
+| Web app | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui with Base UI |
+| Tests | pytest, Vitest, Testing Library |
+| Quality | ruff, mypy (strict), ESLint, pip-audit, npm audit, gitleaks |
+| Running it | Docker, docker compose, GitHub Actions |
+
+Every one of these choices has a short decision record in [`docs/adr/`](docs/adr/) explaining what else was considered and why.
+
+## Project layout
+
+```
+jalada-ai/
+├── apps/
+│   ├── api/                  FastAPI service, home of the jalada Python package
+│   │   ├── src/jalada/
+│   │   │   ├── domain/       business rules, no input or output
+│   │   │   ├── application/  use cases and the interfaces (ports) they need
+│   │   │   ├── adapters/     database, storage, model and OCR implementations
+│   │   │   ├── pipeline/     detector, extractor, classifier, verifier, runner
+│   │   │   ├── api/          HTTP routes and schemas
+│   │   │   ├── config/       typed settings from the environment
+│   │   │   └── composition.py  wires everything together
+│   │   └── tests/
+│   ├── worker/               runs pipeline jobs, reuses the jalada package
+│   └── web/                  Next.js app
+│       └── src/
+│           ├── app/          routes
+│           ├── components/ui/  shadcn components
+│           └── lib/          shared helpers
+├── infra/                    docker compose
+├── docs/
+│   ├── adr/                  decision records
+│   ├── design/               design documents
+│   └── domain/               notes on Kenyan tax and M-Pesa
+├── .github/                  CI workflows and Dependabot
+├── AGENTS.md                 conventions for working in this repo
+├── Makefile                  common commands
+└── pyproject.toml            Python workspace and tool settings
+```
+
+The backend follows ports and adapters. Business logic only talks to interfaces, and each outside service (database, storage, model provider) sits behind an adapter, so swapping a provider means writing one adapter and changing one line in `composition.py`.
+
+## Running it
+
+You need [Docker](https://www.docker.com/), [uv](https://docs.astral.sh/uv/) and Node 24.
+
+Start everything:
+
+```bash
+make up
+```
+
+The API is on http://localhost:8000 (docs at `/docs`) and the web app is on http://localhost:3000. Stop it with `make down`.
+
+Settings come from environment variables prefixed with `JALADA_`. To change them, copy the example file and edit it:
+
+```bash
+cp .env.example .env
+```
+
+### Without Docker
+
+```bash
+uv sync
+JALADA_ENVIRONMENT=development uv run uvicorn jalada.composition:build_api --factory --reload
+```
+
+```bash
+JALADA_ENVIRONMENT=development uv run jalada-worker
+```
+
+```bash
+cd apps/web && npm install && npm run dev
+```
+
+## Checks
+
+```bash
+make check
+```
+
+This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and the web tests, the same as CI. `make format` fixes formatting.
+
+## Design
+
+The web app is built for small Android phones first: large text, big tap targets and light pages. It uses the Onest font and a black, pumpkin, ivory and flax palette, with a dark theme that follows the phone's setting.
+
+## Test data
+
+All receipts, statements and certificates in this repo are made up. Never commit real financial documents or `.env` files.
