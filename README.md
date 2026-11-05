@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. Exporting and deleting your data, and hosting, are next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. You can download everything held about you, originals included, or delete your account and all of it. Hosting is next.
 
 ## Stack
 

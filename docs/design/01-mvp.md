@@ -135,8 +135,8 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 | `GET /v1/exports/{year}.xlsx` | The tax year workbook. |
 | `POST /v1/telegram/link-code` | Creates a code to link a Telegram account. |
 | `POST /v1/telegram/webhook` | Telegram updates. Checked against the secret token header. |
-| `GET /v1/account/export` | A zip of all the user's data and evidence. |
-| `DELETE /v1/account` | Deletes the user, their rows and their evidence objects. |
+| `GET /v1/account/export` | A zip of everything held about the user: account, entries and revisions, evidence details with every original file, pipeline runs and remembered choices. No password hash or session data. |
+| `DELETE /v1/account` | Takes the account's email typed again. Deletes every evidence file, then the user, which cascades to all their rows, and their queued jobs. Signs them out. |
 
 **Limits:** sign-in and sign-up allow 5 attempts per minute per address and per IP address. Uploads allow 60 per hour per user, up to 10 MB each, of type JPEG, PNG, WebP or PDF, checked by reading the file's first bytes, not by trusting its name or declared type.
 
@@ -154,7 +154,7 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 
 **Export.** Choose a year and download the workbook.
 
-**Delete.** In settings, delete my data asks for confirmation by typing the email, then removes everything.
+**Download and delete.** On the account screen, Download my data gives one zip with everything, originals included. Delete my account asks for the email typed out, then removes everything and signs out.
 
 ## Excel export
 
