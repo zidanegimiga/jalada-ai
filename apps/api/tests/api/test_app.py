@@ -1,9 +1,11 @@
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from jalada.api.app import create_app
 from jalada.composition import build_api
 
 
@@ -33,3 +35,22 @@ def test_composition_root_builds_the_api_from_the_environment(
     client = TestClient(build_api())
 
     assert client.get("/health").status_code == 200
+
+
+def test_the_api_can_run_the_job_loop_while_it_is_up(make_app: Callable[..., FastAPI]) -> None:
+    events: list[str] = []
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        events.append("started")
+        yield
+        events.append("stopped")
+
+    base = make_app()
+    app = create_app(base.state.settings, base.state.services, lifespan)
+
+    with TestClient(app) as client:
+        assert client.get("/health").status_code == 200
+        assert events == ["started"]
+
+    assert events == ["started", "stopped"]

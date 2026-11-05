@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     telegram_bot_username: str | None = None
     # Telegram sends this back on every webhook call, so the API can tell the call is real.
     telegram_webhook_secret: SecretStr | None = None
+    # Run the job loop inside the API process, for hosts with no separate background workers.
+    run_worker_in_api: bool = False
     # Limits for one piece of evidence.
     pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
     pipeline_max_tokens: int = Field(default=8000, ge=0)

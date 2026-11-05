@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
+
 from fastapi import FastAPI
 
 from jalada.api.errors import add_error_handlers
@@ -15,8 +18,10 @@ from jalada.api.routes import (
 from jalada.api.services import Services
 from jalada.config.settings import Settings
 
+Lifespan = Callable[[FastAPI], AbstractAsyncContextManager[None]]
 
-def create_app(settings: Settings, services: Services) -> FastAPI:
+
+def create_app(settings: Settings, services: Services, lifespan: Lifespan | None = None) -> FastAPI:
     """Build the HTTP app. Everything it needs is passed in; nothing is imported globally."""
     show_docs = settings.environment != "production"
     app = FastAPI(
@@ -24,6 +29,7 @@ def create_app(settings: Settings, services: Services) -> FastAPI:
         docs_url="/docs" if show_docs else None,
         redoc_url=None,
         openapi_url="/openapi.json" if show_docs else None,
+        lifespan=lifespan,
     )
     app.state.settings = settings
     app.state.services = services

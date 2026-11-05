@@ -4,6 +4,8 @@ Start the API with:
     uvicorn jalada.composition:build_api --factory
 """
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import timedelta
 
 from fastapi import FastAPI
@@ -23,7 +25,7 @@ from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3
 from jalada.adapters.system_clock import SystemClock
 from jalada.adapters.text.ocr import TesseractOcr
 from jalada.adapters.text.reader import EvidenceTextReader
-from jalada.api.app import create_app
+from jalada.api.app import Lifespan, create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
 from jalada.application.account_deletion import AccountDeletion
@@ -33,7 +35,7 @@ from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB, EvidenceCapture
 from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.google_sign_in import GoogleSignIn
-from jalada.application.job_runner import JobRunner
+from jalada.application.job_runner import JobRunner, background_jobs
 from jalada.application.ledger import Ledger
 from jalada.application.ports import EvidenceStore
 from jalada.application.tax_year_export import TaxYearExport
@@ -44,6 +46,8 @@ from jalada.config.logging import configure_logging
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
 from jalada.pipeline.run_types import Budget
+
+POLL_INTERVAL_SECONDS = 5.0
 
 
 def build_services(settings: Settings) -> Services:
@@ -153,7 +157,20 @@ def build_budget(settings: Settings) -> Budget:
 def build_api() -> FastAPI:
     settings = load_settings()
     configure_logging(settings.log_level)
-    return create_app(settings, build_services(settings))
+    lifespan = jobs_in_background(settings) if settings.run_worker_in_api else None
+    return create_app(settings, build_services(settings), lifespan)
+
+
+def jobs_in_background(settings: Settings) -> Lifespan:
+    """Runs the worker's job loop on a thread inside the API, for free hosts."""
+    runner = build_job_runner(settings)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        with background_jobs(runner, POLL_INTERVAL_SECONDS):
+            yield
+
+    return lifespan
 
 
 def build_job_runner(settings: Settings) -> JobRunner:

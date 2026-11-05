@@ -1,6 +1,7 @@
 import logging
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Protocol
 
@@ -69,7 +70,31 @@ class Runs(Protocol):
 
 
 def work_until(stop: threading.Event, jobs: Runs, poll_interval: float) -> None:
-    """Run due jobs back to back, and wait between polls when there are none."""
+    """Run due jobs back to back, and wait between polls when there are none.
+
+    A failure outside a job, such as the database being unreachable, is logged and retried
+    after a wait, so one bad moment does not stop the loop for good.
+    """
     while not stop.is_set():
-        if not jobs.run_one():
+        try:
+            worked = jobs.run_one()
+        except Exception as error:
+            logger.error("the job loop failed with %s", type(error).__name__)
+            worked = False
+        if not worked:
             stop.wait(poll_interval)
+
+
+@contextmanager
+def background_jobs(jobs: Runs, poll_interval: float) -> Iterator[None]:
+    """Runs the job loop on a thread for as long as the block lasts."""
+    stop = threading.Event()
+    thread = threading.Thread(
+        target=work_until, args=(stop, jobs, poll_interval), name="jobs", daemon=True
+    )
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join(timeout=30)
