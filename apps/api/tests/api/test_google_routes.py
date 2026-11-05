@@ -69,3 +69,10 @@ def test_start_explains_when_google_is_not_configured(make_app: Callable[..., Fa
     response = client.get("/v1/auth/google/start", follow_redirects=False)
 
     assert response.headers["location"] == "http://localhost:3000/signin?error=google_unavailable"
+
+
+def test_sign_in_options_say_when_google_is_on(make_app: Callable[..., FastAPI]) -> None:
+    assert TestClient(make_app()).get("/v1/auth/providers").json() == {"google": True}
+    assert TestClient(make_app(with_google=False)).get("/v1/auth/providers").json() == {
+        "google": False
+    }

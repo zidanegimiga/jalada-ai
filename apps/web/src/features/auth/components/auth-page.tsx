@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { GoogleButton } from "./google-button";
+import { GoogleOption } from "./google-option";
 
 type AuthPageProps = {
   title: string;
@@ -17,16 +18,16 @@ export function AuthPage({ title, notice, children, footer }: AuthPageProps) {
         <h1 className="text-4xl font-bold">{title}</h1>
       </div>
       {notice}
-      <GoogleButton />
-      <div className="flex items-center gap-3 text-muted-foreground" aria-hidden="true">
-        <span className="h-px flex-1 bg-border" />
-        or
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      <Suspense>
+        <GoogleOption />
+      </Suspense>
       {children}
       <p className="text-center">
         {footer.text}{" "}
-        <Link href={footer.href} className="font-medium underline underline-offset-4">
+        <Link
+          href={footer.href}
+          className="font-medium underline underline-offset-4"
+        >
           {footer.linkLabel}
         </Link>
       </p>

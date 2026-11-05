@@ -25,3 +25,7 @@ class UserResponse(BaseModel):
     @classmethod
     def from_user(cls, user: DomainUser) -> "UserResponse":
         return cls(id=user.id, email=user.email, display_name=user.display_name)
+
+
+class SignInOptions(BaseModel):
+    google: bool

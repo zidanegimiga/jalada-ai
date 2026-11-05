@@ -4,7 +4,7 @@ from fastapi import APIRouter, Cookie, Request, Response, status
 
 from jalada.api.dependencies import CurrentUser, ServicesDependency
 from jalada.api.errors import TooManyAttempts
-from jalada.api.schemas.auth import SignInRequest, SignUpRequest, UserResponse
+from jalada.api.schemas.auth import SignInOptions, SignInRequest, SignUpRequest, UserResponse
 from jalada.api.session_cookie import SESSION_COOKIE, set_session_cookie
 
 router = APIRouter(tags=["auth"])
@@ -45,6 +45,12 @@ def sign_out(
     if session_token:
         services.authenticator.sign_out(session_token)
     response.delete_cookie(SESSION_COOKIE)
+
+
+@router.get("/v1/auth/providers")
+def read_sign_in_options(services: ServicesDependency) -> SignInOptions:
+    """Which ways to sign in are switched on, so the app only offers ones that work."""
+    return SignInOptions(google=services.google_sign_in is not None)
 
 
 @router.get("/v1/me")
