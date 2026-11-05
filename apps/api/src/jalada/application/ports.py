@@ -10,6 +10,7 @@ from jalada.domain.entries import Entry
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.domain.sessions import Session
+from jalada.domain.tax_year import TaxYearReport
 from jalada.domain.users import User
 from jalada.pipeline.classifier import Preference
 from jalada.pipeline.run_types import StepRecord
@@ -162,6 +163,14 @@ class TextReader(Protocol):
     """Turns stored evidence into text. None when there is no text to read."""
 
     def read(self, content_type: str, data: bytes) -> str | None: ...
+
+
+class WorkbookWriter(Protocol):
+    """Turns a tax-year report into a spreadsheet file."""
+
+    content_type: str
+
+    def write(self, report: TaxYearReport) -> bytes: ...
 
 
 class Clock(Protocol):
