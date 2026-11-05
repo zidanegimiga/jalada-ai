@@ -21,4 +21,6 @@ def detect(text: str | None, content_type: str) -> EvidenceKind:
         return EvidenceKind.PAYSLIP
     if content_type.startswith("text/"):
         return EvidenceKind.FREE_TEXT
+    if content_type.startswith("image/"):
+        return EvidenceKind.RECEIPT
     return EvidenceKind.UNKNOWN

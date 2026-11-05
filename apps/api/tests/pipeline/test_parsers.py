@@ -28,7 +28,7 @@ def test_amounts_become_whole_cents(text: str, cents: int | None) -> None:
         ("Lunch with a client, 800 bob", "text/plain", EvidenceKind.FREE_TEXT),
         ("Net pay 45,000", "application/pdf", EvidenceKind.PAYSLIP),
         (None, "image/jpeg", EvidenceKind.UNKNOWN),
-        ("some receipt text", "image/jpeg", EvidenceKind.UNKNOWN),
+        ("SAMPLE SHOP TOTAL KSh 250", "image/jpeg", EvidenceKind.RECEIPT),
     ],
 )
 def test_detector(text: str | None, content_type: str, kind: EvidenceKind) -> None:

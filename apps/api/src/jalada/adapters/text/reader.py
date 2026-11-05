@@ -1,21 +1,37 @@
 import io
+from typing import Protocol
 
 import pdfplumber
 from pdfminer.pdfdocument import PDFPasswordIncorrect
 
+from jalada.adapters.text.ocr import OcrText
 
-class PlainAndPdfTextReader:
-    """Text from pasted messages and from PDFs that contain real text.
+# Below these, OCR output is too unreliable to parse, and the photo goes to the model instead.
+MIN_OCR_CONFIDENCE = 60.0
+MIN_OCR_CHARACTERS = 20
 
-    Images return None for now, so they go to review until OCR is added.
-    Password-protected PDFs also return None; their passwords are never stored.
+
+class ImageOcr(Protocol):
+    def read(self, data: bytes) -> OcrText: ...
+
+
+class EvidenceTextReader:
+    """Text from pasted messages, PDFs that contain real text, and photos through OCR.
+
+    Password-protected PDFs return None; their passwords are never stored.
+    Photos return None when OCR is unsure, so the model reads the image itself.
     """
+
+    def __init__(self, ocr: ImageOcr | None = None) -> None:
+        self._ocr = ocr
 
     def read(self, content_type: str, data: bytes) -> str | None:
         if content_type.startswith("text/"):
             return data.decode("utf-8", errors="replace")
         if content_type == "application/pdf":
             return _pdf_text(data)
+        if content_type.startswith("image/") and self._ocr:
+            return _confident_text(self._ocr.read(data))
         return None
 
 
@@ -26,3 +42,9 @@ def _pdf_text(data: bytes) -> str | None:
     except PDFPasswordIncorrect:
         return None
     return text if text.strip() else None
+
+
+def _confident_text(result: OcrText) -> str | None:
+    if result.confidence < MIN_OCR_CONFIDENCE or len(result.text) < MIN_OCR_CHARACTERS:
+        return None
+    return result.text

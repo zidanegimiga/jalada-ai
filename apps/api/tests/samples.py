@@ -62,3 +62,25 @@ def make_pdf(lines: list[str]) -> bytes:
     out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
     out += f"trailer << /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF".encode()
     return out
+
+
+def make_receipt_photo(lines: list[str], noise: bool = False) -> bytes:
+    """A JPEG of printed text, like a phone photo of a receipt. `noise` makes it unreadable."""
+    import io
+    import random
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    image = Image.new("RGB", (900, 120 + 70 * len(lines)), "white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default(size=44)
+    for row, line in enumerate(lines):
+        draw.text((60, 60 + 70 * row), line, fill="black", font=font)
+    if noise:
+        pixels = random.Random(7)  # noqa: S311 (seeded noise for a test image, not security)
+        for _ in range(60000):
+            draw.point((pixels.randrange(image.width), pixels.randrange(image.height)), "black")
+        image = image.resize((90, image.height // 10))
+    out = io.BytesIO()
+    image.save(out, "JPEG", quality=85)
+    return out.getvalue()

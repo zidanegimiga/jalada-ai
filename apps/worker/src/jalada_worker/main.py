@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
 from jalada.adapters.system_clock import SystemClock
-from jalada.adapters.text.reader import PlainAndPdfTextReader
+from jalada.adapters.text.ocr import TesseractOcr
+from jalada.adapters.text.reader import EvidenceTextReader
 from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.job_runner import JobRunner
@@ -47,7 +48,7 @@ def build_job_runner(settings: Settings) -> JobRunner:
     processor = EvidenceProcessor(
         unit_of_work=lambda: SqlUnitOfWork(session_factory),
         store=build_evidence_store(settings),
-        reader=PlainAndPdfTextReader(),
+        reader=EvidenceTextReader(TesseractOcr()),
         clock=clock,
         budget=Budget(),
     )
