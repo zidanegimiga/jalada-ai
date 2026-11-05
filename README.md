@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. The API, the background worker and the web app all build and run, with CI, Docker and the design system in place. Sign-in, evidence capture, the pipeline, review, the ledger and the Excel export are next.
+Early. You can create an account, sign in and sign out. Google sign-in, evidence capture, the pipeline, review, the ledger and the Excel export are next.
 
 ## Stack
 
@@ -95,15 +95,23 @@ Settings come from environment variables prefixed with `JALADA_`. To change them
 cp .env.example .env
 ```
 
+`make up` also creates the database tables. Postgres is reachable from your machine on port 5433.
+
 ### Without Docker
 
+Start only the database, apply migrations, then run each app:
+
 ```bash
-uv sync
-JALADA_ENVIRONMENT=development uv run uvicorn jalada.composition:build_api --factory --reload
+cp .env.example .env
+make migrate
 ```
 
 ```bash
-JALADA_ENVIRONMENT=development uv run jalada-worker
+uv run --env-file .env uvicorn jalada.composition:build_api --factory --reload
+```
+
+```bash
+uv run --env-file .env jalada-worker
 ```
 
 ```bash
@@ -116,7 +124,9 @@ cd apps/web && npm install && npm run dev
 make check
 ```
 
-This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and the web tests, the same as CI. `make format` fixes formatting.
+This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and the web tests, the same as CI. `make test-integration` runs the database tests against Postgres in Docker. `make format` fixes formatting.
+
+After changing a table in `apps/api/src/jalada/adapters/database/tables.py`, generate a migration with `make migration name="what changed"`.
 
 ## Design
 

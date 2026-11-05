@@ -20,14 +20,16 @@ line-length = 100
 # E/W: style errors, F: likely bugs, I: import order, B: common pitfalls,
 # UP: modern syntax, S: security checks, N: naming, SIM: simpler code.
 select = ["E", "W", "F", "I", "B", "UP", "S", "N", "SIM"]
+# Exception names describe what happened, such as InvalidCredentials, without an Error suffix.
+ignore = ["N818"]
 
 [tool.ruff.lint.isort]
 # Our own package, so its imports sort after third-party ones.
 known-first-party = ["jalada", "jalada_worker"]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests use plain assert statements, which the security rules flag.
-"**/tests/**" = ["S101"]
+# Tests use plain asserts and made-up passwords, which the security rules flag.
+"**/tests/**" = ["S101", "S105", "S106"]
 
 [tool.mypy]
 python_version = "3.12"

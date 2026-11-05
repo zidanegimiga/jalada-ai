@@ -14,7 +14,7 @@ Users sign in with email and password or with Google. Sessions must live in secu
 For passwords, **Argon2id** through `argon2-cffi`, the current recommendation of the Open Worldwide Application Security Project (OWASP). For Google, **Authlib** for the OpenID Connect sign-in flow.
 
 ## Decision
-Server-side sessions in Postgres, Argon2id password hashes, and Google sign-in with Authlib. A FastAPI dependency resolves the session to a user id, and repositories take that id on every call. Sign-in and sign-up are rate limited with slowapi.
+Server-side sessions in Postgres, Argon2id password hashes, and Google sign-in with Authlib. A FastAPI dependency resolves the session to a user id, and repositories take that id on every call. Sign-in and sign-up are rate limited with the `limits` library, by IP address and by email address.
 
 ## Consequences
 - We own the security of sign-in, so it needs careful tests, including timing-safe comparisons and lockout.

@@ -1,0 +1,83 @@
+import secrets
+import uuid
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+from jalada.application.errors import (
+    EmailAlreadyRegistered,
+    InvalidCredentials,
+    NotSignedIn,
+    WeakPassword,
+)
+from jalada.application.ports import Clock, PasswordHasher, UnitOfWork
+from jalada.domain.sessions import Session, hash_session_token
+from jalada.domain.users import User, is_acceptable_password, normalize_email
+
+
+@dataclass(frozen=True)
+class IssuedSession:
+    token: str
+    user: User
+    expires_at: datetime
+
+
+class Authenticator:
+    """Sign-up, sign-in, sign-out, and finding the user behind a session token."""
+
+    def __init__(
+        self,
+        unit_of_work: Callable[[], UnitOfWork],
+        hasher: PasswordHasher,
+        clock: Clock,
+        session_lifetime: timedelta,
+    ) -> None:
+        self._unit_of_work = unit_of_work
+        self._hasher = hasher
+        self._clock = clock
+        self._session_lifetime = session_lifetime
+        # Checked against when the email is unknown, so both failures take the same time.
+        self._decoy_hash = hasher.hash(secrets.token_urlsafe(16))
+
+    def sign_up(self, email: str, password: str, display_name: str) -> IssuedSession:
+        if not is_acceptable_password(password):
+            raise WeakPassword
+        email = normalize_email(email)
+        with self._unit_of_work() as work:
+            if work.users.get_credentials(email) is not None:
+                raise EmailAlreadyRegistered
+            user = User(uuid.uuid4(), email, display_name.strip(), self._clock.now())
+            work.users.add(user, self._hasher.hash(password))
+            issued = self._start_session(work, user)
+            work.commit()
+        return issued
+
+    def sign_in(self, email: str, password: str) -> IssuedSession:
+        with self._unit_of_work() as work:
+            credentials = work.users.get_credentials(normalize_email(email))
+            stored_hash = credentials.password_hash if credentials else None
+            matches = self._hasher.verify(stored_hash or self._decoy_hash, password)
+            if credentials is None or stored_hash is None or not matches:
+                raise InvalidCredentials
+            issued = self._start_session(work, credentials.user)
+            work.commit()
+        return issued
+
+    def sign_out(self, token: str) -> None:
+        with self._unit_of_work() as work:
+            work.sessions.delete(hash_session_token(token))
+            work.commit()
+
+    def current_user(self, token: str) -> User:
+        with self._unit_of_work() as work:
+            session = work.sessions.get_active(hash_session_token(token), self._clock.now())
+            user = work.users.get(session.user_id) if session else None
+        if user is None:
+            raise NotSignedIn
+        return user
+
+    def _start_session(self, work: UnitOfWork, user: User) -> IssuedSession:
+        token = secrets.token_urlsafe(32)
+        expires_at = self._clock.now() + self._session_lifetime
+        work.sessions.add(Session(hash_session_token(token), user.id, expires_at))
+        return IssuedSession(token, user, expires_at)

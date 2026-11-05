@@ -4,10 +4,19 @@ version = "0.1.0"
 description = "Jalada AI backend: domain rules, pipeline and HTTP API"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "argon2-cffi>=25.1.0",
+    "email-validator>=2.3.0",
     "fastapi>=0.162.0",
+    "limits>=5.8",
+    "psycopg[binary]>=3.3",
     "pydantic-settings>=2.16",
+    "sqlalchemy>=2.1",
     "uvicorn>=0.54.0",
 ]
+
+[project.scripts]
+jalada-migrate = "jalada.adapters.database.migrate:main"
 
 [build-system]
 requires = ["uv_build>=0.9,<0.14"]
@@ -16,3 +25,5 @@ build-backend = "uv_build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers"
+pythonpath = ["tests"]
+markers = ["integration: needs a real Postgres database (JALADA_TEST_DATABASE_URL)"]

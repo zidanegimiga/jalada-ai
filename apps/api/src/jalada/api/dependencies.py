@@ -1,0 +1,27 @@
+from typing import Annotated
+
+from fastapi import Cookie, Depends, Request
+
+from jalada.api.services import Services
+from jalada.application.errors import NotSignedIn
+from jalada.domain.users import User
+
+SESSION_COOKIE = "jalada_session"
+
+
+def get_services(request: Request) -> Services:
+    services: Services = request.app.state.services
+    return services
+
+
+def get_current_user(
+    services: Annotated[Services, Depends(get_services)],
+    session_token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> User:
+    if not session_token:
+        raise NotSignedIn
+    return services.authenticator.current_user(session_token)
+
+
+ServicesDependency = Annotated[Services, Depends(get_services)]
+CurrentUser = Annotated[User, Depends(get_current_user)]

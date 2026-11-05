@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
@@ -16,7 +17,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="JALADA_", frozen=True)
 
     environment: Environment
+    database_url: str = Field(pattern=r"^postgresql\+psycopg://")
     log_level: LogLevel = "INFO"
+    session_days: int = Field(default=30, ge=1, le=365)
+    # Browsers only send Secure cookies over HTTPS. Turn off for plain-HTTP local setups.
+    cookie_secure: bool = True
 
 
 def load_settings() -> Settings:

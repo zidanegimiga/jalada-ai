@@ -1,13 +1,45 @@
 name: jalada
 
+x-backend-environment: &backend-environment
+  JALADA_ENVIRONMENT: ${JALADA_ENVIRONMENT:-development}
+  JALADA_LOG_LEVEL: ${JALADA_LOG_LEVEL:-INFO}
+  JALADA_DATABASE_URL: postgresql+psycopg://jalada:${POSTGRES_PASSWORD:-jalada}@postgres:5432/jalada
+  # Local compose serves plain HTTP, where browsers drop Secure cookies.
+  JALADA_COOKIE_SECURE: "false"
+
 services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: jalada
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jalada}
+      POSTGRES_DB: jalada
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "jalada"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    command: ["jalada-migrate"]
+    environment: *backend-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
-    environment:
-      JALADA_ENVIRONMENT: ${JALADA_ENVIRONMENT:-development}
-      JALADA_LOG_LEVEL: ${JALADA_LOG_LEVEL:-INFO}
+    environment: *backend-environment
     ports:
       - "8000:8000"
     healthcheck:
@@ -15,20 +47,31 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     build:
       context: ..
       dockerfile: apps/worker/Dockerfile
-    environment:
-      JALADA_ENVIRONMENT: ${JALADA_ENVIRONMENT:-development}
-      JALADA_LOG_LEVEL: ${JALADA_LOG_LEVEL:-INFO}
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
   web:
     build:
       context: ../apps/web
+      args:
+        API_URL: http://api:8000
+    environment:
+      API_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:
       api:
         condition: service_healthy
+
+volumes:
+  postgres-data:

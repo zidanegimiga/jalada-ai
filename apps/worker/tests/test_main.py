@@ -11,7 +11,7 @@ from jalada_worker.main import install_stop_signals, run
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(environment="test")
+    return Settings(environment="test", database_url="postgresql+psycopg://u:p@localhost:1/unused")
 
 
 @pytest.fixture
