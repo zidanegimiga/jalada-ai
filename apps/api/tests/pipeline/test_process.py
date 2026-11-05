@@ -5,7 +5,8 @@ from samples import CERTIFICATE, MPESA_SENT
 from jalada.domain.categories import Purpose
 from jalada.domain.evidence import EvidenceKind
 from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import Budget, run_pipeline
+from jalada.pipeline.process import run_pipeline
+from jalada.pipeline.run_types import Budget, EvidenceInput
 
 TODAY = date(2026, 11, 5)
 KNOWN = {"jane wanjiku": Preference("personal_family_support", Purpose.PERSONAL, 3)}
@@ -13,7 +14,8 @@ KNOWN = {"jane wanjiku": Preference("personal_family_support", Purpose.PERSONAL,
 
 def run(text: str | None, content_type: str = "text/plain", **kwargs: object):  # type: ignore[no-untyped-def]
     options = {"preferences": {}, "is_duplicate": lambda _: False, **kwargs}
-    return run_pipeline(text, content_type, today=TODAY, budget=Budget(), **options)  # type: ignore[arg-type]
+    evidence = EvidenceInput(text, content_type)
+    return run_pipeline(evidence, today=TODAY, budget=Budget(), **options)  # type: ignore[arg-type]
 
 
 def test_a_known_counterparty_is_proposed_in_one_attempt() -> None:

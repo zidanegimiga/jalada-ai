@@ -16,7 +16,7 @@ from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.job_runner import JobRunner
 from jalada.composition import build_evidence_store
 from jalada.config.settings import Settings, load_settings
-from jalada.pipeline.process import Budget
+from jalada.pipeline.run_types import Budget
 
 logger = logging.getLogger("jalada.worker")
 

@@ -13,7 +13,8 @@ from typing import Any
 
 from jalada.domain.categories import Purpose
 from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import Budget, PipelineResult, run_pipeline
+from jalada.pipeline.process import run_pipeline
+from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
 
 FIXTURES = Path(__file__).parent / "fixtures"
 TODAY = date(2026, 11, 5)
@@ -26,8 +27,7 @@ def run_fixture(fixture: dict[str, Any]) -> PipelineResult:
         for key, p in fixture["preferences"].items()
     }
     return run_pipeline(
-        fixture["text"],
-        fixture["content_type"],
+        EvidenceInput(fixture["text"], fixture["content_type"]),
         preferences,
         is_duplicate=lambda _: bool(fixture["duplicate"]),
         today=TODAY,

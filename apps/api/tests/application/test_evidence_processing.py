@@ -1,7 +1,15 @@
 import uuid
+from decimal import Decimal
 
 import pytest
-from fakes import FakeEvidenceStore, FakeTextReader, FakeUnitOfWork, FixedClock, Store
+from fakes import (
+    FakeEvidenceStore,
+    FakeTextReader,
+    FakeUnitOfWork,
+    FixedClock,
+    ScriptedModel,
+    Store,
+)
 from samples import CERTIFICATE, JPEG, MPESA_SENT, PDF
 
 from jalada.application.evidence_capture import EvidenceCapture
@@ -10,7 +18,7 @@ from jalada.domain.categories import Purpose
 from jalada.domain.entries import EntryStatus
 from jalada.domain.evidence import EvidenceKind, EvidenceSource, EvidenceStatus
 from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import Budget
+from jalada.pipeline.run_types import Budget
 
 USER = uuid.uuid4()
 
@@ -104,3 +112,35 @@ def test_giving_up_marks_the_evidence_as_failed(
     processor.give_up({"user_id": str(USER), "evidence_id": str(evidence.id)})
 
     assert store.evidence[evidence.id].status == EvidenceStatus.FAILED
+
+
+def test_a_photo_read_by_the_model_records_what_it_cost(
+    capture: EvidenceCapture,
+    store: Store,
+    evidence_store: FakeEvidenceStore,
+    reader: FakeTextReader,
+    clock: FixedClock,
+) -> None:
+    model = ScriptedModel(
+        {
+            "kind": "receipt",
+            "occurred_on": "2026-11-04",
+            "direction": "out",
+            "amount_ksh": "250.00",
+            "counterparty": "SAMPLE SHOP",
+            "confidence": 0.9,
+        },
+        {"purpose": "business", "category": "business_stock", "confidence": 0.9},
+    )
+    processor = EvidenceProcessor(
+        lambda: FakeUnitOfWork(store), evidence_store, reader, clock, Budget(), model
+    )
+    evidence = capture.capture_file(USER, JPEG, EvidenceSource.WEB_UPLOAD).evidence
+
+    assert processor.process(USER, evidence.id) == "proposed"
+
+    [(run, _)] = store.runs
+    assert (run.input_tokens, run.output_tokens) == (200, 100)
+    assert run.cost_usd == Decimal("0.002")
+    assert model.calls[0]["image"].data == JPEG
+    assert store.evidence[evidence.id].kind == EvidenceKind.RECEIPT

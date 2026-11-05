@@ -14,7 +14,7 @@ from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
 from jalada.domain.users import User
-from jalada.pipeline.process import StepRecord
+from jalada.pipeline.run_types import StepRecord
 
 pytestmark = pytest.mark.integration
 

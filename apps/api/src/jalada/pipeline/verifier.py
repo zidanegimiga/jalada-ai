@@ -24,11 +24,15 @@ def verify(
     classification: Classification,
     today: date,
     is_duplicate: bool,
+    extraction_confidence: float = 1.0,
 ) -> Verdict:
+    """`extraction_confidence` is 1 for rules, and the model's own score for model answers."""
     problems = _field_problems(extraction, today)
     if is_duplicate:
         return Verdict(False, ["already recorded"], duplicate=True)
     review = []
+    if extraction_confidence < CONFIDENCE_THRESHOLD:
+        review.append("amount or date not certain")
     if classification.confidence < CONFIDENCE_THRESHOLD:
         review.append("purpose not certain")
     return Verdict(not problems and not review, problems, review)

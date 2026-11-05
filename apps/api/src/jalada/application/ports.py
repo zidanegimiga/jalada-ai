@@ -10,7 +10,7 @@ from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import StepRecord
+from jalada.pipeline.run_types import StepRecord
 
 
 @dataclass(frozen=True)

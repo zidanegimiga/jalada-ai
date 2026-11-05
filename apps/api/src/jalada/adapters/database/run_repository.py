@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from jalada.adapters.database.tables import PipelineRunRow, PipelineStepRow
 from jalada.application.ports import PipelineRun
-from jalada.pipeline.process import StepRecord
+from jalada.pipeline.run_types import StepRecord
 
 
 class SqlRunRepository:

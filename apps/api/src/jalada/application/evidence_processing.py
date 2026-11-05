@@ -1,7 +1,6 @@
 import uuid
 from collections.abc import Callable
 from datetime import datetime
-from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -9,7 +8,9 @@ from jalada.application.ports import Clock, EvidenceStore, PipelineRun, TextRead
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.extraction import Classification, Extraction
-from jalada.pipeline.process import Budget, PipelineResult, run_pipeline
+from jalada.pipeline.model import ImageInput, LanguageModel
+from jalada.pipeline.process import run_pipeline
+from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
 
 STATUS_FOR_OUTCOME = {
     "proposed": EvidenceStatus.PROPOSED,
@@ -28,12 +29,14 @@ class EvidenceProcessor:
         reader: TextReader,
         clock: Clock,
         budget: Budget,
+        model: LanguageModel | None = None,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._store = store
         self._reader = reader
         self._clock = clock
         self._budget = budget
+        self._model = model
 
     def handle(self, payload: dict[str, Any]) -> None:
         self.process(UUID(payload["user_id"]), UUID(payload["evidence_id"]))
@@ -54,14 +57,19 @@ class EvidenceProcessor:
         if evidence is None:
             return "missing"
         data = self._store.get(evidence.id, user_id, evidence.encryption_key_id)
-        text = self._reader.read(evidence.content_type, data)
+        is_photo = evidence.content_type.startswith("image/")
+        given = EvidenceInput(
+            text=self._reader.read(evidence.content_type, data),
+            content_type=evidence.content_type,
+            image=ImageInput(data, evidence.content_type) if is_photo else None,
+        )
         result = run_pipeline(
-            text,
-            evidence.content_type,
+            given,
             preferences,
             is_duplicate=lambda extraction: self._is_duplicate(user_id, extraction),
             today=started.date(),
             budget=self._budget,
+            model=self._model,
         )
         self._save(evidence, result, started)
         return result.outcome
@@ -81,9 +89,9 @@ class EvidenceProcessor:
             evidence_id=evidence.id,
             outcome=result.outcome,
             attempts=result.attempts,
-            input_tokens=0,
-            output_tokens=0,
-            cost_usd=Decimal(0),
+            input_tokens=result.usage.input_tokens,
+            output_tokens=result.usage.output_tokens,
+            cost_usd=result.usage.cost_usd,
             started_at=started,
             finished_at=self._clock.now(),
         )

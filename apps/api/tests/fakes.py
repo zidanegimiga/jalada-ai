@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from types import TracebackType
 from typing import Any, Self
 from uuid import UUID
@@ -25,7 +26,8 @@ from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import StepRecord
+from jalada.pipeline.model import ImageInput, ModelReply, ModelUsage
+from jalada.pipeline.run_types import StepRecord
 
 
 @dataclass
@@ -288,3 +290,28 @@ class FakeTextReader:
 
 def later(clock: FixedClock, minutes: int) -> datetime:
     return clock.now() + timedelta(minutes=minutes)
+
+
+class ScriptedModel:
+    """Answers with prepared replies, in order, and remembers what it was asked."""
+
+    name = "scripted"
+
+    def __init__(self, *replies: dict[str, Any] | Exception, tokens: int = 100) -> None:
+        self._replies = list(replies)
+        self._tokens = tokens
+        self.calls: list[dict[str, Any]] = []
+
+    def complete(
+        self,
+        instructions: str,
+        content: str,
+        schema: dict[str, Any],
+        image: ImageInput | None = None,
+    ) -> ModelReply:
+        self.calls.append({"content": content, "schema": schema, "image": image})
+        reply = self._replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        usage = ModelUsage(self._tokens, self._tokens // 2, Decimal("0.001"))
+        return ModelReply(reply, usage)
