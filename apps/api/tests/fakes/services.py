@@ -106,3 +106,18 @@ class ScriptedModel:
             raise reply
         usage = ModelUsage(self._tokens, self._tokens // 2, Decimal("0.001"))
         return ModelReply(reply, usage)
+
+
+class FakeChat:
+    """Records what the bot would send, and serves files from a dict."""
+
+    def __init__(self, files: dict[str, bytes] | None = None) -> None:
+        self.sent: list[tuple[int, str]] = []
+        self.files = files or {}
+
+    def send(self, chat_id: int, text: str) -> None:
+        self.sent.append((chat_id, text))
+
+    def download(self, file_id: str, max_bytes: int) -> bytes | None:
+        data = self.files[file_id]
+        return data if len(data) <= max_bytes else None

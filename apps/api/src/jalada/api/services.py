@@ -7,6 +7,7 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
 
 
@@ -24,3 +25,5 @@ class Services:
     telegram_linking: TelegramLinking
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None = None
+    # None when the Telegram bot is not configured.
+    telegram_capture: TelegramCapture | None = None

@@ -184,5 +184,18 @@ class WorkbookWriter(Protocol):
     def write(self, report: TaxYearReport) -> bytes: ...
 
 
+class ChatChannel(Protocol):
+    """A chat app the user can send evidence through, such as Telegram."""
+
+    def send(self, chat_id: int, text: str) -> None: ...
+    def download(self, file_id: str, max_bytes: int) -> bytes | None: ...
+
+
+class Limiter(Protocol):
+    """Counts attempts per key. False once any key is over its limit."""
+
+    def allow(self, *keys: str) -> bool: ...
+
+
 class Clock(Protocol):
     def now(self) -> datetime: ...

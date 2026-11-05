@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import pytest
 from fakes import (
+    FakeChat,
     FakeEvidenceStore,
     FakeGoogle,
     FakeHasher,
@@ -24,6 +25,7 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
 from jalada.config.settings import Environment, Settings
 
@@ -40,6 +42,7 @@ def make_settings(environment: Environment = "test") -> Settings:
         storage_access_key="test",
         storage_secret_key=SecretStr("test"),
         evidence_keys=SecretStr("dGVzdC1rZXktZm9yLWV2aWRlbmNlLTMyLWJ5dGVzISE="),
+        telegram_webhook_secret=SecretStr("hook-secret"),
     )
 
 
@@ -79,6 +82,23 @@ def review(store: Store, clock: FixedClock) -> EntryReview:
 
 
 @pytest.fixture
+def chat() -> FakeChat:
+    return FakeChat()
+
+
+@pytest.fixture
+def linking(store: Store, clock: FixedClock) -> TelegramLinking:
+    return TelegramLinking(lambda: FakeUnitOfWork(store), clock)
+
+
+@pytest.fixture
+def telegram(linking: TelegramLinking, capture: EvidenceCapture, chat: FakeChat) -> TelegramCapture:
+    return TelegramCapture(
+        linking, capture, chat, RateLimiter("3/minute"), RateLimiter("100/minute")
+    )
+
+
+@pytest.fixture
 def google() -> FakeGoogle:
     return FakeGoogle()
 
@@ -90,12 +110,15 @@ def make_app(
     review: EntryReview,
     google: FakeGoogle,
     store: Store,
+    linking: TelegramLinking,
+    telegram: TelegramCapture,
 ) -> Callable[..., FastAPI]:
     def build(
         environment: Environment = "test",
         rule: str = "100/minute",
         with_google: bool = True,
         upload_rule: str = "100/minute",
+        with_telegram: bool = True,
     ) -> FastAPI:
         services = Services(
             authenticator=authenticator,
@@ -110,7 +133,8 @@ def make_app(
                 FixedClock(),
                 "http://localhost:3000/v1/evidence/{id}/file",
             ),
-            telegram_linking=TelegramLinking(lambda: FakeUnitOfWork(store), FixedClock()),
+            telegram_linking=linking,
+            telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
         )
         return create_app(make_settings(environment), services)

@@ -9,6 +9,7 @@ from datetime import timedelta
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
+from jalada.adapters.channels.telegram_bot import TelegramBot
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
 from jalada.adapters.export.workbook import ExcelWorkbookWriter
 from jalada.adapters.identity.google import GoogleOpenIdClient
@@ -29,6 +30,7 @@ from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.ports import EvidenceStore
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
@@ -49,11 +51,14 @@ def build_services(settings: Settings) -> Services:
         store=build_evidence_store(settings),
         clock=clock,
     )
+    sign_in_limiter = RateLimiter("5/minute")
+    upload_limiter = RateLimiter("60/hour")
+    telegram_linking = TelegramLinking(lambda: SqlUnitOfWork(session_factory), clock)
     return Services(
         authenticator=authenticator,
-        sign_in_limiter=RateLimiter("5/minute"),
+        sign_in_limiter=sign_in_limiter,
         evidence=evidence,
-        upload_limiter=RateLimiter("60/hour"),
+        upload_limiter=upload_limiter,
         review=EntryReview(lambda: SqlUnitOfWork(session_factory), clock),
         ledger=Ledger(lambda: SqlUnitOfWork(session_factory)),
         tax_year_export=TaxYearExport(
@@ -62,9 +67,25 @@ def build_services(settings: Settings) -> Services:
             clock,
             evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
         ),
-        telegram_linking=TelegramLinking(lambda: SqlUnitOfWork(session_factory), clock),
+        telegram_linking=telegram_linking,
         google_sign_in=build_google_sign_in(settings, authenticator),
+        telegram_capture=build_telegram_capture(
+            settings, telegram_linking, evidence, sign_in_limiter, upload_limiter
+        ),
     )
+
+
+def build_telegram_capture(
+    settings: Settings,
+    linking: TelegramLinking,
+    evidence: EvidenceCapture,
+    link_limiter: RateLimiter,
+    upload_limiter: RateLimiter,
+) -> TelegramCapture | None:
+    if not (settings.telegram_bot_token and settings.telegram_bot_username):
+        return None
+    bot = TelegramBot(settings.telegram_bot_token.get_secret_value())
+    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter)
 
 
 def build_evidence_store(settings: Settings) -> EvidenceStore:
