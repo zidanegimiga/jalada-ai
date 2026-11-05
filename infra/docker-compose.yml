@@ -1,0 +1,34 @@
+name: jalada
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      JALADA_ENVIRONMENT: ${JALADA_ENVIRONMENT:-development}
+      JALADA_LOG_LEVEL: ${JALADA_LOG_LEVEL:-INFO}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      JALADA_ENVIRONMENT: ${JALADA_ENVIRONMENT:-development}
+      JALADA_LOG_LEVEL: ${JALADA_LOG_LEVEL:-INFO}
+
+  web:
+    build:
+      context: ../apps/web
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
