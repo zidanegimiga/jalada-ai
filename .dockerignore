@@ -1,0 +1,14 @@
+# Build context for the Python images is the repo root.
+.git
+.venv
+**/__pycache__
+**/.pytest_cache
+.mypy_cache
+.ruff_cache
+apps/web
+docs
+data
+.env
+.env.*
+.claude
+.agents
