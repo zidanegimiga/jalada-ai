@@ -13,6 +13,7 @@ from jalada.adapters.database.ledger_repository import SqlEntryRepository
 from jalada.adapters.database.preference_repository import SqlPreferenceRepository
 from jalada.adapters.database.repositories import SqlSessionRepository, SqlUserRepository
 from jalada.adapters.database.run_repository import SqlRunRepository
+from jalada.adapters.database.telegram_links import SqlTelegramLinks
 from jalada.application.ports import (
     EntryRepository,
     EvidenceRepository,
@@ -20,6 +21,7 @@ from jalada.application.ports import (
     PreferenceRepository,
     RunRepository,
     SessionRepository,
+    TelegramLinks,
     UserRepository,
 )
 
@@ -39,6 +41,7 @@ class SqlUnitOfWork:
         self.sessions: SessionRepository = SqlSessionRepository(self._db)
         self.jobs: JobQueue = SqlJobQueue(self._db, lambda: datetime.now(UTC))
         self.runs: RunRepository = SqlRunRepository(self._db)
+        self.telegram: TelegramLinks = SqlTelegramLinks(self._db)
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:

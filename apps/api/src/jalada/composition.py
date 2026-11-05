@@ -29,6 +29,7 @@ from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.ports import EvidenceStore
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_linking import TelegramLinking
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
 from jalada.pipeline.run_types import Budget
@@ -61,6 +62,7 @@ def build_services(settings: Settings) -> Services:
             clock,
             evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
         ),
+        telegram_linking=TelegramLinking(lambda: SqlUnitOfWork(session_factory), clock),
         google_sign_in=build_google_sign_in(settings, authenticator),
     )
 

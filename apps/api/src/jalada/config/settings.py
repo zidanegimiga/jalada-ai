@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     model_output_price: Decimal = Field(default=Decimal(0), ge=0)
     # Set to true only for a provider whose terms exclude training on the data sent to it.
     model_allowed_for_real_data: bool = False
+    # Telegram bot. Switched off unless the token and the bot's username are both set.
+    telegram_bot_token: SecretStr | None = None
+    telegram_bot_username: str | None = None
+    # Telegram sends this back on every webhook call, so the API can tell the call is real.
+    telegram_webhook_secret: SecretStr | None = None
     # Limits for one piece of evidence.
     pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
     pipeline_max_tokens: int = Field(default=8000, ge=0)

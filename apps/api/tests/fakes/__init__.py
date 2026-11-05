@@ -1,6 +1,6 @@
 """In-memory stand-ins for the ports, for fast tests without a database."""
 
-from fakes.accounts import FakeSessions, FakeUsers
+from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import FakeEntries, FakePreferences, FakeRuns
 from fakes.services import (
@@ -25,6 +25,7 @@ __all__ = [
     "FakePreferences",
     "FakeRuns",
     "FakeSessions",
+    "FakeTelegramLinks",
     "FakeTextReader",
     "FakeUnitOfWork",
     "FakeUsers",

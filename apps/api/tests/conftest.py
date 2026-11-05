@@ -24,6 +24,7 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_linking import TelegramLinking
 from jalada.config.settings import Environment, Settings
 
 pytest_plugins = ["database_fixtures"]
@@ -109,6 +110,7 @@ def make_app(
                 FixedClock(),
                 "http://localhost:3000/v1/evidence/{id}/file",
             ),
+            telegram_linking=TelegramLinking(lambda: FakeUnitOfWork(store), FixedClock()),
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
         )
         return create_app(make_settings(environment), services)

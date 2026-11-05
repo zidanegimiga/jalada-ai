@@ -4,7 +4,7 @@ from types import TracebackType
 from typing import Self
 from uuid import UUID
 
-from fakes.accounts import FakeSessions, FakeUsers
+from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import FakeEntries, FakePreferences, FakeRuns
 from fakes.store import Store
@@ -15,6 +15,7 @@ from jalada.application.ports import (
     PreferenceRepository,
     RunRepository,
     SessionRepository,
+    TelegramLinks,
     UserRepository,
 )
 
@@ -40,6 +41,10 @@ class FakeUnitOfWork:
         self._preferences = {user: dict(p) for user, p in self._store.preferences.items()}
         self._runs = FakeRuns(list(self._store.runs))
         self.runs: RunRepository = self._runs
+        self._telegram = FakeTelegramLinks(
+            dict(self._store.telegram_codes), dict(self._store.telegram_links)
+        )
+        self.telegram: TelegramLinks = self._telegram
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
@@ -67,6 +72,8 @@ class FakeUnitOfWork:
         self._store.queue = self._jobs.queue
         self._store.entries = self._entries
         self._store.revisions = self._revisions
+        self._store.telegram_codes = self._telegram.codes
+        self._store.telegram_links = self._telegram.links
         self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows

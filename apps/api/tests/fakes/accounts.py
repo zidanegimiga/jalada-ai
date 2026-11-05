@@ -50,3 +50,35 @@ class FakeSessions:
 
     def delete(self, token_hash: str) -> None:
         self.rows.pop(token_hash, None)
+
+
+class FakeTelegramLinks:
+    def __init__(
+        self,
+        codes: dict[str, tuple[UUID, datetime]],
+        links: dict[UUID, tuple[int, int]],
+    ) -> None:
+        self.codes = codes
+        # user id to (Telegram user id, chat id)
+        self.links = links
+
+    def save_code(self, user_id: UUID, code_hash: str, expires_at: datetime) -> None:
+        for old in [h for h, (owner, _) in self.codes.items() if owner == user_id]:
+            del self.codes[old]
+        self.codes[code_hash] = (user_id, expires_at)
+
+    def use_code(self, code_hash: str, now: datetime) -> UUID | None:
+        found = self.codes.pop(code_hash, None)
+        return found[0] if found and found[1] > now else None
+
+    def link(self, user_id: UUID, telegram_user_id: int, chat_id: int, at: datetime) -> None:
+        for other in [u for u, (t, _) in self.links.items() if t == telegram_user_id]:
+            del self.links[other]
+        self.links[user_id] = (telegram_user_id, chat_id)
+
+    def user_for(self, telegram_user_id: int) -> UUID | None:
+        return next((u for u, (t, _) in self.links.items() if t == telegram_user_id), None)
+
+    def chat_for(self, user_id: UUID) -> int | None:
+        found = self.links.get(user_id)
+        return found[1] if found else None

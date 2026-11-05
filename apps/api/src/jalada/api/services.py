@@ -7,6 +7,7 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.tax_year_export import TaxYearExport
+from jalada.application.telegram_linking import TelegramLinking
 
 
 @dataclass(frozen=True)
@@ -20,5 +21,6 @@ class Services:
     review: EntryReview
     ledger: Ledger
     tax_year_export: TaxYearExport
+    telegram_linking: TelegramLinking
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None = None
