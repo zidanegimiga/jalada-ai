@@ -39,6 +39,7 @@ class EvidenceStatus(StrEnum):
     PROPOSED = "proposed"
     NEEDS_REVIEW = "needs_review"
     CONFIRMED = "confirmed"
+    DUPLICATE = "duplicate"
     FAILED = "failed"
 
 
