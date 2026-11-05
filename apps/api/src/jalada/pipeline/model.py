@@ -50,5 +50,4 @@ class LanguageModel(Protocol):
         content: str,
         schema: dict[str, Any],
         image: ImageInput | None = None,
-    ) -> ModelReply:
-        ...
+    ) -> ModelReply: ...
