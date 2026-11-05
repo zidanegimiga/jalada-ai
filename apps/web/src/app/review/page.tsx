@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Suspense } from "react";
 
+import { AppShell } from "@/components/app-shell";
 import { ReviewCard } from "@/features/review/components/review-card";
 import {
   getCategories,
@@ -34,14 +34,11 @@ async function ReviewQueue() {
 
 export default function ReviewPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 py-8">
-      <Link href="/" className="text-lg font-bold">
-        Jalada AI
-      </Link>
+    <AppShell>
       <h1 className="text-4xl font-bold">To check</h1>
       <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
         <ReviewQueue />
       </Suspense>
-    </main>
+    </AppShell>
   );
 }

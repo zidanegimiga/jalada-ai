@@ -1,16 +1,53 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { AppShell } from "@/components/app-shell";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 import { CapturePanel } from "@/features/evidence/components/capture-panel";
 import { EvidenceList } from "@/features/evidence/components/evidence-list";
 import { getRecentEvidence } from "@/features/evidence/server/get-recent-evidence";
+import { MonthCard } from "@/features/ledger/components/month-card";
+import { getMonth } from "@/features/ledger/server/queries";
+import { getReviewQueue } from "@/features/review/server/queries";
 
-async function Greeting() {
+/** Today's year and month in Kenya, whatever time zone the server runs in. */
+function nairobiMonth(): [number, number] {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Nairobi",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const value = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value);
+  return [value("year"), value("month")];
+}
+
+async function Overview() {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
-  return <h1 className="text-4xl font-bold">Hello, {user.display_name}</h1>;
+  const [year, month] = nairobiMonth();
+  const [summary, waiting] = await Promise.all([
+    getMonth(year, month),
+    getReviewQueue(),
+  ]);
+  return (
+    <>
+      <h1 className="text-4xl font-bold">Hello, {user.display_name}</h1>
+      {summary && <MonthCard year={year} month={summary} />}
+      {waiting.length > 0 && (
+        <Link
+          href="/review"
+          className="rounded-3xl bg-secondary px-5 py-4 text-lg font-medium text-secondary-foreground"
+        >
+          {waiting.length === 1
+            ? "1 item to check"
+            : `${waiting.length} items to check`}{" "}
+          →
+        </Link>
+      )}
+    </>
+  );
 }
 
 async function RecentEvidence() {
@@ -19,13 +56,9 @@ async function RecentEvidence() {
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 py-8">
-      <header className="flex items-center justify-between">
-        <p className="text-lg font-bold">Jalada AI</p>
-        <SignOutButton />
-      </header>
-      <Suspense fallback={<div className="h-10" />}>
-        <Greeting />
+    <AppShell>
+      <Suspense fallback={<div className="h-40" />}>
+        <Overview />
       </Suspense>
       <CapturePanel />
       <section aria-labelledby="recent-heading" className="flex flex-col gap-3">
@@ -38,6 +71,6 @@ export default function Home() {
           <RecentEvidence />
         </Suspense>
       </section>
-    </main>
+    </AppShell>
   );
 }

@@ -13,7 +13,11 @@ export default function SignInPage() {
           <SignInNotice />
         </Suspense>
       }
-      footer={{ text: "New here?", linkLabel: "Create an account", href: "/signup" }}
+      footer={{
+        text: "New here?",
+        linkLabel: "Create an account",
+        href: "/signup",
+      }}
     >
       <SignInForm />
     </AuthPage>

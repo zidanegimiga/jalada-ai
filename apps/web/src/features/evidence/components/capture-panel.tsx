@@ -34,7 +34,7 @@ export function CapturePanel() {
   return (
     <section
       aria-labelledby="capture-heading"
-      className="flex flex-col gap-3 rounded-3xl bg-foreground p-5 text-background dark:border dark:border-border dark:bg-card dark:text-card-foreground"
+      className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5"
     >
       <h2 id="capture-heading" className="text-xl font-bold">
         Add evidence
@@ -81,7 +81,7 @@ export function CapturePanel() {
         role="status"
         className={
           notice?.tone === "error"
-            ? "font-medium text-[#ff9a8a]"
+            ? "font-medium text-destructive"
             : "font-medium"
         }
       >

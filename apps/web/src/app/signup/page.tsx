@@ -5,7 +5,11 @@ export default function SignUpPage() {
   return (
     <AuthPage
       title="Create your account"
-      footer={{ text: "Already have an account?", linkLabel: "Sign in", href: "/signin" }}
+      footer={{
+        text: "Already have an account?",
+        linkLabel: "Sign in",
+        href: "/signin",
+      }}
     >
       <SignUpForm />
     </AuthPage>
