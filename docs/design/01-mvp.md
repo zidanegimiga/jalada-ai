@@ -166,6 +166,8 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 | Withholding Tax | One row per certificate: payer, payer tax number, serial number, date, gross amount, tax withheld (relates to `O_WHT_Credits`). |
 | Summary | Totals per group and per month. No tax is calculated. |
 
+Text taken from evidence is always written as plain text, so a counterparty such as `=HYPERLINK(...)` can never become a live formula. Every sheet prints landscape, one page wide.
+
 ## Security and privacy
 
 - Passwords hashed with Argon2. Sessions in secure, HTTP-only, same-site cookies.
