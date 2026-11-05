@@ -1,13 +1,22 @@
 COMPOSE := docker compose -f infra/docker-compose.yml $(if $(wildcard .env),--env-file .env)
 
-.PHONY: up down logs db migrate migration check test-integration format
+.PHONY: up up-ollama ollama-model down logs db migrate migration check test-integration format
 
 # Build and start the whole stack in the background.
 up:
 	$(COMPOSE) up --build --detach --wait
 
+# The same stack plus a local language model server on localhost:11434.
+up-ollama:
+	$(COMPOSE) --profile ollama up --build --detach --wait
+
+# Download the default local vision model (about 3 GB) into the ollama container.
+OLLAMA_MODEL ?= qwen2.5vl:3b
+ollama-model:
+	$(COMPOSE) --profile ollama exec ollama ollama pull $(OLLAMA_MODEL)
+
 down:
-	$(COMPOSE) down
+	$(COMPOSE) --profile ollama down
 
 logs:
 	$(COMPOSE) logs --follow

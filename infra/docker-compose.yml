@@ -96,6 +96,16 @@ services:
       api:
         condition: service_healthy
 
+  # Optional local language model: make up-ollama, then make ollama-model.
+  ollama:
+    image: ollama/ollama:0.40.14
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
 volumes:
   postgres-data:
   storage-data:
+  ollama-data:
