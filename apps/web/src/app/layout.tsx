@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,14 @@ const onest = Onest({
 export const metadata: Metadata = {
   title: "Jalada AI",
   description: "Money records for people without an accountant.",
+};
+
+// Colours the phone's browser bar to match the page in both themes.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fefff6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c0a" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

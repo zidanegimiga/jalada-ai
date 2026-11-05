@@ -23,4 +23,4 @@ shadcn/ui with Base UI primitives and lucide icons, themed through CSS variables
 - Components are our code. Upgrades are not automatic: we re-run the shadcn tool or edit by hand.
 - The palette lives in one place. Text on pumpkin and flax is black, because white on pumpkin fails contrast.
 - Buttons are at least 40px tall and 48px by default, so they are easy to tap on small phones.
-- There is no dark theme yet. The design is light only.
+- Light and dark themes follow the phone's system setting through `prefers-color-scheme`, so there is no theme library and no flash of the wrong theme on load. Every text colour pair meets the WCAG AA contrast ratio of 4.5 to 1 (WCAG is the Web Content Accessibility Guidelines). A manual switch can be added later with a small client component.

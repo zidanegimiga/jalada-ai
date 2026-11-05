@@ -36,8 +36,11 @@
 /*
  * Palette: black, pumpkin, ivory and flax.
  * Text on pumpkin and flax is black, because white on pumpkin fails contrast.
+ * The dark theme follows the phone's system setting.
  */
 :root {
+  color-scheme: light dark;
+
   --black: #000000;
   --pumpkin: #eb712e;
   --ivory: #fefff6;
@@ -63,6 +66,30 @@
   --input: #e4e5d8;
   --ring: var(--pumpkin);
   --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0c0c0a;
+    --foreground: var(--ivory);
+    --card: #181816;
+    --card-foreground: var(--ivory);
+    --popover: #181816;
+    --popover-foreground: var(--ivory);
+    --primary: var(--pumpkin);
+    --primary-foreground: var(--black);
+    --secondary: #2e2a14;
+    --secondary-foreground: var(--flax);
+    --muted: #1f1f1c;
+    --muted-foreground: #b4b5a8;
+    --accent: #2e2a14;
+    --accent-foreground: var(--flax);
+    --destructive: #ef6461;
+    --money-in: #63c08a;
+    --border: #2d2d29;
+    --input: #2d2d29;
+    --ring: var(--pumpkin);
+  }
 }
 
 @layer base {
