@@ -21,7 +21,8 @@ from jalada.application.ports import (
     UserCredentials,
     UserRepository,
 )
-from jalada.domain.entries import Entry
+from jalada.domain.categories import Purpose
+from jalada.domain.entries import Entry, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
@@ -39,6 +40,7 @@ class Store:
     entries: dict[UUID, Entry] = field(default_factory=dict)
     preferences: dict[UUID, dict[str, Preference]] = field(default_factory=dict)
     runs: list[tuple[PipelineRun, list[StepRecord]]] = field(default_factory=list)
+    revisions: list[tuple[Entry, Entry]] = field(default_factory=list)
     # Jobs for the job runner: id to [job, status, run_after].
     queue: dict[int, list[Any]] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
@@ -87,9 +89,12 @@ class FakeSessions:
 
 
 class FakeEvidence:
-    def __init__(self, rows: dict[UUID, Evidence], user_id: UUID) -> None:
+    def __init__(
+        self, rows: dict[UUID, Evidence], user_id: UUID, entries: dict[UUID, Entry] | None = None
+    ) -> None:
         self.rows = rows
         self._user_id = user_id
+        self.entries = entries or {}
 
     def add(self, evidence: Evidence) -> None:
         assert evidence.user_id == self._user_id
@@ -108,6 +113,16 @@ class FakeEvidence:
     def set_outcome(self, evidence_id: UUID, kind: EvidenceKind, status: EvidenceStatus) -> None:
         if evidence_id in self.rows and self.rows[evidence_id].user_id == self._user_id:
             self.rows[evidence_id] = replace(self.rows[evidence_id], kind=kind, status=status)
+
+    def set_status(self, evidence_id: UUID, status: EvidenceStatus) -> None:
+        if evidence_id in self.rows and self.rows[evidence_id].user_id == self._user_id:
+            self.rows[evidence_id] = replace(self.rows[evidence_id], status=status)
+
+    def needing_entry(self, limit: int) -> list[Evidence]:
+        unread = (EvidenceStatus.NEEDS_REVIEW, EvidenceStatus.FAILED)
+        with_entry = {entry.evidence_id for entry in self.entries.values()}
+        found = [e for e in self._mine() if e.status in unread and e.id not in with_entry]
+        return sorted(found, key=lambda e: e.received_at)[:limit]
 
     def _mine(self) -> list[Evidence]:
         return [e for e in self.rows.values() if e.user_id == self._user_id]
@@ -138,13 +153,33 @@ class FakeJobs:
 
 
 class FakeEntries:
-    def __init__(self, rows: dict[UUID, Entry], user_id: UUID) -> None:
+    def __init__(
+        self, rows: dict[UUID, Entry], user_id: UUID, revisions: list[tuple[Entry, Entry]]
+    ) -> None:
         self.rows = rows
         self._user_id = user_id
+        self._revisions = revisions
 
     def add(self, entry: Entry) -> None:
         assert entry.user_id == self._user_id
         self.rows[entry.id] = entry
+
+    def get(self, entry_id: UUID) -> Entry | None:
+        return next((e for e in self._mine() if e.id == entry_id), None)
+
+    def for_evidence(self, evidence_id: UUID) -> Entry | None:
+        return next((e for e in self._mine() if e.evidence_id == evidence_id), None)
+
+    def update(self, entry: Entry) -> None:
+        assert entry.user_id == self._user_id and entry.id in self.rows
+        self.rows[entry.id] = entry
+
+    def add_revision(self, before: Entry, after: Entry, changed_at: datetime) -> None:
+        self._revisions.append((before, after))
+
+    def pending(self, limit: int) -> list[Entry]:
+        waiting = (EntryStatus.PROPOSED, EntryStatus.NEEDS_REVIEW)
+        return [e for e in self._mine() if e.status in waiting][:limit]
 
     def has_mpesa_code(self, code: str) -> bool:
         return any(e.mpesa_code == code for e in self._mine())
@@ -162,6 +197,12 @@ class FakePreferences:
 
     def all(self) -> dict[str, Preference]:
         return dict(self._preferences)
+
+    def remember(self, counterparty_key: str, category: str, purpose: Purpose) -> None:
+        old = self._preferences.get(counterparty_key)
+        same = old is not None and (old.category, old.purpose) == (category, purpose)
+        times = old.times_used + 1 if old and same else 1
+        self._preferences[counterparty_key] = Preference(category, purpose, times)
 
 
 class FakeRuns:
@@ -189,18 +230,20 @@ class FakeUnitOfWork:
         )
         self.jobs: JobQueue = self._jobs
         self._entries = dict(self._store.entries)
+        self._revisions = list(self._store.revisions)
+        self._preferences = {user: dict(p) for user, p in self._store.preferences.items()}
         self._runs = FakeRuns(list(self._store.runs))
         self.runs: RunRepository = self._runs
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
-        return FakeEvidence(self._evidence, user_id)
+        return FakeEvidence(self._evidence, user_id, self._entries)
 
     def entries_for(self, user_id: UUID) -> EntryRepository:
-        return FakeEntries(self._entries, user_id)
+        return FakeEntries(self._entries, user_id, self._revisions)
 
     def preferences_for(self, user_id: UUID) -> PreferenceRepository:
-        return FakePreferences(self._store.preferences.get(user_id, {}))
+        return FakePreferences(self._preferences.setdefault(user_id, {}))
 
     def __exit__(
         self,
@@ -217,6 +260,8 @@ class FakeUnitOfWork:
         self._store.jobs = self._jobs.rows
         self._store.queue = self._jobs.queue
         self._store.entries = self._entries
+        self._store.revisions = self._revisions
+        self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
 

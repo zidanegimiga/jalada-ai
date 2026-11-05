@@ -75,9 +75,8 @@ def _to_classification(data: dict[str, Any], direction: Direction) -> Classifica
     category = CATEGORIES.get(str(data.get("category")))
     if category is None or category.direction != direction:
         return Classification(Purpose.UNSURE, None, 0.0, "model")
-    # A cost category already says business or personal; that wins over the model's purpose.
-    purpose = category.purpose or Purpose.UNSURE
-    return Classification(purpose, category.slug, _confidence(data), "model")
+    # The category already says business or personal; that wins over the model's purpose.
+    return Classification(category.purpose, category.slug, _confidence(data), "model")
 
 
 def _cents(value: Any) -> int | None:

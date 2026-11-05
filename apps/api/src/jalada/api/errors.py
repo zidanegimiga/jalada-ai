@@ -6,10 +6,12 @@ from jalada.application.errors import (
     ApplicationError,
     EmailAlreadyRegistered,
     EmptyEvidence,
+    EntryNotFound,
     EvidenceNotFound,
     FileTooLarge,
     GoogleSignInFailed,
     InvalidCredentials,
+    InvalidEntry,
     NotSignedIn,
     UnsupportedFile,
     WeakPassword,
@@ -30,6 +32,7 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     FileTooLarge: (413, "too_large", "That is too big. Files can be up to 10 MB."),
     EmptyEvidence: (422, "empty", "There is nothing to save."),
     EvidenceNotFound: (404, "not_found", "That evidence does not exist."),
+    EntryNotFound: (404, "not_found", "That entry does not exist."),
     TooManyAttempts: (429, "too_many_attempts", "Too many attempts. Wait a minute and try again."),
 }
 
@@ -42,10 +45,15 @@ def add_error_handlers(app: FastAPI) -> None:
     async def known_error(request: Request, error: Exception) -> JSONResponse:
         return error_response(*ERRORS[type(error)])
 
+    async def invalid_entry(request: Request, error: Exception) -> JSONResponse:
+        reason = error.reason if isinstance(error, InvalidEntry) else "That entry is not valid."
+        return error_response(422, "invalid_entry", reason)
+
     async def invalid_request(request: Request, error: Exception) -> JSONResponse:
         return error_response(422, "invalid_request", "Some fields are missing or invalid.")
 
     for error_type in ERRORS:
         app.add_exception_handler(error_type, known_error)
+    app.add_exception_handler(InvalidEntry, invalid_entry)
     app.add_exception_handler(RequestValidationError, invalid_request)
     app.add_exception_handler(ApplicationError, known_error)

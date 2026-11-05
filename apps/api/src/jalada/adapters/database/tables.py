@@ -143,7 +143,7 @@ class EntryRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     evidence_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("evidence.id", ondelete="CASCADE"))
-    run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pipeline_runs.id"))
+    run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("pipeline_runs.id"))
     kind: Mapped[str] = mapped_column(String(30))
     status: Mapped[str] = mapped_column(String(20))
     occurred_on: Mapped[Any] = mapped_column(Date, nullable=True)
@@ -158,6 +158,21 @@ class EntryRow(Base):
     category: Mapped[str | None] = mapped_column(String(40))
     confidence: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class EntryRevisionRow(Base):
+    """Every confirmation and correction, with the entry before and after."""
+
+    __tablename__ = "entry_revisions"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    entry_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("entries.id", ondelete="CASCADE"), index=True
+    )
+    before: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    after: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class CounterpartyPreferenceRow(Base):

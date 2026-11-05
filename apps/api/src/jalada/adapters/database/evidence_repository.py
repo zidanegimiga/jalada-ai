@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import Select, select, update
+from sqlalchemy import Select, exists, select, update
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.adapters.database.tables import EvidenceRow
+from jalada.adapters.database.tables import EntryRow, EvidenceRow
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
 
 
@@ -49,6 +49,27 @@ class SqlEvidenceRepository:
             .where(EvidenceRow.user_id == self._user_id, EvidenceRow.id == evidence_id)
             .values(kind=kind, status=status)
         )
+
+    def set_status(self, evidence_id: UUID, status: EvidenceStatus) -> None:
+        self._db.execute(
+            update(EvidenceRow)
+            .where(EvidenceRow.user_id == self._user_id, EvidenceRow.id == evidence_id)
+            .values(status=status)
+        )
+
+    def needing_entry(self, limit: int) -> list[Evidence]:
+        """Evidence nothing could read: it needs the user to type the entry in."""
+        has_entry = exists().where(EntryRow.evidence_id == EvidenceRow.id)
+        query = (
+            self._mine()
+            .where(
+                EvidenceRow.status.in_([EvidenceStatus.NEEDS_REVIEW, EvidenceStatus.FAILED]),
+                ~has_entry,
+            )
+            .order_by(EvidenceRow.received_at)
+            .limit(limit)
+        )
+        return [_to_evidence(row) for row in self._db.scalars(query)]
 
     def _mine(self) -> Select[EvidenceRow]:
         return select(EvidenceRow).where(EvidenceRow.user_id == self._user_id)

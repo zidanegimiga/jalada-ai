@@ -15,14 +15,16 @@ class Purpose(StrEnum):
 
 @dataclass(frozen=True)
 class Category:
+    """A kind of money in or out. Purpose groups it as business or personal in monthly views."""
+
     slug: str
     name: str
     direction: Direction
-    purpose: Purpose | None  # None for money in, where purpose does not apply
+    purpose: Purpose
 
 
-def _money_in(slug: str, name: str) -> Category:
-    return Category(slug, name, Direction.IN, None)
+def _money_in(slug: str, name: str, purpose: Purpose) -> Category:
+    return Category(slug, name, Direction.IN, purpose)
 
 
 def _cost(slug: str, name: str, purpose: Purpose) -> Category:
@@ -34,13 +36,13 @@ B, P = Purpose.BUSINESS, Purpose.PERSONAL
 CATEGORIES: dict[str, Category] = {
     c.slug: c
     for c in [
-        _money_in("salary", "Salary"),
-        _money_in("consultancy_fees", "Consultancy or freelance fees"),
-        _money_in("business_sales", "Business sales"),
-        _money_in("family_support", "Support from family or friends"),
-        _money_in("own_transfer", "Transfer between own accounts"),
-        _money_in("refund", "Refund"),
-        _money_in("other_income", "Other money in"),
+        _money_in("salary", "Salary", P),
+        _money_in("consultancy_fees", "Consultancy or freelance fees", B),
+        _money_in("business_sales", "Business sales", B),
+        _money_in("family_support", "Support from family or friends", P),
+        _money_in("own_transfer", "Transfer between own accounts", P),
+        _money_in("refund", "Refund", P),
+        _money_in("other_income", "Other money in", P),
         _cost("business_airtime_data", "Data and airtime", B),
         _cost("business_transport", "Transport", B),
         _cost("business_equipment", "Equipment that lasts years", B),

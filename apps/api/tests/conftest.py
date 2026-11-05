@@ -18,6 +18,7 @@ from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
 from jalada.application.authentication import Authenticator
+from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.config.settings import Environment, Settings
@@ -69,13 +70,21 @@ def capture(store: Store, evidence_store: FakeEvidenceStore, clock: FixedClock) 
 
 
 @pytest.fixture
+def review(store: Store, clock: FixedClock) -> EntryReview:
+    return EntryReview(lambda: FakeUnitOfWork(store), clock)
+
+
+@pytest.fixture
 def google() -> FakeGoogle:
     return FakeGoogle()
 
 
 @pytest.fixture
 def make_app(
-    authenticator: Authenticator, capture: EvidenceCapture, google: FakeGoogle
+    authenticator: Authenticator,
+    capture: EvidenceCapture,
+    review: EntryReview,
+    google: FakeGoogle,
 ) -> Callable[..., FastAPI]:
     def build(
         environment: Environment = "test",
@@ -88,6 +97,7 @@ def make_app(
             sign_in_limiter=RateLimiter(rule),
             evidence=capture,
             upload_limiter=RateLimiter(upload_rule),
+            review=review,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
         )
         return create_app(make_settings(environment), services)

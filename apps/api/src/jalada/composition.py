@@ -22,6 +22,7 @@ from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
 from jalada.application.authentication import Authenticator
+from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ports import EvidenceStore
@@ -49,6 +50,7 @@ def build_services(settings: Settings) -> Services:
         sign_in_limiter=RateLimiter("5/minute"),
         evidence=evidence,
         upload_limiter=RateLimiter("60/hour"),
+        review=EntryReview(lambda: SqlUnitOfWork(session_factory), clock),
         google_sign_in=build_google_sign_in(settings, authenticator),
     )
 

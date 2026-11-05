@@ -36,3 +36,15 @@ class EmptyEvidence(ApplicationError):
 
 class EvidenceNotFound(ApplicationError):
     pass
+
+
+class EntryNotFound(ApplicationError):
+    pass
+
+
+class InvalidEntry(ApplicationError):
+    """An entry cannot be confirmed as it stands. `reason` says why, for the user."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason

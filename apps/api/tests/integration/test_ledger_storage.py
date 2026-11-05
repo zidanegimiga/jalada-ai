@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
@@ -131,3 +132,60 @@ def test_preferences_are_read_per_user(session_factory: sessionmaker[DbSession])
         Purpose.PERSONAL,
         2,
     )
+
+
+def test_confirming_updates_the_entry_and_keeps_the_revision(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, evidence, run = setup_evidence(session_factory)
+    entry = make_entry(user, evidence, run, "UK5AB1CD99")
+    with SqlUnitOfWork(session_factory) as work:
+        work.entries_for(user.id).add(entry)
+        work.commit()
+    confirmed = replace(entry, status=EntryStatus.CONFIRMED, amount_cents=16000, confirmed_at=NOW)
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.entries_for(user.id).pending(10) == [entry]
+        work.entries_for(user.id).update(confirmed)
+        work.entries_for(user.id).add_revision(entry, confirmed, NOW)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.entries_for(user.id).get(entry.id) == confirmed
+        assert work.entries_for(user.id).pending(10) == []
+        assert work.entries_for(user.id).for_evidence(evidence.id) == confirmed
+    with session_factory() as db:
+        before, after = db.execute(text("SELECT before, after FROM entry_revisions")).one()
+    assert (before["amount_cents"], after["amount_cents"]) == ("15000", "16000")
+
+
+def test_remembered_choices_count_up_and_reset_on_change(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, _, _ = setup_evidence(session_factory)
+
+    for category in ["personal_food", "personal_food", "personal_food", "personal_other"]:
+        with SqlUnitOfWork(session_factory) as work:
+            work.preferences_for(user.id).remember("jane wanjiku", category, Purpose.PERSONAL)
+            work.commit()
+        with SqlUnitOfWork(session_factory) as work:
+            last = work.preferences_for(user.id).all()["jane wanjiku"]
+
+    assert (last.category, last.times_used) == ("personal_other", 1)
+
+
+def test_unread_evidence_without_an_entry_waits_for_one(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, evidence, run = setup_evidence(session_factory)
+    with SqlUnitOfWork(session_factory) as work:
+        work.evidence_for(user.id).set_status(evidence.id, EvidenceStatus.NEEDS_REVIEW)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert [e.id for e in work.evidence_for(user.id).needing_entry(10)] == [evidence.id]
+        work.entries_for(user.id).add(make_entry(user, evidence, run, "UK5AB1CD98"))
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.evidence_for(user.id).needing_entry(10) == []
