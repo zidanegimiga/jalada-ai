@@ -1,4 +1,5 @@
 import logging
+import threading
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any, Protocol
@@ -61,3 +62,14 @@ class JobRunner:
             handler.give_up(payload)
         except Exception as error:
             logger.error("giving up on job %s failed with %s", job_id, type(error).__name__)
+
+
+class Runs(Protocol):
+    def run_one(self) -> bool: ...
+
+
+def work_until(stop: threading.Event, jobs: Runs, poll_interval: float) -> None:
+    """Run due jobs back to back, and wait between polls when there are none."""
+    while not stop.is_set():
+        if not jobs.run_one():
+            stop.wait(poll_interval)

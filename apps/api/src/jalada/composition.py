@@ -21,6 +21,8 @@ from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
 from jalada.adapters.security.evidence_cipher import EvidenceCipher
 from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3_client
 from jalada.adapters.system_clock import SystemClock
+from jalada.adapters.text.ocr import TesseractOcr
+from jalada.adapters.text.reader import EvidenceTextReader
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
@@ -28,13 +30,16 @@ from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
-from jalada.application.evidence_capture import EvidenceCapture
+from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB, EvidenceCapture
+from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.google_sign_in import GoogleSignIn
+from jalada.application.job_runner import JobRunner
 from jalada.application.ledger import Ledger
 from jalada.application.ports import EvidenceStore
 from jalada.application.tax_year_export import TaxYearExport
 from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
+from jalada.application.telegram_notifier import TelegramNotifier
 from jalada.config.logging import configure_logging
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
@@ -149,3 +154,29 @@ def build_api() -> FastAPI:
     settings = load_settings()
     configure_logging(settings.log_level)
     return create_app(settings, build_services(settings))
+
+
+def build_job_runner(settings: Settings) -> JobRunner:
+    """The worker's job loop: the pipeline, with replies on Telegram when the bot is on."""
+    session_factory = sessionmaker(create_database_engine(settings.database_url))
+    clock = SystemClock()
+    bot = build_telegram_bot(settings)
+    notifier = (
+        TelegramNotifier(
+            lambda: SqlUnitOfWork(session_factory), bot, f"{settings.public_url}/review"
+        )
+        if bot
+        else None
+    )
+    processor = EvidenceProcessor(
+        unit_of_work=lambda: SqlUnitOfWork(session_factory),
+        store=build_evidence_store(settings),
+        reader=EvidenceTextReader(TesseractOcr()),
+        clock=clock,
+        budget=build_budget(settings),
+        model=build_language_model(settings),
+        notifier=notifier,
+    )
+    return JobRunner(
+        lambda: SqlUnitOfWork(session_factory), {PROCESS_EVIDENCE_JOB: processor}, clock
+    )

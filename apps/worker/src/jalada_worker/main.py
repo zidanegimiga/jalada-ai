@@ -1,26 +1,11 @@
-"""Worker entry point and composition root."""
+"""Worker entry point. The job loop itself is built in jalada.composition."""
 
 import logging
 import signal
 import threading
-from typing import Protocol
 
-from sqlalchemy.orm import sessionmaker
-
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
-from jalada.adapters.system_clock import SystemClock
-from jalada.adapters.text.ocr import TesseractOcr
-from jalada.adapters.text.reader import EvidenceTextReader
-from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.application.job_runner import JobRunner
-from jalada.application.telegram_notifier import TelegramNotifier
-from jalada.composition import (
-    build_budget,
-    build_evidence_store,
-    build_language_model,
-    build_telegram_bot,
-)
+from jalada.application.job_runner import Runs, work_until
+from jalada.composition import build_job_runner
 from jalada.config.logging import configure_logging
 from jalada.config.settings import Settings, load_settings
 
@@ -29,16 +14,10 @@ logger = logging.getLogger("jalada.worker")
 POLL_INTERVAL_SECONDS = 5.0
 
 
-class Runner(Protocol):
-    def run_one(self) -> bool: ...
-
-
-def run(settings: Settings, stop: threading.Event, poll_interval: float, jobs: Runner) -> None:
+def run(settings: Settings, stop: threading.Event, poll_interval: float, jobs: Runs) -> None:
     """Work through due jobs, then wait. Returns once `stop` is set."""
     logger.info("worker started in %s", settings.environment)
-    while not stop.is_set():
-        if not jobs.run_one():
-            stop.wait(poll_interval)
+    work_until(stop, jobs, poll_interval)
     logger.info("worker stopped")
 
 
@@ -46,31 +25,6 @@ def install_stop_signals(stop: threading.Event) -> None:
     """Set `stop` when the process is asked to shut down (Ctrl+C or docker stop)."""
     for signal_number in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signal_number, lambda *_: stop.set())
-
-
-def build_job_runner(settings: Settings) -> JobRunner:
-    session_factory = sessionmaker(create_database_engine(settings.database_url))
-    clock = SystemClock()
-    bot = build_telegram_bot(settings)
-    notifier = (
-        TelegramNotifier(
-            lambda: SqlUnitOfWork(session_factory), bot, f"{settings.public_url}/review"
-        )
-        if bot
-        else None
-    )
-    processor = EvidenceProcessor(
-        unit_of_work=lambda: SqlUnitOfWork(session_factory),
-        store=build_evidence_store(settings),
-        reader=EvidenceTextReader(TesseractOcr()),
-        clock=clock,
-        budget=build_budget(settings),
-        model=build_language_model(settings),
-        notifier=notifier,
-    )
-    return JobRunner(
-        lambda: SqlUnitOfWork(session_factory), {PROCESS_EVIDENCE_JOB: processor}, clock
-    )
 
 
 def main() -> None:
