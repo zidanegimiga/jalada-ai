@@ -40,6 +40,8 @@ class Entry:
     confidence: float
     created_at: datetime
     confirmed_at: datetime | None = None
+    # From withholding certificates: the payer's KRA PIN.
+    payer_tax_number: str | None = None
 
 
 def counterparty_key(name: str) -> str:

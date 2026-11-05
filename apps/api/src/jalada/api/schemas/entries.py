@@ -51,6 +51,7 @@ class EntryResponse(BaseModel):
     mpesa_code: str | None
     certificate_serial: str | None
     tax_withheld_cents: int | None
+    payer_tax_number: str | None
     purpose: str
     category: str | None
     category_name: str | None
@@ -72,6 +73,7 @@ class EntryResponse(BaseModel):
             mpesa_code=entry.mpesa_code,
             certificate_serial=entry.certificate_serial,
             tax_withheld_cents=entry.tax_withheld_cents,
+            payer_tax_number=entry.payer_tax_number,
             purpose=entry.purpose,
             category=entry.category,
             category_name=category.name if category else None,

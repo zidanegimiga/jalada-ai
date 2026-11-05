@@ -226,3 +226,16 @@ def test_ledger_queries_filter_page_and_total_in_postgres(
     assert Total(1, Direction.OUT, Purpose.BUSINESS, 30_000) in totals
     assert Total(1, Direction.IN, Purpose.BUSINESS, 4_000_000) in totals
     assert Total(2, Direction.OUT, Purpose.PERSONAL, 80_000) in totals
+
+
+def test_the_payers_tax_number_is_kept(session_factory: sessionmaker[DbSession]) -> None:
+    user, evidence, run = setup_evidence(session_factory)
+    entry = replace(make_entry(user, evidence, run, "UK5AB1CD97"), payer_tax_number="P000000000A")
+    with SqlUnitOfWork(session_factory) as work:
+        work.entries_for(user.id).add(entry)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        saved = work.entries_for(user.id).get(entry.id)
+
+    assert saved is not None and saved.payer_tax_number == "P000000000A"

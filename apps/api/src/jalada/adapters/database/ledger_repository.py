@@ -161,4 +161,5 @@ def _to_entry(row: EntryRow) -> Entry:
         confidence=row.confidence,
         created_at=row.created_at,
         confirmed_at=row.confirmed_at,
+        payer_tax_number=row.payer_tax_number,
     )

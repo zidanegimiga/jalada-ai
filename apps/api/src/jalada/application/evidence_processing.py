@@ -134,4 +134,5 @@ class EvidenceProcessor:
             category=classification.category,
             confidence=classification.confidence,
             created_at=self._clock.now(),
+            payer_tax_number=extraction.payer_tax_number,
         )

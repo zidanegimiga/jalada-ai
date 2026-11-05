@@ -159,6 +159,7 @@ class EntryRow(Base):
     confidence: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    payer_tax_number: Mapped[str | None] = mapped_column(String(20))
 
 
 class EntryRevisionRow(Base):

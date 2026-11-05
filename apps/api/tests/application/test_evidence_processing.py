@@ -80,6 +80,7 @@ def test_a_certificate_pdf_is_read_and_proposed(
     [entry] = store.entries.values()
     assert entry.certificate_serial == "KRAWHTEON0000000001"
     assert entry.tax_withheld_cents == 200000
+    assert entry.payer_tax_number == "P000000000A"
 
 
 def test_the_same_transaction_sent_twice_is_a_duplicate(
