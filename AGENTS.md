@@ -1,4 +1,4 @@
-# Jalada AI: rules for coding agents
+# Working on Jalada AI
 
 ## The product
 Jalada AI keeps money records for Kenyans with no accountant. A user sends a receipt photo, a PDF or a forwarded M-Pesa message. A pipeline works out what the money was for, categorises it, keeps the evidence and saves it to a ledger. The ledger feeds a monthly view of money in and out and, at filing time, figures grouped the way the Kenya Revenue Authority's iTax return asks for them.
@@ -6,15 +6,15 @@ Jalada AI keeps money records for Kenyans with no accountant. A user sends a rec
 Users have scattered income, many small payments, and often small or basic phones.
 
 ## How we work
-The owner, Zidane, reviews every line. Do not run ahead.
+I review every line. Do not run ahead.
 
 1. **Plan, approve, build.** Propose a short numbered plan, wait for approval, then build exactly that.
-2. **One small commit at a time.** One purpose per commit, under about 150 changed lines. Lockfiles and untouched generated files do not count, but list them. Never mix a refactor with a feature. Give Zidane the commit command to run.
+2. **One small commit at a time.** One purpose per commit, under about 150 changed lines. Lockfiles and untouched generated files do not count, but list them. Never mix a refactor with a feature. Give me the commit command to run.
 3. **Explain everything, in chat.** After each commit, walk through every new or changed file, library, type, function, variable and test. Do not save these explanations as files. Only decisions are written down, as records in `docs/adr/`.
 4. **Decisions get a record.** Every library, service, data store or pattern gets an architecture decision record in `docs/adr/` before it lands in code. No new dependency without one.
 5. **Tests come with code.** Every behaviour change ships with tests. Run them and show the output. "Done" is proven, not asserted.
-6. **Ask, don't assume.** Never invent tax rules. Tax facts come from `docs/domain/` or from Zidane.
-7. **Stop at the gates.** At the end of each milestone, summarise what exists and what is next, then wait.
+6. **Ask, don't assume.** Never invent tax rules. Tax facts come from `docs/domain/` or from me.
+7. **Stop when a piece of work is done.** Summarise what exists and what is next, then wait.
 
 ## Architecture
 - **Ports and adapters.** Business logic depends on interfaces (ports), never on vendor libraries. Each vendor sits behind an adapter. Swapping a provider means one new adapter and one configuration change.
@@ -55,7 +55,4 @@ Docs and explanations use short, plain sentences. No em dashes and no emojis. Sp
 
 ## Where things are
 - `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: Kenyan tax and M-Pesa notes, to verify rather than treat as tax advice.
-- `.claude/skills/` and `.agents/`: project skills in the open Agent Skills format. They live only on the owner's machine and are never committed. Read the relevant one before working in an area, and keep it up to date when a change affects it.
-
-## Current state
-Milestone 1 (foundations) is in progress. See `git log` for the most recent step.
+- `.claude/skills/` and `.agents/`: project skills in the open Agent Skills format. They live only on my machine and are never committed. Read the relevant one before working in an area, and keep it up to date when a change affects it.

@@ -23,7 +23,7 @@ The API and the worker are Python. We need a Python version, a way to install an
 
 ### Type checker
 1. **mypy.** The reference checker, with a plugin for Pydantic.
-2. **pyright.** Faster and strict, but the kickoff names mypy and its Pydantic support is weaker.
+2. **pyright.** Faster and strict, but its Pydantic support is weaker.
 
 ### Test runner
 1. **unittest.** Built in, but verbose and class-based.

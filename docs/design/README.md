@@ -1,6 +1,6 @@
 # Design process
 
-We design in stages. Each stage is one document. A stage moves to the next only after Zidane reviews it and changes its status to `Approved`.
+We design in stages. Each stage is one document. A stage moves to the next only once its status is `Approved`.
 
 | # | Stage | Question it answers | Status |
 |---|---|---|---|
@@ -18,7 +18,6 @@ We design in stages. Each stage is one document. A stage moves to the next only 
 Decisions made along the way are recorded as architecture decision records in [`../adr/`](../adr/).
 
 ## How each stage runs
-1. Claude drafts or asks questions, depending on how much is already known.
-2. Zidane reviews, comments and edits.
-3. Open questions are answered or written down as assumptions.
-4. Zidane sets `Status: Approved`. Only then does the next stage start.
+1. Draft the document, or list the questions it must answer.
+2. Answer open questions, or write them down as assumptions.
+3. Set `Status: Approved`. Only then does the next stage start.

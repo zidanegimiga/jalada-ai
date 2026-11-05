@@ -1,7 +1,4 @@
-"""Worker entry point and composition root.
-
-The loop does no work yet. Job polling arrives with the pipeline in Milestone 4.
-"""
+"""Worker entry point and composition root."""
 
 import logging
 import signal

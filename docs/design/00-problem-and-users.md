@@ -1,6 +1,6 @@
 # 00. Problem and users
 
-Status: Draft (awaiting Zidane's review)
+Status: Draft
 
 ## The problem in one sentence
 People with mixed income and many small spends never keep records, so they cannot see where their money goes, and tax season becomes a panic of rebuilding a year from bank and M-Pesa statements.
@@ -12,7 +12,7 @@ People with mixed income and many small spends never keep records, so they canno
 - Money arrives through bank and M-Pesa. Between jobs, relatives and friends send support.
 - Spends on tools for work: a laptop, data bundles, software subscriptions, courses, transport.
 - Pain: at filing time, cannot tell which deposits were income, which were support, and which costs were for work. Certificates and receipts are scattered across email, WhatsApp and paper.
-- This is Zidane's own situation in 2025, and the first user.
+- This was my own situation in 2025. I am the first user.
 
 ### Persona 2: The informal business owner
 - Runs a kiosk, salon, boda boda, small shop or market stall.
@@ -43,7 +43,7 @@ People with mixed income and many small spends never keep records, so they canno
 - Invoicing customers, stock management and payroll.
 - Budgets and savings goals.
 
-## Questions for Zidane
+## Open questions
 1. Is Persona 3 a real target, or a later audience?
 2. Should informal business owners be served from day one, or after the freelancer flow works?
 3. Which languages at launch: English only, or English and Kiswahili?

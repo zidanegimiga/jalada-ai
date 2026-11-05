@@ -4,12 +4,12 @@ Status: Accepted
 Date: 2026-11-04
 
 ## Context
-Jalada AI has three running parts: an HTTP API in Python, a background worker that runs the agent pipeline, and a Next.js web app. The worker needs the same domain rules, ports and adapters as the API. The web app needs the API's request and response shapes, which it will get from a typed client generated from the API's OpenAPI schema (a machine-readable description of every endpoint). One person reviews every change, so a change that touches the API and the screen should be reviewable as one unit.
+Jalada AI has three running parts: an HTTP API in Python, a background worker that runs the agent pipeline, and a Next.js web app. The worker needs the same domain rules, ports and adapters as the API. The web app needs the API's request and response shapes, which it will get from a typed client generated from the API's OpenAPI schema (a machine-readable description of every endpoint). A change that touches the API and the screen should be reviewable as one unit.
 
 ## Options considered
 1. **Separate repositories for API, worker and web.**
    Pros: each app has its own history and pipeline.
-   Cons: the worker would need the API code published as a package or copied. A change to an endpoint and its screen becomes two pull requests that must land in step. More setup for one owner.
+   Cons: the worker would need the API code published as a package or copied. A change to an endpoint and its screen becomes two pull requests that must land in step. More setup to maintain.
 2. **One repository, with the worker inside the API package.**
    Pros: fewest folders.
    Cons: the worker and the API start differently, scale differently and get separate Docker images. Mixing them hides that boundary.
@@ -25,8 +25,7 @@ Option 3. One repository laid out as below, with a root Makefile for common comm
 
 ```
 jalada-ai/
-├── AGENTS.md, CLAUDE.md, README.md
-├── .claude/skills/       project skills, local only and never committed
+├── README.md
 ├── apps/
 │   ├── api/              FastAPI service, owns the jalada Python package
 │   ├── worker/           runs pipeline jobs, imports jalada from apps/api
@@ -37,7 +36,7 @@ jalada-ai/
 └── .github/workflows/    continuous integration
 ```
 
-Inside `apps/api/src/jalada/`, code is split into `domain`, `application`, `adapters`, `pipeline`, `api`, `config` and `composition.py`, as `AGENTS.md` describes.
+Inside `apps/api/src/jalada/`, code is split into `domain`, `application`, `adapters`, `pipeline`, `api`, `config` and `composition.py`.
 
 ## Consequences
 - A feature that spans the API and the web app lands as one reviewable change.
