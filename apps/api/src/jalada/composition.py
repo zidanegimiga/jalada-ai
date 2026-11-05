@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
+from jalada.adapters.export.workbook import ExcelWorkbookWriter
 from jalada.adapters.identity.google import GoogleOpenIdClient
 from jalada.adapters.models.gemini import GeminiModel
 from jalada.adapters.models.ollama import OllamaModel
@@ -27,6 +28,7 @@ from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
 from jalada.application.ports import EvidenceStore
+from jalada.application.tax_year_export import TaxYearExport
 from jalada.config.settings import Settings, load_settings
 from jalada.pipeline.model import LanguageModel
 from jalada.pipeline.run_types import Budget
@@ -53,6 +55,12 @@ def build_services(settings: Settings) -> Services:
         upload_limiter=RateLimiter("60/hour"),
         review=EntryReview(lambda: SqlUnitOfWork(session_factory), clock),
         ledger=Ledger(lambda: SqlUnitOfWork(session_factory)),
+        tax_year_export=TaxYearExport(
+            lambda: SqlUnitOfWork(session_factory),
+            ExcelWorkbookWriter(),
+            clock,
+            evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
+        ),
         google_sign_in=build_google_sign_in(settings, authenticator),
     )
 

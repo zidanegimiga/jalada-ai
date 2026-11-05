@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
+from jalada.adapters.export.workbook import ExcelWorkbookWriter
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
@@ -22,6 +23,7 @@ from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
+from jalada.application.tax_year_export import TaxYearExport
 from jalada.config.settings import Environment, Settings
 
 pytest_plugins = ["database_fixtures"]
@@ -101,6 +103,12 @@ def make_app(
             upload_limiter=RateLimiter(upload_rule),
             review=review,
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
+            tax_year_export=TaxYearExport(
+                lambda: FakeUnitOfWork(store),
+                ExcelWorkbookWriter(),
+                FixedClock(),
+                "http://localhost:3000/v1/evidence/{id}/file",
+            ),
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
         )
         return create_app(make_settings(environment), services)
