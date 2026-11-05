@@ -16,6 +16,7 @@ class FakeUsers:
     ) -> None:
         self.rows = users
         self.google_subjects = google_subjects
+        self.deleted: set[UUID] = set()
 
     def add(self, user: User, password_hash: str | None, google_subject: str | None = None) -> None:
         self.rows[user.id] = UserCredentials(user, password_hash)
@@ -35,6 +36,10 @@ class FakeUsers:
 
     def link_google(self, user_id: UUID, subject: str) -> None:
         self.google_subjects[subject] = user_id
+
+    def delete(self, user_id: UUID) -> None:
+        self.rows.pop(user_id, None)
+        self.deleted.add(user_id)
 
 
 class FakeSessions:

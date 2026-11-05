@@ -42,6 +42,10 @@ class EntryNotFound(ApplicationError):
     pass
 
 
+class ConfirmationMismatch(ApplicationError):
+    pass
+
+
 class InvalidEntry(ApplicationError):
     """An entry cannot be confirmed as it stands. `reason` says why, for the user."""
 

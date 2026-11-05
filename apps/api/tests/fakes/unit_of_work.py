@@ -77,3 +77,18 @@ class FakeUnitOfWork:
         self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
+        for user_id in self._users.deleted:
+            self._cascade(user_id)
+
+    def _cascade(self, user_id: UUID) -> None:
+        """What the database's ON DELETE CASCADE does when a user row is deleted."""
+        store = self._store
+        store.sessions = {k: s for k, s in store.sessions.items() if s.user_id != user_id}
+        store.evidence = {k: e for k, e in store.evidence.items() if e.user_id != user_id}
+        store.entries = {k: e for k, e in store.entries.items() if e.user_id != user_id}
+        store.revisions = [(b, a) for b, a in store.revisions if a.user_id != user_id]
+        store.runs = [(r, s) for r, s in store.runs if r.user_id != user_id]
+        store.preferences.pop(user_id, None)
+        store.telegram_links.pop(user_id, None)
+        store.telegram_codes = {k: c for k, c in store.telegram_codes.items() if c[0] != user_id}
+        store.google_subjects = {k: u for k, u in store.google_subjects.items() if u != user_id}

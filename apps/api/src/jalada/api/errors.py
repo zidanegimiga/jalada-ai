@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from jalada.application.errors import (
     ApplicationError,
+    ConfirmationMismatch,
     EmailAlreadyRegistered,
     EmptyEvidence,
     EntryNotFound,
@@ -33,6 +34,11 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     EmptyEvidence: (422, "empty", "There is nothing to save."),
     EvidenceNotFound: (404, "not_found", "That evidence does not exist."),
     EntryNotFound: (404, "not_found", "That entry does not exist."),
+    ConfirmationMismatch: (
+        422,
+        "confirmation_mismatch",
+        "Type your email exactly as it is on your account.",
+    ),
     TooManyAttempts: (429, "too_many_attempts", "Too many attempts. Wait a minute and try again."),
 }
 

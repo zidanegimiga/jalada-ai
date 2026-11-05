@@ -77,3 +77,9 @@ class FakeJobs:
     def fail(self, job_id: int, error: str, retry_at: datetime | None) -> None:
         job = self.queue[job_id][0]
         self.queue[job_id] = [job, "queued" if retry_at else "failed", retry_at]
+
+    def discard_for(self, user_id: UUID) -> None:
+        self.rows[:] = [(kind, p) for kind, p in self.rows if p.get("user_id") != str(user_id)]
+        for job_id, (job, _, _) in list(self.queue.items()):
+            if job.payload.get("user_id") == str(user_id):
+                del self.queue[job_id]

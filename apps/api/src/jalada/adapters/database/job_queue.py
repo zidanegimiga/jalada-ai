@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
+from uuid import UUID
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.adapters.database.tables import JobRow
@@ -54,3 +55,7 @@ class SqlJobQueue:
         else:
             values |= {"status": "queued", "run_after": retry_at}
         self._db.execute(update(JobRow).where(JobRow.id == job_id).values(**values))
+
+    def discard_for(self, user_id: UUID) -> None:
+        """Jobs hold the user's id in their payload rather than a foreign key, so they go here."""
+        self._db.execute(delete(JobRow).where(JobRow.payload["user_id"].astext == str(user_id)))

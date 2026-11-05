@@ -50,6 +50,10 @@ class SqlUserRepository:
         row = self._db.scalars(query).one_or_none()
         return _to_user(row) if row else None
 
+    def delete(self, user_id: UUID) -> None:
+        """Removes the user. The database cascades to everything that belongs to them."""
+        self._db.execute(delete(UserRow).where(UserRow.id == user_id))
+
     def link_google(self, user_id: UUID, subject: str) -> None:
         self._db.execute(
             update(UserRow).where(UserRow.id == user_id).values(google_subject=subject)

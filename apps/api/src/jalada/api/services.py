@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from jalada.api.rate_limit import RateLimiter
+from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
@@ -25,6 +26,7 @@ class Services:
     tax_year_export: TaxYearExport
     telegram_linking: TelegramLinking
     account_export: AccountExport
+    account_deletion: AccountDeletion
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None = None
     # None when the Telegram bot is not configured.

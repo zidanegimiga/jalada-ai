@@ -24,6 +24,7 @@ from jalada.adapters.system_clock import SystemClock
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
+from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
 from jalada.application.entry_review import EntryReview
@@ -75,6 +76,7 @@ def build_services(settings: Settings) -> Services:
         account_export=AccountExport(
             lambda: SqlUnitOfWork(session_factory), store, ZipAccountArchive()
         ),
+        account_deletion=AccountDeletion(lambda: SqlUnitOfWork(session_factory), store),
         google_sign_in=build_google_sign_in(settings, authenticator),
         telegram_capture=build_telegram_capture(
             settings, telegram_linking, evidence, sign_in_limiter, upload_limiter

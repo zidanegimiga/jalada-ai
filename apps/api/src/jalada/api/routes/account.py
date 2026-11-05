@@ -2,11 +2,13 @@ import tempfile
 from collections.abc import Iterator
 from typing import IO
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response, status
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
 
 from jalada.api.dependencies import CurrentUser, ServicesDependency
 from jalada.api.errors import TooManyAttempts
+from jalada.api.session_cookie import SESSION_COOKIE
 
 router = APIRouter(tags=["account"])
 
@@ -40,3 +42,19 @@ def export_account(user: CurrentUser, services: ServicesDependency) -> Streaming
             "Cache-Control": "private, no-store",
         },
     )
+
+
+class DeleteAccountRequest(BaseModel):
+    # The account's email, typed again to confirm.
+    email: str = Field(max_length=320)
+
+
+@router.delete("/v1/account", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    body: DeleteAccountRequest, response: Response, user: CurrentUser, services: ServicesDependency
+) -> None:
+    """Deletes the signed-in user and everything held about them, then signs them out."""
+    if not services.sign_in_limiter.allow(f"delete:{user.id}"):
+        raise TooManyAttempts
+    services.account_deletion.delete(user.id, body.email)
+    response.delete_cookie(SESSION_COOKIE)
