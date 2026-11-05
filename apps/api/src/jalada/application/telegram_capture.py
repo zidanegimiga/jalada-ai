@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from uuid import UUID
 
@@ -8,6 +9,8 @@ from jalada.application.telegram_linking import TelegramLinking
 from jalada.application.telegram_messages import TelegramMessage, read_message
 from jalada.domain.evidence import MAX_FILE_BYTES, EvidenceSource
 from jalada.domain.telegram import CODE_ALPHABET, CODE_LENGTH
+
+logger = logging.getLogger("jalada.telegram")
 
 REPLIES = {
     "welcome": "Hello. To send receipts here, link this chat to Jalada AI: open the app, "
@@ -84,7 +87,12 @@ class TelegramCapture:
         return self._capture.capture_text(user_id, message.text or "", EvidenceSource.TELEGRAM)
 
     def _reply(self, message: TelegramMessage, key: str) -> None:
-        self._bot.send(message.chat_id, REPLIES[key])
+        """A failed reply is logged, not raised: the evidence is already saved, and an error
+        here would make Telegram send the same message again."""
+        try:
+            self._bot.send(message.chat_id, REPLIES[key])
+        except Exception as error:
+            logger.warning("replying on Telegram failed with %s", type(error).__name__)
 
 
 def _code_in(text: str | None) -> str | None:

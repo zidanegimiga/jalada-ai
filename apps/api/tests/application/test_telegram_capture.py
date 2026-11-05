@@ -118,3 +118,17 @@ def test_malformed_updates_are_ignored(
     telegram.handle(bad)
 
     assert chat.sent == []
+
+
+@pytest.mark.usefixtures("linked")
+def test_evidence_is_kept_even_when_the_reply_fails(
+    telegram: TelegramCapture, chat: FakeChat, store: Store
+) -> None:
+    def broken(chat_id: int, text: str) -> None:
+        raise ConnectionError("Telegram is down")
+
+    chat.send = broken  # type: ignore[method-assign]
+
+    telegram.handle(update(text=MPESA))
+
+    assert len(store.evidence) == 1
