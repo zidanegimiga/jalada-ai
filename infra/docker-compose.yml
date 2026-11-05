@@ -9,6 +9,11 @@ x-backend-environment: &backend-environment
   JALADA_PUBLIC_URL: http://localhost:3000
   JALADA_GOOGLE_CLIENT_ID: ${JALADA_GOOGLE_CLIENT_ID:-}
   JALADA_GOOGLE_CLIENT_SECRET: ${JALADA_GOOGLE_CLIENT_SECRET:-}
+  JALADA_STORAGE_ENDPOINT_URL: http://storage:8333
+  JALADA_STORAGE_ACCESS_KEY: jalada
+  JALADA_STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-jalada-local-secret}
+  # A fixed key for local data only. Production keys come from the host's secret settings.
+  JALADA_EVIDENCE_KEYS: ${JALADA_EVIDENCE_KEYS:-bG9jYWwtZGV2ZWxvcG1lbnQta2V5LTMyLWJ5dGVzISE=}
 
 services:
   postgres:
@@ -28,14 +33,29 @@ services:
       timeout: 3s
       retries: 10
 
+  storage:
+    image: chrislusf/seaweedfs:4.52
+    command: ["server", "-s3", "-dir=/data", "-ip.bind=0.0.0.0"]
+    ports:
+      - "8333:8333"
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8333/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   migrate:
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
-    command: ["jalada-migrate"]
+    command: ["sh", "-c", "jalada-migrate && jalada-setup-storage"]
     environment: *backend-environment
     depends_on:
       postgres:
+        condition: service_healthy
+      storage:
         condition: service_healthy
 
   api:
@@ -78,3 +98,4 @@ services:
 
 volumes:
   postgres-data:
+  storage-data:

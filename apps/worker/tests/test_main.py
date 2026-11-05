@@ -4,6 +4,7 @@ import threading
 from collections.abc import Iterator
 
 import pytest
+from pydantic import SecretStr
 
 from jalada.config.settings import Settings
 from jalada_worker.main import install_stop_signals, run
@@ -11,7 +12,13 @@ from jalada_worker.main import install_stop_signals, run
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(environment="test", database_url="postgresql+psycopg://u:p@localhost:1/unused")
+    return Settings(
+        environment="test",
+        database_url="postgresql+psycopg://u:p@localhost:1/unused",
+        storage_access_key="access",
+        storage_secret_key=SecretStr("secret"),
+        evidence_keys=SecretStr("a2V5"),
+    )
 
 
 @pytest.fixture

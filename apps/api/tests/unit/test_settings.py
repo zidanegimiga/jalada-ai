@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from pydantic import ValidationError
 
@@ -8,14 +10,18 @@ DATABASE_URL = "postgresql+psycopg://user:pass@localhost:5432/jalada"
 
 @pytest.fixture(autouse=True)
 def clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("ENVIRONMENT", "LOG_LEVEL", "DATABASE_URL", "SESSION_DAYS", "COOKIE_SECURE"):
-        monkeypatch.delenv(f"JALADA_{name}", raising=False)
+    for name in list(os.environ):
+        if name.startswith("JALADA_"):
+            monkeypatch.delenv(name)
 
 
 @pytest.fixture
 def minimal_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("JALADA_ENVIRONMENT", "test")
     monkeypatch.setenv("JALADA_DATABASE_URL", DATABASE_URL)
+    monkeypatch.setenv("JALADA_STORAGE_ACCESS_KEY", "access")
+    monkeypatch.setenv("JALADA_STORAGE_SECRET_KEY", "s3-password-value")
+    monkeypatch.setenv("JALADA_EVIDENCE_KEYS", "a2V5")
 
 
 @pytest.mark.usefixtures("minimal_environment")
@@ -39,9 +45,14 @@ def test_defaults_are_safe() -> None:
     assert settings.log_level == "INFO"
     assert settings.session_days == 30
     assert settings.cookie_secure is True
+    assert settings.google_client_id is None
+    assert settings.storage_endpoint_url is None
+    assert "s3-password-value" not in repr(settings), "secrets never appear when printed"
 
 
-@pytest.mark.parametrize("missing", ["JALADA_ENVIRONMENT", "JALADA_DATABASE_URL"])
+@pytest.mark.parametrize(
+    "missing", ["JALADA_ENVIRONMENT", "JALADA_DATABASE_URL", "JALADA_EVIDENCE_KEYS"]
+)
 @pytest.mark.usefixtures("minimal_environment")
 def test_required_settings_stop_startup_when_missing(
     monkeypatch: pytest.MonkeyPatch, missing: str

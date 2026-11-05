@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account with email or Google, sign in and sign out. Evidence capture, the pipeline, review, the ledger and the Excel export are next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. Reading them, the pipeline, review, the ledger and the Excel export are next.
 
 ## Stack
 
@@ -39,6 +39,7 @@ Early. You can create an account with email or Google, sign in and sign out. Evi
 | Web app | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui with Base UI |
 | Tests | pytest, Vitest, Testing Library |
 | Quality | ruff, mypy (strict), ESLint, pip-audit, npm audit, gitleaks |
+| Storage | PostgreSQL, S3-compatible object storage (SeaweedFS locally), evidence encrypted with AES-GCM |
 | Running it | Docker, docker compose, GitHub Actions |
 
 Every one of these choices has a short decision record in [`docs/adr/`](docs/adr/) explaining what else was considered and why.
@@ -87,7 +88,7 @@ Start everything:
 make up
 ```
 
-The API is on http://localhost:8000 (docs at `/docs`) and the web app is on http://localhost:3000. Stop it with `make down`.
+The API is on http://localhost:8000 (docs at `/docs`) and the web app is on http://localhost:3000. Postgres is on port 5433 and S3 storage on port 8333. Stop it with `make down`.
 
 Settings come from environment variables prefixed with `JALADA_`. To change them, copy the example file and edit it:
 
@@ -103,7 +104,7 @@ Google sign-in is off until you give it credentials:
 2. Add `http://localhost:3000/v1/auth/google/callback` as an authorised redirect URI.
 3. Put the client ID and secret in `.env` as `JALADA_GOOGLE_CLIENT_ID` and `JALADA_GOOGLE_CLIENT_SECRET`, then run `make up` again.
 
-`make up` also creates the database tables. Postgres is reachable from your machine on port 5433.
+`make up` also creates the database tables and the storage bucket.
 
 ### Without Docker
 

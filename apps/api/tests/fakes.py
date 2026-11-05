@@ -8,11 +8,14 @@ from uuid import UUID
 
 from jalada.application.errors import GoogleSignInFailed
 from jalada.application.ports import (
+    EvidenceRepository,
     GoogleProfile,
+    JobQueue,
     SessionRepository,
     UserCredentials,
     UserRepository,
 )
+from jalada.domain.evidence import Evidence
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 
@@ -21,6 +24,8 @@ from jalada.domain.users import User
 class Store:
     users: dict[UUID, UserCredentials] = field(default_factory=dict)
     google_subjects: dict[str, UUID] = field(default_factory=dict)
+    evidence: dict[UUID, Evidence] = field(default_factory=dict)
+    jobs: list[tuple[str, dict[str, str]]] = field(default_factory=list)
     sessions: dict[str, Session] = field(default_factory=dict)
 
 
@@ -66,6 +71,37 @@ class FakeSessions:
         self.rows.pop(token_hash, None)
 
 
+class FakeEvidence:
+    def __init__(self, rows: dict[UUID, Evidence], user_id: UUID) -> None:
+        self.rows = rows
+        self._user_id = user_id
+
+    def add(self, evidence: Evidence) -> None:
+        assert evidence.user_id == self._user_id
+        self.rows[evidence.id] = evidence
+
+    def get(self, evidence_id: UUID) -> Evidence | None:
+        found = self.rows.get(evidence_id)
+        return found if found and found.user_id == self._user_id else None
+
+    def get_by_fingerprint(self, sha256: str) -> Evidence | None:
+        return next((e for e in self._mine() if e.sha256 == sha256), None)
+
+    def list_recent(self, limit: int) -> list[Evidence]:
+        return sorted(self._mine(), key=lambda e: e.received_at, reverse=True)[:limit]
+
+    def _mine(self) -> list[Evidence]:
+        return [e for e in self.rows.values() if e.user_id == self._user_id]
+
+
+class FakeJobs:
+    def __init__(self, jobs: list[tuple[str, dict[str, str]]]) -> None:
+        self.rows = jobs
+
+    def enqueue(self, kind: str, payload: dict[str, str]) -> None:
+        self.rows.append((kind, payload))
+
+
 class FakeUnitOfWork:
     """Works on copies of the store and writes them back only on commit, like a transaction."""
 
@@ -77,7 +113,13 @@ class FakeUnitOfWork:
         self._sessions = FakeSessions(dict(self._store.sessions))
         self.users: UserRepository = self._users
         self.sessions: SessionRepository = self._sessions
+        self._evidence = dict(self._store.evidence)
+        self._jobs = FakeJobs(list(self._store.jobs))
+        self.jobs: JobQueue = self._jobs
         return self
+
+    def evidence_for(self, user_id: UUID) -> EvidenceRepository:
+        return FakeEvidence(self._evidence, user_id)
 
     def __exit__(
         self,
@@ -90,6 +132,8 @@ class FakeUnitOfWork:
     def commit(self) -> None:
         self._store.users = self._users.rows
         self._store.google_subjects = self._users.google_subjects
+        self._store.evidence = self._evidence
+        self._store.jobs = self._jobs.rows
         self._store.sessions = self._sessions.rows
 
 
@@ -128,3 +172,21 @@ class FakeGoogle:
         if code != "good-code":
             raise GoogleSignInFailed
         return self.profile
+
+
+class FakeEvidenceStore:
+    """Keeps evidence in memory, keyed by user and id."""
+
+    key_id = "test-key"
+
+    def __init__(self) -> None:
+        self.objects: dict[tuple[UUID, UUID], bytes] = {}
+
+    def put(self, evidence_id: UUID, user_id: UUID, data: bytes) -> None:
+        self.objects[(user_id, evidence_id)] = data
+
+    def get(self, evidence_id: UUID, user_id: UUID, key_id: str) -> bytes:
+        return self.objects[(user_id, evidence_id)]
+
+    def delete(self, evidence_id: UUID, user_id: UUID) -> None:
+        self.objects.pop((user_id, evidence_id), None)

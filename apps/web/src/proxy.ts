@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { SESSION_COOKIE } from "@/features/auth/session";
+import { SESSION_COOKIE } from "@/lib/session-cookie";
 
 const PUBLIC_PATHS = ["/signin", "/signup"];
 

@@ -1,12 +1,21 @@
+from datetime import UTC, datetime
 from types import TracebackType
 from typing import Self
+from uuid import UUID
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
+from jalada.adapters.database.evidence_repository import SqlEvidenceRepository
+from jalada.adapters.database.job_queue import SqlJobQueue
 from jalada.adapters.database.repositories import SqlSessionRepository, SqlUserRepository
-from jalada.application.ports import SessionRepository, UserRepository
+from jalada.application.ports import (
+    EvidenceRepository,
+    JobQueue,
+    SessionRepository,
+    UserRepository,
+)
 
 
 def create_database_engine(database_url: str) -> Engine:
@@ -22,7 +31,11 @@ class SqlUnitOfWork:
         self._db = self._session_factory()
         self.users: UserRepository = SqlUserRepository(self._db)
         self.sessions: SessionRepository = SqlSessionRepository(self._db)
+        self.jobs: JobQueue = SqlJobQueue(self._db, lambda: datetime.now(UTC))
         return self
+
+    def evidence_for(self, user_id: UUID) -> EvidenceRepository:
+        return SqlEvidenceRepository(self._db, user_id)
 
     def __exit__(
         self,

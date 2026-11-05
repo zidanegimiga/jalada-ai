@@ -35,8 +35,14 @@ jobs:
           --health-retries 10
     env:
       JALADA_TEST_DATABASE_URL: postgresql+psycopg://jalada:jalada@localhost:5432/jalada_test
+      JALADA_TEST_S3_ENDPOINT: http://localhost:8333
     steps:
       - uses: actions/checkout@v7
+      # Service containers cannot take a command, so S3 storage is started here.
+      - name: Start S3 storage
+        run: |
+          docker run -d -p 8333:8333 chrislusf/seaweedfs:4.52 server -s3 -dir=/data -ip.bind=0.0.0.0
+          timeout 60 sh -c 'until curl -sf http://localhost:8333/healthz; do sleep 2; done'
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true

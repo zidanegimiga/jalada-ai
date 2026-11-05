@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     # Google sign-in is switched off unless both are set.
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None
+    # Evidence storage in any S3-compatible bucket. Leave the endpoint empty for Amazon S3.
+    storage_endpoint_url: str | None = None
+    storage_bucket: str = "jalada-evidence"
+    storage_region: str = "us-east-1"
+    storage_access_key: str
+    storage_secret_key: SecretStr
+    # Base64 encoded 32-byte keys, comma separated. The first encrypts new evidence.
+    # Keep older keys after the first so evidence encrypted with them can still be read.
+    evidence_keys: SecretStr
 
 
 def load_settings() -> Settings:

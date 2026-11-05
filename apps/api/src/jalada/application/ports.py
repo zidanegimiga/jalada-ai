@@ -4,6 +4,7 @@ from types import TracebackType
 from typing import Protocol, Self
 from uuid import UUID
 
+from jalada.domain.evidence import Evidence
 from jalada.domain.sessions import Session
 from jalada.domain.users import User
 
@@ -38,11 +39,27 @@ class SessionRepository(Protocol):
     def delete(self, token_hash: str) -> None: ...
 
 
+class EvidenceRepository(Protocol):
+    """Evidence for one user. Every query is limited to that user."""
+
+    def add(self, evidence: Evidence) -> None: ...
+    def get(self, evidence_id: UUID) -> Evidence | None: ...
+    def get_by_fingerprint(self, sha256: str) -> Evidence | None: ...
+    def list_recent(self, limit: int) -> list[Evidence]: ...
+
+
+class JobQueue(Protocol):
+    def enqueue(self, kind: str, payload: dict[str, str]) -> None: ...
+
+
 class UnitOfWork(Protocol):
     """One database transaction. Nothing is saved unless `commit` is called."""
 
     users: UserRepository
     sessions: SessionRepository
+    jobs: JobQueue
+
+    def evidence_for(self, user_id: UUID) -> EvidenceRepository: ...
 
     def __enter__(self) -> Self: ...
     def __exit__(
@@ -64,6 +81,16 @@ class GoogleIdentity(Protocol):
 
     def authorization_url(self, state: str, nonce: str, code_verifier: str) -> str: ...
     def exchange(self, code: str, nonce: str, code_verifier: str) -> GoogleProfile: ...
+
+
+class EvidenceStore(Protocol):
+    """Keeps the original bytes of each piece of evidence, encrypted at rest."""
+
+    key_id: str
+
+    def put(self, evidence_id: UUID, user_id: UUID, data: bytes) -> None: ...
+    def get(self, evidence_id: UUID, user_id: UUID, key_id: str) -> bytes: ...
+    def delete(self, evidence_id: UUID, user_id: UUID) -> None: ...
 
 
 class Clock(Protocol):

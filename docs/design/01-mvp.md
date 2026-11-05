@@ -124,7 +124,8 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 | `POST /v1/evidence` | Multipart upload of a photo or PDF. Returns the evidence id and status. |
 | `POST /v1/evidence/text` | A pasted M-Pesa message or free text. |
 | `GET /v1/evidence/{id}` | Status and, once processed, the entry it produced. |
-| `GET /v1/evidence/{id}/file` | Redirects to a signed link that expires after five minutes. |
+| `GET /v1/evidence` | The user's evidence, newest first. |
+| `GET /v1/evidence/{id}/file` | The original, decrypted, after an ownership check. Signed links come with Telegram replies. |
 | `GET /v1/review` | Entries that are proposed or need review, oldest first. |
 | `POST /v1/entries/{id}/confirm` | Confirms a proposed entry as it is. |
 | `PATCH /v1/entries/{id}` | Corrects fields and confirms. |
@@ -168,7 +169,7 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 ## Security and privacy
 
 - Passwords hashed with Argon2. Sessions in secure, HTTP-only, same-site cookies.
-- Evidence encrypted by the application before upload, with a key from settings, and served only through five-minute signed links.
+- Evidence encrypted by the application before upload, with a key from settings, and served only to its owner through the API.
 - Logs carry a request id and never raw financial text, amounts or file contents.
 - Free model tiers and local models only see invented data. Real users' evidence goes only to a provider whose terms exclude training on it (decision 0012).
 - Export and delete are in the first version.

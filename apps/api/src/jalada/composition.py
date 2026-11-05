@@ -12,28 +12,52 @@ from sqlalchemy.orm import sessionmaker
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
 from jalada.adapters.identity.google import GoogleOpenIdClient
 from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
+from jalada.adapters.security.evidence_cipher import EvidenceCipher
+from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3_client
 from jalada.adapters.system_clock import SystemClock
 from jalada.api.app import create_app
 from jalada.api.rate_limit import RateLimiter
 from jalada.api.services import Services
 from jalada.application.authentication import Authenticator
+from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
+from jalada.application.ports import EvidenceStore
 from jalada.config.settings import Settings, load_settings
 
 
 def build_services(settings: Settings) -> Services:
     session_factory = sessionmaker(create_database_engine(settings.database_url))
+    clock = SystemClock()
     authenticator = Authenticator(
         unit_of_work=lambda: SqlUnitOfWork(session_factory),
         hasher=Argon2PasswordHasher(),
-        clock=SystemClock(),
+        clock=clock,
         session_lifetime=timedelta(days=settings.session_days),
+    )
+    evidence = EvidenceCapture(
+        unit_of_work=lambda: SqlUnitOfWork(session_factory),
+        store=build_evidence_store(settings),
+        clock=clock,
     )
     return Services(
         authenticator=authenticator,
         sign_in_limiter=RateLimiter("5/minute"),
+        evidence=evidence,
+        upload_limiter=RateLimiter("60/hour"),
         google_sign_in=build_google_sign_in(settings, authenticator),
     )
+
+
+def build_evidence_store(settings: Settings) -> EvidenceStore:
+    keys = settings.evidence_keys.get_secret_value().split(",")
+    client = create_s3_client(
+        endpoint_url=settings.storage_endpoint_url,
+        region=settings.storage_region,
+        access_key=settings.storage_access_key,
+        secret_key=settings.storage_secret_key.get_secret_value(),
+    )
+    ciphers = [EvidenceCipher.from_base64(key.strip()) for key in keys]
+    return EncryptedS3EvidenceStore(client, settings.storage_bucket, ciphers)
 
 
 def build_google_sign_in(settings: Settings, authenticator: Authenticator) -> GoogleSignIn | None:

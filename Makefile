@@ -12,12 +12,13 @@ down:
 logs:
 	$(COMPOSE) logs --follow
 
-# Start only Postgres, on localhost:5433, for running the apps or tests outside Docker.
+# Start only Postgres (localhost:5433) and storage (localhost:8333), for work outside Docker.
 db:
-	$(COMPOSE) up --detach --wait postgres
+	$(COMPOSE) up --detach --wait postgres storage
 
 migrate: db
 	uv run --env-file .env jalada-migrate
+	uv run --env-file .env jalada-setup-storage
 
 # make migration name="add evidence"
 migration: db
@@ -35,6 +36,7 @@ check:
 # Repository tests against the real database in docker compose.
 test-integration: db
 	JALADA_TEST_DATABASE_URL=postgresql+psycopg://jalada:jalada@localhost:5433/jalada_test \
+	JALADA_TEST_S3_ENDPOINT=http://localhost:8333 \
 		uv run --directory apps/api pytest -m integration
 
 format:

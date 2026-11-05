@@ -5,9 +5,13 @@ from fastapi.responses import JSONResponse
 from jalada.application.errors import (
     ApplicationError,
     EmailAlreadyRegistered,
+    EmptyEvidence,
+    EvidenceNotFound,
+    FileTooLarge,
     GoogleSignInFailed,
     InvalidCredentials,
     NotSignedIn,
+    UnsupportedFile,
     WeakPassword,
 )
 
@@ -22,6 +26,10 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     InvalidCredentials: (401, "invalid_credentials", "The email or password is wrong."),
     NotSignedIn: (401, "not_signed_in", "Sign in to continue."),
     GoogleSignInFailed: (401, "google_failed", "Google sign-in did not work. Try again."),
+    UnsupportedFile: (415, "unsupported_file", "Send a photo (JPEG, PNG or WebP) or a PDF."),
+    FileTooLarge: (413, "too_large", "That is too big. Files can be up to 10 MB."),
+    EmptyEvidence: (422, "empty", "There is nothing to save."),
+    EvidenceNotFound: (404, "not_found", "That evidence does not exist."),
     TooManyAttempts: (429, "too_many_attempts", "Too many attempts. Wait a minute and try again."),
 }
 

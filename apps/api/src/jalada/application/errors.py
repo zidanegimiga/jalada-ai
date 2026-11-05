@@ -20,3 +20,19 @@ class NotSignedIn(ApplicationError):
 
 class GoogleSignInFailed(ApplicationError):
     pass
+
+
+class UnsupportedFile(ApplicationError):
+    pass
+
+
+class FileTooLarge(ApplicationError):
+    pass
+
+
+class EmptyEvidence(ApplicationError):
+    pass
+
+
+class EvidenceNotFound(ApplicationError):
+    pass

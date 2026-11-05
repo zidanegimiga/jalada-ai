@@ -26,6 +26,9 @@ def test_composition_root_builds_the_api_from_the_environment(
 ) -> None:
     monkeypatch.setenv("JALADA_ENVIRONMENT", "test")
     monkeypatch.setenv("JALADA_DATABASE_URL", "postgresql+psycopg://u:p@localhost:1/unused")
+    monkeypatch.setenv("JALADA_STORAGE_ACCESS_KEY", "access")
+    monkeypatch.setenv("JALADA_STORAGE_SECRET_KEY", "secret")
+    monkeypatch.setenv("JALADA_EVIDENCE_KEYS", "dGVzdC1rZXktZm9yLWV2aWRlbmNlLTMyLWJ5dGVzISE=")
 
     client = TestClient(build_api())
 
