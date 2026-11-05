@@ -19,6 +19,11 @@ def alembic_config(database_url: str) -> Config:
     return config
 
 
+def upgrade(database_url: str) -> None:
+    """Apply every pending migration."""
+    command.upgrade(alembic_config(database_url), "head")
+
+
 def main(arguments: list[str] | None = None) -> None:
     arguments = sys.argv[1:] if arguments is None else arguments
     config = alembic_config(load_settings().database_url)

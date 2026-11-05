@@ -29,6 +29,7 @@ dependencies = [
 jalada-migrate = "jalada.adapters.database.migrate:main"
 jalada-setup-storage = "jalada.adapters.storage.setup:main"
 jalada-telegram = "jalada.telegram_cli:main"
+jalada-serve = "jalada.serve:main"
 
 [build-system]
 requires = ["uv_build>=0.9,<0.14"]

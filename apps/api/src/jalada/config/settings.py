@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     telegram_webhook_secret: SecretStr | None = None
     # Run the job loop inside the API process, for hosts with no separate background workers.
     run_worker_in_api: bool = False
+    # Apply migrations and check the evidence bucket when the API starts, for hosts with no
+    # separate release step.
+    migrate_on_start: bool = False
     # Limits for one piece of evidence.
     pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
     pipeline_max_tokens: int = Field(default=8000, ge=0)

@@ -3,11 +3,14 @@
 from botocore.exceptions import ClientError
 
 from jalada.adapters.storage.s3_store import create_s3_client
-from jalada.config.settings import load_settings
+from jalada.config.settings import Settings, load_settings
 
 
 def main() -> None:
-    settings = load_settings()
+    ensure_bucket(load_settings())
+
+
+def ensure_bucket(settings: Settings) -> None:
     client = create_s3_client(
         endpoint_url=settings.storage_endpoint_url,
         region=settings.storage_region,
