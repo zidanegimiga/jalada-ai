@@ -82,10 +82,17 @@ def build_telegram_capture(
     link_limiter: RateLimiter,
     upload_limiter: RateLimiter,
 ) -> TelegramCapture | None:
+    bot = build_telegram_bot(settings)
+    if bot is None:
+        return None
+    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter)
+
+
+def build_telegram_bot(settings: Settings) -> TelegramBot | None:
+    """The bot, when both its token and its username are set."""
     if not (settings.telegram_bot_token and settings.telegram_bot_username):
         return None
-    bot = TelegramBot(settings.telegram_bot_token.get_secret_value())
-    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter)
+    return TelegramBot(settings.telegram_bot_token.get_secret_value())
 
 
 def build_evidence_store(settings: Settings) -> EvidenceStore:

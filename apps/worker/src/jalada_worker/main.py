@@ -14,7 +14,13 @@ from jalada.adapters.text.reader import EvidenceTextReader
 from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.application.evidence_processing import EvidenceProcessor
 from jalada.application.job_runner import JobRunner
-from jalada.composition import build_budget, build_evidence_store, build_language_model
+from jalada.application.telegram_notifier import TelegramNotifier
+from jalada.composition import (
+    build_budget,
+    build_evidence_store,
+    build_language_model,
+    build_telegram_bot,
+)
 from jalada.config.settings import Settings, load_settings
 
 logger = logging.getLogger("jalada.worker")
@@ -44,6 +50,14 @@ def install_stop_signals(stop: threading.Event) -> None:
 def build_job_runner(settings: Settings) -> JobRunner:
     session_factory = sessionmaker(create_database_engine(settings.database_url))
     clock = SystemClock()
+    bot = build_telegram_bot(settings)
+    notifier = (
+        TelegramNotifier(
+            lambda: SqlUnitOfWork(session_factory), bot, f"{settings.public_url}/review"
+        )
+        if bot
+        else None
+    )
     processor = EvidenceProcessor(
         unit_of_work=lambda: SqlUnitOfWork(session_factory),
         store=build_evidence_store(settings),
@@ -51,6 +65,7 @@ def build_job_runner(settings: Settings) -> JobRunner:
         clock=clock,
         budget=build_budget(settings),
         model=build_language_model(settings),
+        notifier=notifier,
     )
     return JobRunner(
         lambda: SqlUnitOfWork(session_factory), {PROCESS_EVIDENCE_JOB: processor}, clock

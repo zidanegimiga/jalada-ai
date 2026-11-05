@@ -197,5 +197,11 @@ class Limiter(Protocol):
     def allow(self, *keys: str) -> bool: ...
 
 
+class ProcessingNotifier(Protocol):
+    """Tells the user what the pipeline made of their evidence."""
+
+    def notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None: ...
+
+
 class Clock(Protocol):
     def now(self) -> datetime: ...

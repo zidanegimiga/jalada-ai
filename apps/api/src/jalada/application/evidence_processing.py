@@ -1,16 +1,26 @@
+import logging
 import uuid
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from jalada.application.ports import Clock, EvidenceStore, PipelineRun, TextReader, UnitOfWork
+from jalada.application.ports import (
+    Clock,
+    EvidenceStore,
+    PipelineRun,
+    ProcessingNotifier,
+    TextReader,
+    UnitOfWork,
+)
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.extraction import Classification, Extraction
 from jalada.pipeline.model import ImageInput, LanguageModel
 from jalada.pipeline.process import run_pipeline
 from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
+
+logger = logging.getLogger("jalada.processing")
 
 STATUS_FOR_OUTCOME = {
     "proposed": EvidenceStatus.PROPOSED,
@@ -30,6 +40,7 @@ class EvidenceProcessor:
         clock: Clock,
         budget: Budget,
         model: LanguageModel | None = None,
+        notifier: ProcessingNotifier | None = None,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._store = store
@@ -37,6 +48,7 @@ class EvidenceProcessor:
         self._clock = clock
         self._budget = budget
         self._model = model
+        self._notifier = notifier
 
     def handle(self, payload: dict[str, Any]) -> None:
         self.process(UUID(payload["user_id"]), UUID(payload["evidence_id"]))
@@ -71,8 +83,18 @@ class EvidenceProcessor:
             budget=self._budget,
             model=self._model,
         )
-        self._save(evidence, result, started)
+        entry = self._save(evidence, result, started)
+        self._notify(evidence, result.outcome, entry)
         return result.outcome
+
+    def _notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None:
+        """Telling the user is a courtesy. If it fails, the saved result still stands."""
+        if self._notifier is None:
+            return
+        try:
+            self._notifier.notify(evidence, outcome, entry)
+        except Exception as error:
+            logger.warning("notifying about evidence failed with %s", type(error).__name__)
 
     def _is_duplicate(self, user_id: UUID, extraction: Extraction) -> bool:
         with self._unit_of_work() as work:
@@ -82,7 +104,7 @@ class EvidenceProcessor:
             serial = extraction.certificate_serial
             return bool(serial and entries.has_certificate_serial(serial))
 
-    def _save(self, evidence: Evidence, result: PipelineResult, started: datetime) -> None:
+    def _save(self, evidence: Evidence, result: PipelineResult, started: datetime) -> Entry | None:
         run = PipelineRun(
             id=uuid.uuid4(),
             user_id=evidence.user_id,
@@ -95,6 +117,7 @@ class EvidenceProcessor:
             started_at=started,
             finished_at=self._clock.now(),
         )
+        entry = None
         with self._unit_of_work() as work:
             work.runs.add(run, result.steps)
             if result.extraction and result.classification and result.outcome != "duplicate":
@@ -103,6 +126,7 @@ class EvidenceProcessor:
             status = STATUS_FOR_OUTCOME[result.outcome]
             work.evidence_for(evidence.user_id).set_outcome(evidence.id, result.kind, status)
             work.commit()
+        return entry
 
     def _entry(
         self,
