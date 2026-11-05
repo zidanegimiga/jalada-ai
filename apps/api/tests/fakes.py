@@ -274,5 +274,17 @@ class FakeEvidenceStore:
         self.objects.pop((user_id, evidence_id), None)
 
 
+class FakeTextReader:
+    """Plain text is decoded. Anything else reads as the text given for it, or nothing."""
+
+    def __init__(self, pdf_text: str | None = None) -> None:
+        self.pdf_text = pdf_text
+
+    def read(self, content_type: str, data: bytes) -> str | None:
+        if content_type.startswith("text/"):
+            return data.decode()
+        return self.pdf_text if content_type == "application/pdf" else None
+
+
 def later(clock: FixedClock, minutes: int) -> datetime:
     return clock.now() + timedelta(minutes=minutes)
