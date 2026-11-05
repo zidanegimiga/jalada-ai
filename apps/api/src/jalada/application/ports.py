@@ -144,5 +144,11 @@ class EvidenceStore(Protocol):
     def delete(self, evidence_id: UUID, user_id: UUID) -> None: ...
 
 
+class TextReader(Protocol):
+    """Turns stored evidence into text. None when there is no text to read."""
+
+    def read(self, content_type: str, data: bytes) -> str | None: ...
+
+
 class Clock(Protocol):
     def now(self) -> datetime: ...
