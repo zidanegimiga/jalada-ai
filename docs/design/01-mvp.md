@@ -1,6 +1,6 @@
 # 01. Minimum viable product
 
-Status: Draft
+Status: Approved
 
 ## Scope
 
@@ -77,9 +77,9 @@ All tables have a `uuid` primary key and `created_at`. Every table with user dat
 | `categories` | `slug`, `name`, `direction`, `purpose`, `report_group` | A fixed, seeded list. `report_group` decides which export sheet and section an entry lands in. |
 | `counterparty_preferences` | `user_id`, `counterparty_key`, `category_id`, `purpose`, `times_used` | Written when a user confirms or corrects an entry. The classifier checks this first. |
 
-### Starting category list
+### Category list
 
-To be confirmed. Income and costs follow the kinds in `docs/domain/kenya-tax-notes.md`.
+Income and costs follow the kinds in `docs/domain/kenya-tax-notes.md`.
 
 - **Money in:** salary, consultancy or freelance fees, business sales, support from family or friends, transfer between own accounts, refund, other.
 - **Business costs:** data and airtime, transport, equipment that lasts years, software and subscriptions, workspace rent, stock and supplies, professional fees, other.
@@ -170,12 +170,9 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 - Passwords hashed with Argon2. Sessions in secure, HTTP-only, same-site cookies.
 - Evidence encrypted by the application before upload, with a key from settings, and served only through five-minute signed links.
 - Logs carry a request id and never raw financial text, amounts or file contents.
-- Model providers only see data under terms that exclude training on it (see open questions).
+- Free model tiers and local models only see invented data. Real users' evidence goes only to a provider whose terms exclude training on it (decision 0012).
 - Export and delete are in the first version.
 
 ## Open questions
 
-1. **Model provider for real users.** Gemini's free tier allows Google to use prompts to improve its products, which does not fit financial data under the Data Protection Act. Proposal: the free tier and local Ollama for development and evaluations with invented data, and a paid tier with no training on data (Gemini paid, Claude or OpenAI) before any real user's evidence is processed. Agree?
-2. **M-Pesa message formats.** The rule-based parser needs the exact wording of each message type (sent, received, paybill, till, withdrawal, airtime). Can you share a few real messages with names, numbers and codes changed?
-3. **Category list.** Is the starting list above right for you?
-4. **Withholding certificates.** Can you share the layout of one certificate, with figures changed, so the parser and fixtures match the real thing?
+1. **Certificate and deposit linking.** A withholding certificate and the M-Pesa or bank deposit for the same job describe the same income. Proposal: when both exist, the review screen suggests linking them, and the export counts the certificate's gross amount once.

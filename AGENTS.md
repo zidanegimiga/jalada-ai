@@ -9,7 +9,7 @@ Users have scattered income, many small payments, and often small or basic phone
 I review every line. Do not run ahead.
 
 1. **Plan, approve, build.** Propose a short numbered plan, wait for approval, then build exactly that.
-2. **One small commit at a time.** One purpose per commit, under about 150 changed lines. Lockfiles and untouched generated files do not count, but list them. Never mix a refactor with a feature. Give me the commit command to run.
+2. **One feature slice per commit.** Each commit is one complete, working slice with its tests, for example sign-up and sign-in end to end. Never mix a refactor with a feature. Work happens on the `dev` branch and reaches `main` through pull requests. Give me the commit command to run.
 3. **Explain everything, in chat.** After each commit, walk through every new or changed file, library, type, function, variable and test. Do not save these explanations as files. Only decisions are written down, as records in `docs/adr/`.
 4. **Decisions get a record.** Every library, service, data store or pattern gets an architecture decision record in `docs/adr/` before it lands in code. No new dependency without one.
 5. **Tests come with code.** Every behaviour change ships with tests. Run them and show the output. "Done" is proven, not asserted.

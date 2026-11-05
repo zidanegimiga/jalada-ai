@@ -1,6 +1,6 @@
 # 0012. Language models behind a port: Ollama and Gemini
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-05
 
 ## Context
@@ -14,7 +14,7 @@ The extractor and classifier use a language model when rules cannot cope, includ
 ## Decision
 A `LanguageModel` port with two methods: extract fields into a given schema from text or an image, and classify. Adapters for Ollama and Gemini first. The adapter is chosen in settings. Ollama runs as an optional docker compose profile. Every call records tokens, cost and duration.
 
-Proposed rule, awaiting confirmation: free tiers only ever see invented data (development and evaluations). Real users' evidence goes only to a provider whose terms exclude training on it.
+Free tiers and local models only ever see invented data, in development and evaluations. Real users' evidence goes only to a provider whose terms exclude training on it.
 
 ## Consequences
 - Switching providers is one adapter and one setting.
