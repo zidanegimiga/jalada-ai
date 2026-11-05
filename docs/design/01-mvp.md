@@ -57,7 +57,7 @@ All tables have a `uuid` primary key and `created_at`. Every table with user dat
 | `users` | `email` (unique, case-insensitive), `password_hash` (nullable), `google_subject` (unique, nullable), `display_name` | A Google-only user has no password hash. |
 | `sessions` | `token_hash` (unique), `user_id`, `expires_at`, `last_seen_at` | The cookie holds a random token. Only its hash is stored, so a database leak does not leak sessions. |
 | `telegram_links` | `user_id`, `telegram_user_id` (unique) | One Telegram account per user. |
-| `telegram_link_codes` | `code_hash`, `user_id`, `expires_at` | Six-digit codes, valid for 10 minutes, used once. |
+| `telegram_link_codes` | `code_hash`, `user_id`, `expires_at` | Eight-character codes without look-alike letters, valid for 10 minutes, used once. A new code replaces the last. |
 
 ### Evidence and processing
 
@@ -146,7 +146,7 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 
 **Web capture.** Tap add evidence, choose camera, file or paste. The item appears at the top of the list as processing, then turns into a proposed entry or a "needs a look" card.
 
-**Telegram capture.** In settings, tap link Telegram to get a code, open the bot and send the code. From then on, any photo, PDF or forwarded message sent to the bot becomes evidence. The bot replies with the proposed entry and a link to review it.
+**Telegram capture.** On the home screen, tap Link Telegram to get a code and a link that opens the bot with the code filled in. From then on, any photo, PDF or forwarded message sent to the bot becomes evidence. The bot replies with the proposed entry and a link to review it.
 
 **Review.** A list of cards, newest last. Each shows the amount, counterparty, date, proposed purpose and category, and a thumbnail of the evidence. Confirm is one tap. Edit opens a short form with large controls.
 

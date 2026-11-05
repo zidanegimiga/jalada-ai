@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. The Telegram bot, exporting and deleting your data, and hosting are next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. Exporting and deleting your data, and hosting, are next.
 
 ## Stack
 
@@ -112,6 +112,17 @@ make ollama-model
 Then set `JALADA_MODEL_PROVIDER=ollama` in `.env` and run `make up-ollama` again. For Gemini, set `JALADA_MODEL_PROVIDER=gemini` and `JALADA_GEMINI_API_KEY`.
 
 Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set for a provider whose terms exclude training on what it is sent.
+
+### Telegram bot
+
+People can send receipts, PDFs and forwarded M-Pesa messages to a Telegram bot instead of the web app.
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy its token.
+2. Put `JALADA_TELEGRAM_BOT_TOKEN` and `JALADA_TELEGRAM_BOT_USERNAME` (without the @) in `.env`.
+3. Run `make up-telegram`. Locally the bot reads messages by polling, so no public address is needed.
+4. In the app, tap Link Telegram and open the link it gives you.
+
+Once deployed, set `JALADA_TELEGRAM_WEBHOOK_SECRET` to a long random value and run `jalada-telegram set-webhook`, so Telegram calls the app instead.
 
 ### Google sign-in
 

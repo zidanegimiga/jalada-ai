@@ -16,5 +16,7 @@ A Telegram bot behind a `ChatChannel` port, receiving updates by webhook at `/v1
 
 ## Consequences
 - Free to run, and WhatsApp, SMS and USSD can be added as other adapters on the same port later.
+- Locally there is no public address for a webhook, so `jalada-telegram poll` reads the same messages by long polling and hands them to the same code.
+- The bot token is part of every Telegram address, so the adapter never logs addresses and reports errors by type only.
 - Telegram keeps its own copy of anything sent to the bot, which the privacy notice must say.
 - Fewer Kenyan users have Telegram than WhatsApp, so the web app remains the main way in.

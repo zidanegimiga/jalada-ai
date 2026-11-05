@@ -18,6 +18,9 @@ x-backend-environment: &backend-environment
   JALADA_MODEL_NAME: ${JALADA_MODEL_NAME:-}
   JALADA_GEMINI_API_KEY: ${JALADA_GEMINI_API_KEY:-}
   JALADA_OLLAMA_URL: http://ollama:11434
+  JALADA_TELEGRAM_BOT_TOKEN: ${JALADA_TELEGRAM_BOT_TOKEN:-}
+  JALADA_TELEGRAM_BOT_USERNAME: ${JALADA_TELEGRAM_BOT_USERNAME:-}
+  JALADA_TELEGRAM_WEBHOOK_SECRET: ${JALADA_TELEGRAM_WEBHOOK_SECRET:-}
 
 services:
   postgres:
@@ -99,6 +102,18 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  # Optional Telegram bot by polling, for local work: make up-telegram.
+  telegram:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    profiles: ["telegram"]
+    command: ["jalada-telegram", "poll"]
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
   # Optional local language model: make up-ollama, then make ollama-model.
   ollama:
