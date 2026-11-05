@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from types import TracebackType
-from typing import Protocol, Self
+from typing import Any, Protocol, Self
 from uuid import UUID
 
 from jalada.domain.entries import Entry
@@ -85,8 +85,19 @@ class RunRepository(Protocol):
     def add(self, run: PipelineRun, steps: list[StepRecord]) -> None: ...
 
 
+@dataclass(frozen=True)
+class Job:
+    id: int
+    kind: str
+    payload: dict[str, Any]
+    attempts: int
+
+
 class JobQueue(Protocol):
     def enqueue(self, kind: str, payload: dict[str, str]) -> None: ...
+    def claim(self, now: datetime, lock_seconds: int) -> Job | None: ...
+    def complete(self, job_id: int) -> None: ...
+    def fail(self, job_id: int, error: str, retry_at: datetime | None) -> None: ...
 
 
 class UnitOfWork(Protocol):

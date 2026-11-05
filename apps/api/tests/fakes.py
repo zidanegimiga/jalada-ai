@@ -1,9 +1,9 @@
 """In-memory stand-ins for the ports, for fast tests without a database."""
 
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import TracebackType
-from typing import Self
+from typing import Any, Self
 from uuid import UUID
 
 from jalada.application.errors import GoogleSignInFailed
@@ -11,6 +11,7 @@ from jalada.application.ports import (
     EntryRepository,
     EvidenceRepository,
     GoogleProfile,
+    Job,
     JobQueue,
     PipelineRun,
     PreferenceRepository,
@@ -36,6 +37,8 @@ class Store:
     entries: dict[UUID, Entry] = field(default_factory=dict)
     preferences: dict[UUID, dict[str, Preference]] = field(default_factory=dict)
     runs: list[tuple[PipelineRun, list[StepRecord]]] = field(default_factory=list)
+    # Jobs for the job runner: id to [job, status, run_after].
+    queue: dict[int, list[Any]] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
 
 
@@ -109,11 +112,27 @@ class FakeEvidence:
 
 
 class FakeJobs:
-    def __init__(self, jobs: list[tuple[str, dict[str, str]]]) -> None:
+    def __init__(self, jobs: list[tuple[str, dict[str, str]]], queue: dict[int, list[Any]]) -> None:
         self.rows = jobs
+        self.queue = queue
 
     def enqueue(self, kind: str, payload: dict[str, str]) -> None:
         self.rows.append((kind, payload))
+
+    def claim(self, now: datetime, lock_seconds: int) -> Job | None:
+        for job_id, (job, status, run_after) in sorted(self.queue.items()):
+            if status == "queued" and run_after <= now:
+                claimed: Job = replace(job, attempts=job.attempts + 1)
+                self.queue[job_id] = [claimed, "running", run_after]
+                return claimed
+        return None
+
+    def complete(self, job_id: int) -> None:
+        self.queue[job_id][1] = "done"
+
+    def fail(self, job_id: int, error: str, retry_at: datetime | None) -> None:
+        job = self.queue[job_id][0]
+        self.queue[job_id] = [job, "queued" if retry_at else "failed", retry_at]
 
 
 class FakeEntries:
@@ -163,7 +182,9 @@ class FakeUnitOfWork:
         self.users: UserRepository = self._users
         self.sessions: SessionRepository = self._sessions
         self._evidence = dict(self._store.evidence)
-        self._jobs = FakeJobs(list(self._store.jobs))
+        self._jobs = FakeJobs(
+            list(self._store.jobs), {k: list(v) for k, v in self._store.queue.items()}
+        )
         self.jobs: JobQueue = self._jobs
         self._entries = dict(self._store.entries)
         self._runs = FakeRuns(list(self._store.runs))
@@ -192,6 +213,7 @@ class FakeUnitOfWork:
         self._store.google_subjects = self._users.google_subjects
         self._store.evidence = self._evidence
         self._store.jobs = self._jobs.rows
+        self._store.queue = self._jobs.queue
         self._store.entries = self._entries
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
@@ -250,3 +272,7 @@ class FakeEvidenceStore:
 
     def delete(self, evidence_id: UUID, user_id: UUID) -> None:
         self.objects.pop((user_id, evidence_id), None)
+
+
+def later(clock: FixedClock, minutes: int) -> datetime:
+    return clock.now() + timedelta(minutes=minutes)
