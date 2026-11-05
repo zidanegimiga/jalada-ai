@@ -76,3 +76,31 @@ describe("EntryForm", () => {
     });
   });
 });
+
+describe("EntryForm on a page with several cards", () => {
+  it("keeps each label tied to its own field", () => {
+    render(
+      <>
+        <EntryForm
+          entry={entry({ amount_cents: 100 })}
+          categories={CATEGORIES}
+          submitLabel="One"
+          onSubmit={vi.fn()}
+        />
+        <EntryForm
+          entry={entry({ amount_cents: 200 })}
+          categories={CATEGORIES}
+          submitLabel="Two"
+          onSubmit={vi.fn()}
+        />
+      </>,
+    );
+
+    const amounts = screen.getAllByLabelText("Amount (KSh)");
+    expect(amounts.map((field) => (field as HTMLInputElement).value)).toEqual([
+      "1.00",
+      "2.00",
+    ]);
+    expect(new Set(amounts.map((field) => field.id)).size).toBe(2);
+  });
+});

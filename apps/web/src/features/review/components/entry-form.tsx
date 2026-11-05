@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/features/auth/components/form-field";
@@ -26,6 +26,8 @@ export function EntryForm({
     entry?.direction ?? "out",
   );
   const [busy, setBusy] = useState(false);
+  // Several cards can show this form at once, so every id gets a prefix of its own.
+  const id = useId();
   const choices = categories.filter(
     (category) => category.direction === direction,
   );
@@ -68,6 +70,7 @@ export function EntryForm({
       <FormField
         label="Amount (KSh)"
         name="amount"
+        id={`${id}-amount`}
         inputMode="decimal"
         placeholder="1,250.00"
         defaultValue={
@@ -77,19 +80,21 @@ export function EntryForm({
       <FormField
         label="Date"
         name="occurred_on"
+        id={`${id}-occurred_on`}
         type="date"
         defaultValue={entry?.occurred_on ?? ""}
       />
       <FormField
         label="Paid to or received from"
         name="counterparty"
+        id={`${id}-counterparty`}
         maxLength={200}
         defaultValue={entry?.counterparty ?? ""}
       />
       <div className="flex flex-col gap-2">
-        <Label htmlFor="category">What it was for</Label>
+        <Label htmlFor={`${id}-category`}>What it was for</Label>
         <select
-          id="category"
+          id={`${id}-category`}
           name="category"
           required
           defaultValue={keptCategory ?? ""}
