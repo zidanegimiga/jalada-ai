@@ -1,0 +1,1 @@
+"""Jalada AI background worker."""

@@ -5,6 +5,7 @@ requires-python = "==3.12.*"
 [manifest]
 members = [
     "jalada",
+    "jalada-worker",
 ]
 
 [manifest.dependency-groups]
@@ -207,6 +208,17 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.16" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
+
+[[package]]
+name = "jalada-worker"
+version = "0.1.0"
+source = { editable = "apps/worker" }
+dependencies = [
+    { name = "jalada" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "jalada", editable = "apps/api" }]
 
 [[package]]
 name = "librt"

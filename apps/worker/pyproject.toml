@@ -1,0 +1,21 @@
+[project]
+name = "jalada-worker"
+version = "0.1.0"
+description = "Jalada AI background worker: runs pipeline jobs"
+requires-python = ">=3.12,<3.13"
+dependencies = ["jalada"]
+
+[project.scripts]
+jalada-worker = "jalada_worker.main:main"
+
+[tool.uv.sources]
+# Use the jalada package from this repo, not one from a package index.
+jalada = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
