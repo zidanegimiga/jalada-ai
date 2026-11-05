@@ -98,7 +98,10 @@ class EvidenceCapture:
         try:
             with self._unit_of_work() as work:
                 work.evidence_for(user_id).add(evidence)
-                work.jobs.enqueue(PROCESS_EVIDENCE_JOB, {"evidence_id": str(evidence.id)})
+                work.jobs.enqueue(
+                    PROCESS_EVIDENCE_JOB,
+                    {"evidence_id": str(evidence.id), "user_id": str(user_id)},
+                )
                 work.commit()
         except Exception:
             self._store.delete(evidence.id, user_id)

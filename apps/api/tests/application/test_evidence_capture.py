@@ -25,7 +25,9 @@ def test_a_photo_is_stored_recorded_and_queued(
     assert evidence.size_bytes == len(JPEG)
     assert evidence.encryption_key_id == "test-key"
     assert evidence_store.objects[(USER, evidence.id)] == JPEG
-    assert store.jobs == [(PROCESS_EVIDENCE_JOB, {"evidence_id": str(evidence.id)})]
+    assert store.jobs == [
+        (PROCESS_EVIDENCE_JOB, {"evidence_id": str(evidence.id), "user_id": str(USER)})
+    ]
 
 
 def test_pasted_text_is_trimmed_and_stored_as_text(
