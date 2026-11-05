@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import cast
 
-import httpx
+import httpx2
 from authlib.integrations.httpx_client import OAuth2Client
 from joserfc import jwt
 from joserfc.errors import JoseError
@@ -17,7 +17,7 @@ ISSUERS = ["https://accounts.google.com", "accounts.google.com"]
 
 
 def fetch_google_keys() -> KeySetSerialization:
-    response = httpx.get(KEYS_URL, timeout=10)
+    response = httpx2.get(KEYS_URL, timeout=10)
     response.raise_for_status()
     return cast(KeySetSerialization, response.json())
 
@@ -49,7 +49,7 @@ class GoogleOpenIdClient:
             with self._oauth_client() as client:
                 token = client.fetch_token(TOKEN_URL, code=code, code_verifier=code_verifier)
             return self.read_id_token(token["id_token"], nonce)
-        except (httpx.HTTPError, KeyError, ValueError) as error:
+        except (httpx2.HTTPError, KeyError, ValueError) as error:
             raise GoogleSignInFailed from error
 
     def read_id_token(self, id_token: str, nonce: str) -> GoogleProfile:

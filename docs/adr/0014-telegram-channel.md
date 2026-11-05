@@ -12,7 +12,7 @@ Users should be able to send a receipt or forward an M-Pesa message from their c
 3. **Telegram Bot API.** Free, takes photos, documents and forwarded text, and needs no business verification.
 
 ## Decision
-A Telegram bot behind a `ChatChannel` port, receiving updates by webhook at `/v1/telegram/webhook`, verified with Telegram's secret token header. Accounts are linked with a one-time code from the web app. Calls go through httpx, with no bot framework.
+A Telegram bot behind a `ChatChannel` port, receiving updates by webhook at `/v1/telegram/webhook`, verified with Telegram's secret token header. Accounts are linked with a one-time code from the web app. Calls go through httpx2, with no bot framework.
 
 ## Consequences
 - Free to run, and WhatsApp, SMS and USSD can be added as other adapters on the same port later.
