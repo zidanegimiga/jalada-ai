@@ -10,3 +10,8 @@
 [build.environment]
   # The same Node.js version as continuous integration.
   NODE_VERSION = "24"
+
+# Netlify's Next.js runtime. It turns the build into server functions for the pages and the
+# /v1 forwarding to the API. Without it Netlify uploads .next as plain files and every page is 404.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
