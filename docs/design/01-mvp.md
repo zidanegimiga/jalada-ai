@@ -35,7 +35,7 @@ These answer the open questions in `00-problem-and-users.md` for now.
  Telegram ──► webhook ─────────────────┘   │              │
                                        evidence        jobs table
                                        storage            │
-                                     (MinIO / R2)         ▼
+                                (SeaweedFS / R2)          ▼
                                            ▲        worker (pipeline)
                                            └───────────┤
                                                        ├──► OCR port (Tesseract, pdfplumber)
