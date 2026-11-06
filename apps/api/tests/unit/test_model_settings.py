@@ -5,9 +5,9 @@ import pytest
 from conftest import make_settings
 from pydantic import SecretStr, ValidationError
 
+from jalada.adapters.builders import build_budget, build_language_model
 from jalada.adapters.models.gemini import GeminiModel
 from jalada.adapters.models.ollama import OllamaModel
-from jalada.composition import build_budget, build_language_model
 from jalada.config.settings import Settings
 
 
