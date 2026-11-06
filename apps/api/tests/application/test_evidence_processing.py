@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -55,6 +56,19 @@ def test_a_message_from_a_known_counterparty_becomes_a_proposed_entry(
     [(run, steps)] = store.runs
     assert entry.run_id == run.id
     assert run.outcome == "proposed" and len(steps) == 4
+
+
+def test_a_message_from_today_in_kenya_is_not_in_the_future_while_utc_is_still_on_yesterday(
+    capture: EvidenceCapture, processor: EvidenceProcessor, store: Store, clock: FixedClock
+) -> None:
+    # 1 am on 5 November in Nairobi, still 4 November in UTC. The message is dated 5/11/26.
+    clock.current = datetime(2026, 11, 4, 22, 0, tzinfo=UTC)
+    store.preferences[USER] = {
+        "jane wanjiku": Preference("personal_family_support", Purpose.PERSONAL, 2)
+    }
+    evidence = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
+
+    assert processor.process(USER, evidence.id) == "proposed"
 
 
 def test_an_unknown_counterparty_becomes_an_entry_that_needs_review(

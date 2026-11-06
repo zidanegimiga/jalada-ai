@@ -13,6 +13,7 @@ from jalada.application.ports import (
     TextReader,
     UnitOfWork,
 )
+from jalada.domain.dates import kenyan_date
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.domain.extraction import Classification, Extraction
@@ -79,7 +80,7 @@ class EvidenceProcessor:
             given,
             preferences,
             is_duplicate=lambda extraction: self._is_duplicate(user_id, extraction),
-            today=started.date(),
+            today=kenyan_date(started),
             budget=self._budget,
             model=self._model,
         )

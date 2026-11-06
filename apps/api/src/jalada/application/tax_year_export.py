@@ -3,6 +3,7 @@ from datetime import date
 from uuid import UUID
 
 from jalada.application.ports import Clock, UnitOfWork, WorkbookWriter
+from jalada.domain.dates import kenyan_date
 from jalada.domain.entries import Entry
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, summarise
 from jalada.domain.tax_year import TaxYearReport, build_report
@@ -38,7 +39,7 @@ class TaxYearExport:
             entries = work.entries_for(user_id)
             confirmed = _all_pages(lambda after: entries.confirmed(year_filter, after, PAGE_SIZE))
             months = summarise(entries.monthly_totals(year))
-        today = self._clock.now().date()
+        today = kenyan_date(self._clock.now())
         return build_report(year, confirmed, months, today, self._evidence_link)
 
     def workbook(self, user_id: UUID, year: int) -> bytes:
