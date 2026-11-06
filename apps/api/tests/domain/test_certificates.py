@@ -4,13 +4,13 @@ from datetime import date
 
 from samples import certificate, confirmed_entry, deposit
 
-from jalada.domain.certificates import (
+from jalada.modules.ledger.domain.certificates import (
     expected_payment_cents,
     link_problem,
     search_window,
     suggest_payments,
 )
-from jalada.domain.entries import EntryStatus
+from jalada.modules.ledger.domain.entries import EntryStatus
 
 USER = uuid.uuid4()
 # 40,000 gross with 5% withheld: the client pays 38,000.

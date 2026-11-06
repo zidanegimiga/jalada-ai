@@ -1,7 +1,7 @@
 import pytest
 from samples import JPEG, PDF, PNG, WEBP
 
-from jalada.domain.evidence import detect_file_type, fingerprint
+from jalada.modules.evidence.domain.evidence import detect_file_type, fingerprint
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any
 
-from jalada.pipeline.model import ImageInput, ModelReply, ModelUsage
+from jalada.modules.pipeline.domain.model import ImageInput, ModelReply, ModelUsage
 
 
 class ReplayModel:

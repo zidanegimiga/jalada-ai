@@ -5,7 +5,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from jalada.api.app import create_app
+from jalada.app import create_app
 from jalada.composition import build_api
 
 

@@ -1,10 +1,10 @@
 import pytest
 from fakes import FakeGoogle, Store
 
-from jalada.application.authentication import Authenticator
-from jalada.application.errors import GoogleSignInFailed, InvalidCredentials, NotSignedIn
-from jalada.application.google_sign_in import GoogleAttempt, GoogleSignIn
-from jalada.application.ports import GoogleProfile
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.google_sign_in import GoogleAttempt, GoogleSignIn
+from jalada.modules.accounts.application.ports import GoogleProfile
+from jalada.shared.errors import GoogleSignInFailed, InvalidCredentials, NotSignedIn
 
 PROFILE = GoogleProfile("google-123", "Jane@Example.com", True, "Jane Doe")
 

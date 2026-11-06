@@ -3,9 +3,10 @@ import os
 import pytest
 from sqlalchemy import Engine
 
-from jalada.adapters.database.unit_of_work import create_database_engine
-from jalada.adapters.health import DatabaseCheck, StorageCheck
-from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3_client
+from jalada.core.health import DatabaseCheck, StorageCheck
+from jalada.core.storage.client import create_s3_client
+from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
+from jalada.sql_unit_of_work import create_database_engine
 
 pytestmark = pytest.mark.integration
 

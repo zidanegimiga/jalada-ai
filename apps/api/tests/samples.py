@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 if TYPE_CHECKING:
-    from jalada.domain.entries import Entry
+    from jalada.modules.ledger.domain.entries import Entry
 
 JPEG = b"\xff\xd8\xff\xe0" + b"\x00\x10JFIF" + b"\x00" * 50
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 50
@@ -98,8 +98,8 @@ def confirmed_entry(user_id: UUID, day: date, cents: int, direction: str, catego
     import uuid
     from datetime import UTC, datetime
 
-    from jalada.domain.categories import CATEGORIES, Direction
-    from jalada.domain.entries import Entry, EntryKind, EntryStatus
+    from jalada.modules.ledger.domain.categories import CATEGORIES, Direction
+    from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 
     return Entry(
         uuid.uuid4(),
@@ -127,7 +127,7 @@ def certificate(user_id: UUID, day: date, gross: int, withheld: int, payer: str)
     """A confirmed withholding certificate for consultancy work."""
     from dataclasses import replace
 
-    from jalada.domain.entries import EntryKind
+    from jalada.modules.ledger.domain.entries import EntryKind
 
     return replace(
         confirmed_entry(user_id, day, gross, "in", "consultancy_fees"),

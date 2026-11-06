@@ -1,8 +1,8 @@
 import threading
 from typing import Any
 
-from jalada.adapters.channels.telegram_bot import ChatFailed
-from jalada.telegram_cli import poll
+from jalada.modules.telegram.adapters.telegram_bot import ChatFailed
+from jalada.modules.telegram.cli import poll
 
 
 class ScriptedBot:

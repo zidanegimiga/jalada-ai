@@ -4,12 +4,12 @@ from datetime import date
 import pytest
 from samples import CERTIFICATE, MPESA_SENT
 
-from jalada.domain.categories import Purpose
-from jalada.domain.extraction import Classification, Extraction
-from jalada.pipeline.certificates import parse_certificate
-from jalada.pipeline.classifier import Preference, classify
-from jalada.pipeline.mpesa import parse_mpesa
-from jalada.pipeline.verifier import verify
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.pipeline.domain.certificates import parse_certificate
+from jalada.modules.pipeline.domain.classifier import Preference, classify
+from jalada.modules.pipeline.domain.extraction import Classification, Extraction
+from jalada.modules.pipeline.domain.mpesa import parse_mpesa
+from jalada.modules.pipeline.domain.verifier import verify
 
 TODAY = date(2026, 11, 5)
 SURE = Classification(Purpose.PERSONAL, "personal_food", 0.95, "preference")

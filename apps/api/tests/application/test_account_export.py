@@ -7,16 +7,16 @@ import pytest
 from fakes import FakeEvidenceStore, FakeTextReader, FakeUnitOfWork, FixedClock, Store
 from samples import JPEG, MPESA_SENT
 
-from jalada.adapters.export.account_archive import ZipAccountArchive
-from jalada.application.account_export import AccountExport
-from jalada.application.authentication import Authenticator
-from jalada.application.entry_review import EntryReview
-from jalada.application.errors import NotSignedIn
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.domain.entries import Correction
-from jalada.domain.evidence import EvidenceSource
-from jalada.pipeline.run_types import Budget
+from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
+from jalada.modules.accounts.application.account_export import AccountExport
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceSource
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.domain.entries import Correction
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.domain.run_types import Budget
+from jalada.shared.errors import NotSignedIn
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ import pytest
 from botocore.exceptions import ClientError
 from conftest import make_settings
 
-from jalada.adapters.storage import setup
+from jalada.core.storage import setup
 
 
 class Bucket:

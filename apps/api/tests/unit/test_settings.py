@@ -3,7 +3,7 @@ import os
 import pytest
 from pydantic import ValidationError
 
-from jalada.config.settings import load_settings
+from jalada.core.settings import load_settings
 
 DATABASE_URL = "postgresql+psycopg://user:pass@localhost:5432/jalada"
 

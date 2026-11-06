@@ -5,15 +5,13 @@ from dataclasses import asdict
 from datetime import date, datetime
 from uuid import UUID
 
-from jalada.application.ports import (
-    PipelineRun,
-    Revision,
-)
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
-from jalada.pipeline.classifier import Preference
-from jalada.pipeline.run_types import StepRecord
+from jalada.modules.ledger.application.ports import Revision
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
+from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.pipeline.application.ports import PipelineRun
+from jalada.modules.pipeline.domain.classifier import Preference
+from jalada.modules.pipeline.domain.run_types import StepRecord
 
 
 class FakeEntries:

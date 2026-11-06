@@ -8,17 +8,16 @@ from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import FakeCertificatePayments, FakeEntries, FakePreferences, FakeRuns
 from fakes.store import Store
-from jalada.application.ports import (
+from jalada.core.jobs.ports import JobQueue
+from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.evidence.application.ports import EvidenceRepository
+from jalada.modules.ledger.application.ports import (
     CertificatePaymentRepository,
     EntryRepository,
-    EvidenceRepository,
-    JobQueue,
     PreferenceRepository,
-    RunRepository,
-    SessionRepository,
-    TelegramLinks,
-    UserRepository,
 )
+from jalada.modules.pipeline.application.ports import RunRepository
+from jalada.modules.telegram.application.ports import TelegramLinks
 
 
 class FakeUnitOfWork:

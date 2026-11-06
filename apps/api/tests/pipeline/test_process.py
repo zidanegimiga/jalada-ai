@@ -2,11 +2,11 @@ from datetime import date
 
 from samples import CERTIFICATE, MPESA_SENT
 
-from jalada.domain.categories import Purpose
-from jalada.domain.evidence import EvidenceKind
-from jalada.pipeline.classifier import Preference
-from jalada.pipeline.process import run_pipeline
-from jalada.pipeline.run_types import Budget, EvidenceInput
+from jalada.modules.evidence.domain.evidence import EvidenceKind
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.pipeline.domain.classifier import Preference
+from jalada.modules.pipeline.domain.process import run_pipeline
+from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput
 
 TODAY = date(2026, 11, 5)
 KNOWN = {"jane wanjiku": Preference("personal_family_support", Purpose.PERSONAL, 3)}

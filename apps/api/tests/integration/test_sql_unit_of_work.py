@@ -6,10 +6,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.application.errors import EmailAlreadyRegistered
-from jalada.domain.sessions import Session
-from jalada.domain.users import User
+from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.accounts.domain.users import User
+from jalada.shared.errors import EmailAlreadyRegistered
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 

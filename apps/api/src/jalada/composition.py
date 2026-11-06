@@ -8,42 +8,45 @@ from functools import partial
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.builders import (
+from jalada.app import Lifespan, create_app
+from jalada.builders import (
     build_budget,
     build_evidence_store,
     build_language_model,
     build_s3_client,
     start_error_tracking_from,
 )
-from jalada.adapters.channels.telegram_bot import TelegramBot
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
-from jalada.adapters.export.account_archive import ZipAccountArchive
-from jalada.adapters.export.workbook import ExcelWorkbookWriter
-from jalada.adapters.health import QUICK, DatabaseCheck, StorageCheck
-from jalada.adapters.identity.google import GoogleOpenIdClient
-from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
-from jalada.adapters.system_clock import SystemClock
-from jalada.adapters.text.ocr import TesseractOcr
-from jalada.adapters.text.reader import EvidenceTextReader
-from jalada.api.app import Lifespan, create_app
-from jalada.api.rate_limit import RateLimiter
-from jalada.api.services import Services
-from jalada.application.account_deletion import AccountDeletion
-from jalada.application.account_export import AccountExport
-from jalada.application.authentication import Authenticator
-from jalada.application.certificate_payments import CertificatePayments
-from jalada.application.entry_review import EntryReview
-from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB, EvidenceCapture
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.application.google_sign_in import GoogleSignIn
-from jalada.application.job_runner import JobRunner, background_jobs
-from jalada.application.ledger import Ledger
-from jalada.application.tax_year_export import TaxYearExport
-from jalada.application.telegram_capture import TelegramCapture
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.application.telegram_notifier import TelegramNotifier
-from jalada.config.logging import configure_logging
-from jalada.config.settings import Settings, load_settings
+from jalada.core.clock import SystemClock
+from jalada.core.health import QUICK, DatabaseCheck, StorageCheck
+from jalada.core.jobs.runner import JobRunner, background_jobs
+from jalada.core.logging import configure_logging
+from jalada.core.settings import Settings, load_settings
+from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
+from jalada.modules.accounts.adapters.argon2_hasher import Argon2PasswordHasher
+from jalada.modules.accounts.adapters.google import GoogleOpenIdClient
+from jalada.modules.accounts.application.account_deletion import AccountDeletion
+from jalada.modules.accounts.application.account_export import AccountExport
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
+from jalada.modules.evidence.application.evidence_capture import (
+    PROCESS_EVIDENCE_JOB,
+    EvidenceCapture,
+)
+from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
+from jalada.modules.exports.application.tax_year_export import TaxYearExport
+from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
+from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.telegram.adapters.telegram_bot import TelegramBot
+from jalada.modules.telegram.application.telegram_capture import TelegramCapture
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
+from jalada.modules.telegram.application.telegram_notifier import TelegramNotifier
+from jalada.services import Services
+from jalada.shared.http.rate_limit import RateLimiter
+from jalada.sql_unit_of_work import SqlUnitOfWork, create_database_engine
 
 POLL_INTERVAL_SECONDS = 5.0
 

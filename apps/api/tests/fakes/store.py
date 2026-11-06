@@ -5,15 +5,13 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from jalada.application.ports import (
-    PipelineRun,
-    UserCredentials,
-)
-from jalada.domain.entries import Entry
-from jalada.domain.evidence import Evidence
-from jalada.domain.sessions import Session
-from jalada.pipeline.classifier import Preference
-from jalada.pipeline.run_types import StepRecord
+from jalada.modules.accounts.application.ports import UserCredentials
+from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.evidence.domain.evidence import Evidence
+from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.pipeline.application.ports import PipelineRun
+from jalada.modules.pipeline.domain.classifier import Preference
+from jalada.modules.pipeline.domain.run_types import StepRecord
 
 
 @dataclass

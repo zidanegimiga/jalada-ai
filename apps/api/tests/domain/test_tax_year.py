@@ -4,8 +4,8 @@ from datetime import date
 
 from samples import certificate, confirmed_entry, deposit
 
-from jalada.domain.entries import Entry, EntryKind
-from jalada.domain.tax_year import build_report
+from jalada.modules.exports.domain.tax_year import build_report
+from jalada.modules.ledger.domain.entries import Entry, EntryKind
 
 USER = uuid.uuid4()
 LINK = "https://app.example.com/v1/evidence/{id}/file"

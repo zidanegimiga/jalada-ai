@@ -1,7 +1,7 @@
 import threading
 import time
 
-from jalada.application.job_runner import background_jobs, work_until
+from jalada.core.jobs.runner import background_jobs, work_until
 
 
 class Jobs:

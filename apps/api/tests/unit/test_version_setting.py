@@ -1,6 +1,6 @@
 import pytest
 
-from jalada.config.settings import Settings
+from jalada.core.settings import Settings
 
 REQUIRED = {
     "JALADA_ENVIRONMENT": "test",

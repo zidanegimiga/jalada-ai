@@ -5,9 +5,9 @@ import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store
 from samples import certificate, deposit
 
-from jalada.application.certificate_payments import CertificatePayments
-from jalada.application.errors import EntryNotFound, InvalidEntry
-from jalada.domain.entries import Entry
+from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.domain.entries import Entry
+from jalada.shared.errors import EntryNotFound, InvalidEntry
 
 USER = uuid.uuid4()
 OTHER_USER = uuid.uuid4()

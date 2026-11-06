@@ -1,4 +1,4 @@
-from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
+from jalada.modules.accounts.adapters.argon2_hasher import Argon2PasswordHasher
 
 
 def test_a_hash_verifies_only_its_own_password() -> None:

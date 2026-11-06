@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from jalada.config.settings import Settings
+from jalada.core.settings import Settings
 
 ROOT = Path(__file__).resolve().parents[4]
 LOCAL = ROOT / ".env.example"

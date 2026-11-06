@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 from sentry_sdk.envelope import Envelope
 from sentry_sdk.transport import Transport
 
-from jalada.adapters.builders import start_error_tracking_from
-from jalada.adapters.error_tracking import scrub_breadcrumb, scrub_event, start_error_tracking
+from jalada.builders import start_error_tracking_from
+from jalada.core.error_tracking import scrub_breadcrumb, scrub_event, start_error_tracking
 
 DSN = "https://public@errors.example.com/1"
 # Built at runtime: Sentry sends the source lines around each frame, and these must only

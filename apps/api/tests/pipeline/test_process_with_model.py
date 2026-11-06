@@ -4,9 +4,9 @@ from decimal import Decimal
 from fakes import ScriptedModel
 from samples import CERTIFICATE, MPESA_SENT
 
-from jalada.pipeline.model import ImageInput, ModelFailed
-from jalada.pipeline.process import run_pipeline
-from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
+from jalada.modules.pipeline.domain.model import ImageInput, ModelFailed
+from jalada.modules.pipeline.domain.process import run_pipeline
+from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput, PipelineResult
 
 TODAY = date(2026, 11, 5)
 PHOTO = ImageInput(b"jpeg", "image/jpeg")

@@ -1,6 +1,6 @@
 from datetime import UTC, date, datetime
 
-from jalada.domain.dates import kenyan_date
+from jalada.shared.dates import kenyan_date
 
 
 def test_kenya_is_three_hours_ahead_of_utc() -> None:

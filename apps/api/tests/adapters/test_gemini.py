@@ -6,9 +6,9 @@ from typing import Any
 import httpx2
 import pytest
 
-from jalada.adapters.models.gemini import BASE_URL, GeminiModel
-from jalada.adapters.models.pricing import Pricing
-from jalada.pipeline.model import ImageInput, ModelFailed
+from jalada.modules.pipeline.adapters.models.gemini import BASE_URL, GeminiModel
+from jalada.modules.pipeline.adapters.models.pricing import Pricing
+from jalada.modules.pipeline.domain.model import ImageInput, ModelFailed
 
 SCHEMA = {"type": "object", "properties": {"amount_ksh": {"type": "string"}}}
 PRICING = Pricing(Decimal("0.30"), Decimal("2.50"))

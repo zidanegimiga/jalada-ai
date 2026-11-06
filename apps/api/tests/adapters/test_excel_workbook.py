@@ -7,11 +7,11 @@ import pytest
 from openpyxl import Workbook, load_workbook
 from samples import confirmed_entry
 
-from jalada.adapters.export.workbook import ExcelWorkbookWriter
-from jalada.domain.categories import Purpose
-from jalada.domain.entries import EntryKind
-from jalada.domain.ledger import MonthSummary
-from jalada.domain.tax_year import build_report
+from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
+from jalada.modules.exports.domain.tax_year import build_report
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.entries import EntryKind
+from jalada.modules.ledger.domain.ledger import MonthSummary
 
 USER = uuid.uuid4()
 INJECTION = '=HYPERLINK("https://evil.example.com","Click")'

@@ -3,7 +3,7 @@ import json
 import httpx2
 import pytest
 
-from jalada.adapters.channels.telegram_bot import API, ChatFailed, TelegramBot
+from jalada.modules.telegram.adapters.telegram_bot import API, ChatFailed, TelegramBot
 
 TOKEN = "123:secret-token"
 

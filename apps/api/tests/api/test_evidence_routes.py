@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from samples import JPEG, MPESA, PDF
 
-from jalada.domain.evidence import MAX_FILE_BYTES
+from jalada.modules.evidence.domain.evidence import MAX_FILE_BYTES
 
 
 def sign_up(client: TestClient, email: str = "jane@example.com") -> None:

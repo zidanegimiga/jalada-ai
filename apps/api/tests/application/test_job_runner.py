@@ -4,8 +4,8 @@ from typing import Any
 import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store, later
 
-from jalada.application.job_runner import JobRunner
-from jalada.application.ports import Job
+from jalada.core.jobs.ports import Job
+from jalada.core.jobs.runner import JobRunner
 
 
 class Handler:

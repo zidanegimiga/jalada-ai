@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 from test_ledger_storage import setup_evidence
 
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Entry
-from jalada.domain.ledger import Total
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.ledger import Total
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 

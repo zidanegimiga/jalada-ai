@@ -4,11 +4,11 @@ import logging
 import signal
 import threading
 
-from jalada.adapters.builders import start_error_tracking_from
-from jalada.application.job_runner import Runs, work_until
+from jalada.builders import start_error_tracking_from
 from jalada.composition import build_job_runner
-from jalada.config.logging import configure_logging
-from jalada.config.settings import Settings, load_settings
+from jalada.core.jobs.runner import Runs, work_until
+from jalada.core.logging import configure_logging
+from jalada.core.settings import Settings, load_settings
 
 logger = logging.getLogger("jalada.worker")
 

@@ -5,10 +5,10 @@ import pytest
 from conftest import make_settings
 from pydantic import SecretStr, ValidationError
 
-from jalada.adapters.builders import build_budget, build_language_model
-from jalada.adapters.models.gemini import GeminiModel
-from jalada.adapters.models.ollama import OllamaModel
-from jalada.config.settings import Settings
+from jalada.builders import build_budget, build_language_model
+from jalada.core.settings import Settings
+from jalada.modules.pipeline.adapters.models.gemini import GeminiModel
+from jalada.modules.pipeline.adapters.models.ollama import OllamaModel
 
 
 def settings(**changes: Any) -> Settings:

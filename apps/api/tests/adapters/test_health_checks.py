@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 from botocore.exceptions import ClientError, EndpointConnectionError
 
-from jalada.adapters.health import StorageCheck
+from jalada.core.health import StorageCheck
 
 
 class Bucket:

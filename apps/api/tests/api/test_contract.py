@@ -1,4 +1,4 @@
-from jalada.api.contract import CONTRACT, as_text, openapi_document
+from jalada.contract import CONTRACT, as_text, openapi_document
 
 
 def test_the_api_matches_its_committed_contract() -> None:

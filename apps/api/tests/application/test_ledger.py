@@ -6,10 +6,10 @@ import pytest
 from fakes import FakeUnitOfWork, Store
 from samples import certificate, confirmed_entry, deposit
 
-from jalada.application.ledger import Ledger
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Entry, EntryStatus
-from jalada.domain.ledger import LedgerFilter
+from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.entries import Entry, EntryStatus
+from jalada.modules.ledger.domain.ledger import LedgerFilter
 
 USER = uuid.uuid4()
 

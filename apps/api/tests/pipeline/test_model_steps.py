@@ -4,11 +4,11 @@ from typing import Any
 import pytest
 from fakes import ScriptedModel
 
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.evidence import EvidenceKind
-from jalada.domain.extraction import Extraction
-from jalada.pipeline.model import ImageInput
-from jalada.pipeline.model_steps import classify_with_model, extract_with_model
+from jalada.modules.evidence.domain.evidence import EvidenceKind
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.pipeline.domain.extraction import Extraction
+from jalada.modules.pipeline.domain.model import ImageInput
+from jalada.modules.pipeline.domain.model_steps import classify_with_model, extract_with_model
 
 PHOTO = ImageInput(b"jpeg", "image/jpeg")
 GOOD = {

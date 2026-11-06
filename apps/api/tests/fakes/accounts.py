@@ -4,11 +4,9 @@ from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
-from jalada.application.ports import (
-    UserCredentials,
-)
-from jalada.domain.sessions import Session
-from jalada.domain.users import User
+from jalada.modules.accounts.application.ports import UserCredentials
+from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.accounts.domain.users import User
 
 
 class FakeUsers:

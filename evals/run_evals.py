@@ -13,11 +13,11 @@ from typing import Any
 
 from replay_model import ReplayModel
 
-from jalada.domain.categories import Purpose
-from jalada.pipeline.classifier import Preference
-from jalada.pipeline.model import ImageInput
-from jalada.pipeline.process import run_pipeline
-from jalada.pipeline.run_types import Budget, EvidenceInput, PipelineResult
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.pipeline.domain.classifier import Preference
+from jalada.modules.pipeline.domain.model import ImageInput
+from jalada.modules.pipeline.domain.process import run_pipeline
+from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput, PipelineResult
 
 FIXTURES = Path(__file__).parent / "fixtures"
 TODAY = date(2026, 11, 5)

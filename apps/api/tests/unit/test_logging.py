@@ -7,7 +7,7 @@ import httpx2
 import pytest
 import structlog
 
-from jalada.config.logging import configure_logging, log_context
+from jalada.core.logging import configure_logging, log_context
 
 
 @pytest.fixture

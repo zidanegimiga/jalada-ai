@@ -9,10 +9,11 @@ from alembic import command
 from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from jalada.adapters.database.migrate import alembic_config
-from jalada.adapters.database.unit_of_work import create_database_engine
-from jalada.adapters.security.evidence_cipher import EvidenceCipher
-from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore, create_s3_client
+from jalada.core.database.migrate import alembic_config
+from jalada.core.storage.client import create_s3_client
+from jalada.modules.evidence.adapters.cipher import EvidenceCipher
+from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
+from jalada.sql_unit_of_work import create_database_engine
 
 DATABASE_URL = os.environ.get("JALADA_TEST_DATABASE_URL")
 

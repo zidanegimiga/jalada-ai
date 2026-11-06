@@ -5,9 +5,9 @@ import pytest
 from fakes import FakeChat, Store
 from samples import JPEG, MPESA
 
-from jalada.application.telegram_capture import REPLIES, TelegramCapture
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.domain.evidence import EvidenceSource
+from jalada.modules.evidence.domain.evidence import EvidenceSource
+from jalada.modules.telegram.application.telegram_capture import REPLIES, TelegramCapture
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 
 USER = uuid.uuid4()
 TG_USER, CHAT = 111, 222

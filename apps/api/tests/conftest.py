@@ -15,24 +15,24 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
-from jalada.adapters.export.account_archive import ZipAccountArchive
-from jalada.adapters.export.workbook import ExcelWorkbookWriter
-from jalada.api.app import create_app
-from jalada.api.rate_limit import RateLimiter
-from jalada.api.services import Services
-from jalada.application.account_deletion import AccountDeletion
-from jalada.application.account_export import AccountExport
-from jalada.application.authentication import Authenticator
-from jalada.application.certificate_payments import CertificatePayments
-from jalada.application.entry_review import EntryReview
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.google_sign_in import GoogleSignIn
-from jalada.application.ledger import Ledger
-from jalada.application.ports import HealthCheck
-from jalada.application.tax_year_export import TaxYearExport
-from jalada.application.telegram_capture import TelegramCapture
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.config.settings import Environment, Settings
+from jalada.app import create_app
+from jalada.core.ports import HealthCheck
+from jalada.core.settings import Environment, Settings
+from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
+from jalada.modules.accounts.application.account_deletion import AccountDeletion
+from jalada.modules.accounts.application.account_export import AccountExport
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
+from jalada.modules.exports.application.tax_year_export import TaxYearExport
+from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.telegram.application.telegram_capture import TelegramCapture
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
+from jalada.services import Services
+from jalada.shared.http.rate_limit import RateLimiter
 
 pytest_plugins = ["database_fixtures"]
 

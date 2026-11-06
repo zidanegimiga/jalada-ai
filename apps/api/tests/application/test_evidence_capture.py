@@ -5,9 +5,12 @@ import pytest
 from fakes import FakeEvidenceStore, FakeUnitOfWork, FixedClock, Store
 from samples import JPEG, MPESA
 
-from jalada.application.errors import EmptyEvidence, EvidenceNotFound, FileTooLarge, UnsupportedFile
-from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB, EvidenceCapture
-from jalada.domain.evidence import MAX_FILE_BYTES, EvidenceSource, EvidenceStatus
+from jalada.modules.evidence.application.evidence_capture import (
+    PROCESS_EVIDENCE_JOB,
+    EvidenceCapture,
+)
+from jalada.modules.evidence.domain.evidence import MAX_FILE_BYTES, EvidenceSource, EvidenceStatus
+from jalada.shared.errors import EmptyEvidence, EvidenceNotFound, FileTooLarge, UnsupportedFile
 
 USER = uuid.uuid4()
 OTHER_USER = uuid.uuid4()

@@ -5,11 +5,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from jalada.application.ports import (
-    Job,
-)
-from jalada.domain.entries import Entry
-from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
+from jalada.core.jobs.ports import Job
+from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
+from jalada.modules.ledger.domain.entries import Entry
 
 
 class FakeEvidence:

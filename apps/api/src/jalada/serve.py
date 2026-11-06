@@ -7,10 +7,10 @@ import os
 
 import uvicorn
 
-from jalada.adapters.database.migrate import upgrade
-from jalada.adapters.storage.setup import ensure_bucket
-from jalada.config.logging import configure_logging
-from jalada.config.settings import load_settings
+from jalada.core.database.migrate import upgrade
+from jalada.core.logging import configure_logging
+from jalada.core.settings import load_settings
+from jalada.core.storage.setup import ensure_bucket
 
 
 def main() -> None:

@@ -4,10 +4,10 @@ from datetime import date, timedelta
 from fakes import FakeUnitOfWork, FixedClock, Store
 from samples import certificate, confirmed_entry, deposit
 
-from jalada.application.tax_year_export import TaxYearExport
-from jalada.domain.categories import Purpose
-from jalada.domain.dates import kenyan_date
-from jalada.domain.tax_year import TaxYearReport
+from jalada.modules.exports.application.tax_year_export import TaxYearExport
+from jalada.modules.exports.domain.tax_year import TaxYearReport
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.shared.dates import kenyan_date
 
 USER = uuid.uuid4()
 

@@ -3,12 +3,12 @@ from datetime import date
 import pytest
 from samples import CERTIFICATE, MPESA, MPESA_PAYBILL, MPESA_SENT
 
-from jalada.domain.categories import Direction
-from jalada.domain.evidence import EvidenceKind
-from jalada.domain.money import to_cents
-from jalada.pipeline.certificates import parse_certificate
-from jalada.pipeline.detector import detect
-from jalada.pipeline.mpesa import parse_mpesa
+from jalada.modules.evidence.domain.evidence import EvidenceKind
+from jalada.modules.ledger.domain.categories import Direction
+from jalada.modules.pipeline.domain.certificates import parse_certificate
+from jalada.modules.pipeline.domain.detector import detect
+from jalada.modules.pipeline.domain.mpesa import parse_mpesa
+from jalada.shared.money import to_cents
 
 
 @pytest.mark.parametrize(
