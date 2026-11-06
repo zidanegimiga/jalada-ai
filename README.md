@@ -29,7 +29,7 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 ## Status
 
-Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. You can download everything held about you, originals included, or delete your account and all of it. Hosting is next.
+Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. You can download everything held about you, originals included, or delete your account and all of it. It is set up to run on free hosting.
 
 ## Stack
 
@@ -92,7 +92,7 @@ make up
 
 The API is on http://localhost:8000 (docs at `/docs`) and the web app is on http://localhost:3000. Postgres is on port 5433 and S3 storage on port 8333. Stop it with `make down`.
 
-Settings come from environment variables prefixed with `JALADA_`. To change them, copy the example file and edit it:
+Settings come from environment variables prefixed with `JALADA_`. `.env.example` lists every one with its local value; copy it and edit:
 
 ```bash
 cp .env.example .env
@@ -112,6 +112,10 @@ make ollama-model
 Then set `JALADA_MODEL_PROVIDER=ollama` in `.env` and run `make up-ollama` again. For Gemini, set `JALADA_MODEL_PROVIDER=gemini` and `JALADA_GEMINI_API_KEY`.
 
 Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set for a provider whose terms exclude training on what it is sent.
+
+### Deploying
+
+The API is described for Render in [`render.yaml`](render.yaml), and the web app deploys to Vercel from `apps/web`. Every production setting, and what it is for, is listed in [`.env.production.example`](.env.production.example), in the same order as the local [`.env.example`](.env.example). Real values live only in the hosts' settings.
 
 ### Telegram bot
 

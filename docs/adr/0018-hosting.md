@@ -1,6 +1,6 @@
 # 0018. Free hosting
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-05
 
 ## Context
@@ -14,8 +14,10 @@ The first version should cost nothing to host while staying easy to move.
 - **Later:** Amazon ECS on Fargate, with RDS and S3, when the free tiers run out.
 
 ## Decision
-Vercel for the web app, Render for the API and worker, Neon for Postgres and R2 for evidence. Final choice is made when deploying, since free tier terms change often.
+Vercel (Hobby) for the web app, Render (Free, Frankfurt) for the API with the job loop inside it (decision 0019), Neon (Free, AWS Frankfurt) for Postgres, and Cloudflare R2 for evidence. The API service is described in `render.yaml`, and every production setting in `.env.production.example`.
 
 ## Consequences
-- The worker on a sleeping free instance cannot poll. The API wakes it, or the worker runs inside the API process on free hosting, which the composition root allows.
+- Render's free plan has no background workers or pre-deploy step, so the job loop runs inside the API and migrations run when it starts.
+- Free Render services sleep after 15 minutes without requests and take about a minute to wake.
+- Vercel's Hobby plan is for non-commercial use, so it has to change before the app charges anyone.
 - Everything is Docker and environment variables, so moving to paid hosting is configuration, not code.

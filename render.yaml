@@ -1,0 +1,52 @@
+# The API on Render's free plan. The job loop runs inside it (decision 0019) and migrations
+# run when it starts, because free services have no background workers or release step.
+# Every setting is described in .env.production.example.
+services:
+  - name: jalada-api
+    type: web
+    runtime: docker
+    plan: free
+    # The closest Render region to Kenya. Keep Neon in the same place (AWS Frankfurt).
+    region: frankfurt
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    branch: main
+    autoDeployTrigger: commit
+    envVars:
+      - key: JALADA_ENVIRONMENT
+        value: production
+      - key: JALADA_LOG_LEVEL
+        value: INFO
+      - key: JALADA_RUN_WORKER_IN_API
+        value: "true"
+      - key: JALADA_MIGRATE_ON_START
+        value: "true"
+      - key: JALADA_STORAGE_BUCKET
+        value: jalada-evidence
+      - key: JALADA_STORAGE_REGION
+        value: auto
+      - key: JALADA_TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      # Asked for once, when the Blueprint is first created.
+      - key: JALADA_PUBLIC_URL
+        sync: false
+      - key: JALADA_DATABASE_URL
+        sync: false
+      - key: JALADA_STORAGE_ENDPOINT_URL
+        sync: false
+      - key: JALADA_STORAGE_ACCESS_KEY
+        sync: false
+      - key: JALADA_STORAGE_SECRET_KEY
+        sync: false
+      - key: JALADA_EVIDENCE_KEYS
+        sync: false
+      # Optional. Leave empty to keep Google sign-in or the Telegram bot switched off.
+      - key: JALADA_GOOGLE_CLIENT_ID
+        sync: false
+      - key: JALADA_GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: JALADA_TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: JALADA_TELEGRAM_BOT_USERNAME
+        sync: false
