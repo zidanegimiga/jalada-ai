@@ -169,6 +169,8 @@ make check
 
 This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and the web tests, the same as CI. `make test-integration` runs the database tests against Postgres in Docker. `make format` fixes formatting.
 
+`make e2e` runs the main journey in a browser with Playwright: sign up, paste an M-Pesa message, wait for the worker to read it, confirm it, find it in the ledger, download the year's workbook and delete the account. It builds a separate copy of the whole stack under its own Docker project, so your local data is untouched, and removes it afterwards. Stop your own stack first (`make down`), because both use the same ports. Running it several times within a minute trips the sign-in rate limit. CI runs the same journey on every pull request.
+
 After changing a table in `apps/api/src/jalada/adapters/database/tables.py`, generate a migration with `make migration name="what changed"`.
 
 ## Design
