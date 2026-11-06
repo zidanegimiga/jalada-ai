@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from jalada.api.rate_limit import RateLimiter
 from jalada.application.account_deletion import AccountDeletion
@@ -9,6 +9,7 @@ from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
+from jalada.application.ports import HealthCheck
 from jalada.application.tax_year_export import TaxYearExport
 from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
@@ -33,3 +34,5 @@ class Services:
     google_sign_in: GoogleSignIn | None = None
     # None when the Telegram bot is not configured.
     telegram_capture: TelegramCapture | None = None
+    # What /health/ready checks: the database and evidence storage.
+    health_checks: list[HealthCheck] = field(default_factory=list)

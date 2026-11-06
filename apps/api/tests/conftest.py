@@ -28,6 +28,7 @@ from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
 from jalada.application.ledger import Ledger
+from jalada.application.ports import HealthCheck
 from jalada.application.tax_year_export import TaxYearExport
 from jalada.application.telegram_capture import TelegramCapture
 from jalada.application.telegram_linking import TelegramLinking
@@ -124,6 +125,7 @@ def make_app(
         with_google: bool = True,
         upload_rule: str = "100/minute",
         with_telegram: bool = True,
+        health_checks: list[HealthCheck] | None = None,
     ) -> FastAPI:
         services = Services(
             authenticator=authenticator,
@@ -146,6 +148,7 @@ def make_app(
             account_deletion=AccountDeletion(lambda: FakeUnitOfWork(store), evidence_store),
             telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
+            health_checks=health_checks or [],
         )
         return create_app(make_settings(environment), services)
 

@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import boto3
+from botocore.config import Config
 
 from jalada.adapters.security.evidence_cipher import EvidenceCipher
 
@@ -10,7 +11,11 @@ if TYPE_CHECKING:
 
 
 def create_s3_client(
-    endpoint_url: str | None, region: str, access_key: str, secret_key: str
+    endpoint_url: str | None,
+    region: str,
+    access_key: str,
+    secret_key: str,
+    config: Config | None = None,
 ) -> "S3Client":
     return boto3.client(
         "s3",
@@ -18,6 +23,7 @@ def create_s3_client(
         region_name=region,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        config=config,
     )
 
 

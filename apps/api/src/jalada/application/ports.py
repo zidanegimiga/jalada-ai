@@ -232,6 +232,14 @@ class Limiter(Protocol):
     def allow(self, *keys: str) -> bool: ...
 
 
+class HealthCheck(Protocol):
+    """Something the API depends on, checked by /health/ready."""
+
+    name: str
+
+    def ok(self) -> bool: ...
+
+
 class ProcessingNotifier(Protocol):
     """Tells the user what the pipeline made of their evidence."""
 

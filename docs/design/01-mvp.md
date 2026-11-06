@@ -113,7 +113,7 @@ One run takes one piece of evidence for one user. Each step is its own function 
 
 ## API
 
-All routes are under `/v1`, take and return JSON unless noted, and need a session cookie except sign-up, sign-in, the Google callback, the Telegram webhook and `/health`. Errors return `{"error": {"code": "...", "message": "..."}}`.
+All routes are under `/v1`, take and return JSON unless noted, and need a session cookie except sign-up, sign-in, the Google callback, the Telegram webhook, `/health` and `/health/ready`. Errors return `{"error": {"code": "...", "message": "..."}}`.
 
 | Method and path | Purpose |
 | --- | --- |

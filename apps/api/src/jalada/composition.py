@@ -8,11 +8,17 @@ from functools import partial
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.builders import build_budget, build_evidence_store, build_language_model
+from jalada.adapters.builders import (
+    build_budget,
+    build_evidence_store,
+    build_language_model,
+    build_s3_client,
+)
 from jalada.adapters.channels.telegram_bot import TelegramBot
 from jalada.adapters.database.unit_of_work import SqlUnitOfWork, create_database_engine
 from jalada.adapters.export.account_archive import ZipAccountArchive
 from jalada.adapters.export.workbook import ExcelWorkbookWriter
+from jalada.adapters.health import QUICK, DatabaseCheck, StorageCheck
 from jalada.adapters.identity.google import GoogleOpenIdClient
 from jalada.adapters.security.argon2_hasher import Argon2PasswordHasher
 from jalada.adapters.system_clock import SystemClock
@@ -42,9 +48,8 @@ POLL_INTERVAL_SECONDS = 5.0
 
 
 def build_services(settings: Settings) -> Services:
-    unit_of_work = partial(
-        SqlUnitOfWork, sessionmaker(create_database_engine(settings.database_url))
-    )
+    engine = create_database_engine(settings.database_url)
+    unit_of_work = partial(SqlUnitOfWork, sessionmaker(engine))
     clock = SystemClock()
     store = build_evidence_store(settings)
     authenticator = Authenticator(
@@ -78,6 +83,10 @@ def build_services(settings: Settings) -> Services:
         telegram_capture=build_telegram_capture(
             settings, telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
+        health_checks=[
+            DatabaseCheck(engine),
+            StorageCheck(build_s3_client(settings, QUICK), settings.storage_bucket),
+        ],
     )
 
 

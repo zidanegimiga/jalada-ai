@@ -13,15 +13,17 @@ from jalada.pipeline.model import LanguageModel
 from jalada.pipeline.run_types import Budget
 
 if TYPE_CHECKING:
+    from botocore.config import Config
     from mypy_boto3_s3 import S3Client
 
 
-def build_s3_client(settings: Settings) -> "S3Client":
+def build_s3_client(settings: Settings, config: "Config | None" = None) -> "S3Client":
     return create_s3_client(
         endpoint_url=settings.storage_endpoint_url,
         region=settings.storage_region,
         access_key=settings.storage_access_key,
         secret_key=settings.storage_secret_key.get_secret_value(),
+        config=config,
     )
 
 

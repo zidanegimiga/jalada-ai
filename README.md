@@ -117,6 +117,8 @@ Free tiers and local models are only for invented data. In production the app re
 
 The API is described for Render in [`render.yaml`](render.yaml), and the web app for Netlify in [`netlify.toml`](netlify.toml). Every production setting, and what it is for, is listed in [`.env.production.example`](.env.production.example), in the same order as the local [`.env.example`](.env.example). Real values live only in the hosts' settings.
 
+The API answers two health checks, neither needing a session. `/health` only says the process is up, and is what Render polls. `/health/ready` also checks that the database and the evidence bucket answer, returning 503 and the name of whatever failed; point uptime monitors at it. Both report the running version.
+
 ### Telegram bot
 
 People can send receipts, PDFs and forwarded M-Pesa messages to a Telegram bot instead of the web app.
