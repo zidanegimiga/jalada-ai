@@ -14,10 +14,11 @@ The first version should cost nothing to host while staying easy to move.
 - **Later:** Amazon ECS on Fargate, with RDS and S3, when the free tiers run out.
 
 ## Decision
-Vercel (Hobby) for the web app, Render (Free, Frankfurt) for the API with the job loop inside it (decision 0019), Neon (Free, AWS Frankfurt) for Postgres, and Cloudflare R2 for evidence. The API service is described in `render.yaml`, and every production setting in `.env.production.example`.
+Netlify (Free) for the web app, Render (Free, Frankfurt) for the API with the job loop inside it (decision 0019), Neon (Free, AWS Frankfurt) for Postgres, and Cloudflare R2 for evidence. The API service is described in `render.yaml`, the web app in `netlify.toml`, and every production setting in `.env.production.example`.
 
 ## Consequences
 - Render's free plan has no background workers or pre-deploy step, so the job loop runs inside the API and migrations run when it starts.
 - Free Render services sleep after 15 minutes without requests and take about a minute to wake.
-- Vercel's Hobby plan is for non-commercial use, so it has to change before the app charges anyone.
+- Netlify's free plan has monthly build and bandwidth limits. Check its terms before the app charges anyone.
+- Netlify gives up on a forwarded request after about 26 seconds, so the first action after the API has been asleep can fail and need a retry.
 - Everything is Docker and environment variables, so moving to paid hosting is configuration, not code.

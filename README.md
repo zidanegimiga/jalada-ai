@@ -115,7 +115,7 @@ Free tiers and local models are only for invented data. In production the app re
 
 ### Deploying
 
-The API is described for Render in [`render.yaml`](render.yaml), and the web app deploys to Vercel from `apps/web`. Every production setting, and what it is for, is listed in [`.env.production.example`](.env.production.example), in the same order as the local [`.env.example`](.env.example). Real values live only in the hosts' settings.
+The API is described for Render in [`render.yaml`](render.yaml), and the web app for Netlify in [`netlify.toml`](netlify.toml). Every production setting, and what it is for, is listed in [`.env.production.example`](.env.production.example), in the same order as the local [`.env.example`](.env.example). Real values live only in the hosts' settings.
 
 ### Telegram bot
 

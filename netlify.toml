@@ -1,0 +1,12 @@
+# The web app on Netlify. The API's address (API_URL) is set in Netlify's settings, not here,
+# and must be there before the first build. Every setting is described in .env.production.example.
+[build]
+  # The Next.js app has its own package.json and lock file, so it installs and builds on its own.
+  base = "apps/web"
+  command = "npm run build"
+  # Relative to base. Netlify's Next.js runtime picks up the build from here.
+  publish = ".next"
+
+[build.environment]
+  # The same Node.js version as continuous integration.
+  NODE_VERSION = "24"
