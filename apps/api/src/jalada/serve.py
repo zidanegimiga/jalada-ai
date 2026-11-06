@@ -15,7 +15,7 @@ from jalada.config.settings import load_settings
 
 def main() -> None:
     settings = load_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.json_logs)
     if settings.migrate_on_start:
         upgrade(settings.database_url)
         ensure_bucket(settings)
@@ -31,4 +31,7 @@ def main() -> None:
         proxy_headers=True,
         forwarded_allow_ips="*",
         log_level=settings.log_level.lower(),
+        # Logging is set up above; the request context logs one line per request instead.
+        log_config=None,
+        access_log=False,
     )

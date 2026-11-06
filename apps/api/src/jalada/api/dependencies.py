@@ -14,12 +14,16 @@ def get_services(request: Request) -> Services:
 
 
 def get_current_user(
+    request: Request,
     services: Annotated[Services, Depends(get_services)],
     session_token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
 ) -> User:
     if not session_token:
         raise NotSignedIn
-    return services.authenticator.current_user(session_token)
+    user = services.authenticator.current_user(session_token)
+    # For the request's log line: who it was, by id only.
+    request.state.user_id = str(user.id)
+    return user
 
 
 ServicesDependency = Annotated[Services, Depends(get_services)]

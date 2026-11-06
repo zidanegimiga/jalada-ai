@@ -5,7 +5,8 @@ from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Protocol
 
-from jalada.application.ports import Clock, UnitOfWork
+from jalada.application.ports import Clock, Job, UnitOfWork
+from jalada.config.logging import log_context
 
 logger = logging.getLogger("jalada.jobs")
 
@@ -38,23 +39,37 @@ class JobRunner:
             work.commit()
         if job is None:
             return False
+        # Every log line while the job runs says which job it was.
+        with log_context(job_id=job.id, job_kind=job.kind):
+            self._run(job)
+        return True
+
+    def _run(self, job: Job) -> None:
         handler = self._handlers[job.kind]
         try:
             handler.handle(job.payload)
         except Exception as error:
-            final = job.attempts >= MAX_ATTEMPTS
-            retry_at = None if final else self._clock.now() + timedelta(minutes=2**job.attempts)
-            with self._unit_of_work() as work:
-                # Only the error type is kept: messages can contain financial content.
-                work.jobs.fail(job.id, type(error).__name__, retry_at)
-                work.commit()
-            if final:
-                self._give_up(handler, job.id, job.payload)
-            return True
+            self._fail(job, handler, error)
+            return
         with self._unit_of_work() as work:
             work.jobs.complete(job.id)
             work.commit()
-        return True
+
+    def _fail(self, job: Job, handler: JobHandler, error: Exception) -> None:
+        final = job.attempts >= MAX_ATTEMPTS
+        retry_at = None if final else self._clock.now() + timedelta(minutes=2**job.attempts)
+        logger.error(
+            "job failed with %s%s",
+            type(error).__name__,
+            ", giving up" if final else ", will retry",
+            exc_info=error,
+        )
+        with self._unit_of_work() as work:
+            # Only the error type is kept: messages can contain financial content.
+            work.jobs.fail(job.id, type(error).__name__, retry_at)
+            work.commit()
+        if final:
+            self._give_up(handler, job.id, job.payload)
 
     @staticmethod
     def _give_up(handler: JobHandler, job_id: int, payload: dict[str, Any]) -> None:

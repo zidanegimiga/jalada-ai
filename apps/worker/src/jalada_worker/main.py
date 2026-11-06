@@ -29,7 +29,7 @@ def install_stop_signals(stop: threading.Event) -> None:
 
 def main() -> None:
     settings = load_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.json_logs)
     stop = threading.Event()
     install_stop_signals(stop)
     run(settings, stop, POLL_INTERVAL_SECONDS, build_job_runner(settings))

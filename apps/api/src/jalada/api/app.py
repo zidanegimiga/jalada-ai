@@ -4,6 +4,7 @@ from contextlib import AbstractAsyncContextManager
 from fastapi import FastAPI
 
 from jalada.api.errors import add_error_handlers
+from jalada.api.request_context import RequestContext
 from jalada.api.routes import (
     account,
     auth,
@@ -35,6 +36,7 @@ def create_app(settings: Settings, services: Services, lifespan: Lifespan | None
     app.state.settings = settings
     app.state.services = services
     add_error_handlers(app)
+    app.add_middleware(RequestContext)
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(google.router)

@@ -123,7 +123,7 @@ def build_google_sign_in(settings: Settings, authenticator: Authenticator) -> Go
 
 def build_api() -> FastAPI:
     settings = load_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.json_logs)
     lifespan = jobs_in_background(settings) if settings.run_worker_in_api else None
     return create_app(settings, build_services(settings), lifespan)
 

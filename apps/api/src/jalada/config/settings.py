@@ -87,6 +87,11 @@ class Settings(BaseSettings):
         return self
 
     @property
+    def json_logs(self) -> bool:
+        """One JSON object per line, for the host's log search. Readable lines locally."""
+        return self.environment == "production"
+
+    @property
     def resolved_model_name(self) -> str:
         return self.model_name or DEFAULT_MODELS.get(self.model_provider, "")
 

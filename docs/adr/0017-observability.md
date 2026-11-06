@@ -18,3 +18,6 @@ structlog for JSON logs with a request id bound per request and per job, OpenTel
 ## Consequences
 - Pipeline run records in the database are the source for run metrics. Traces are for debugging.
 - Langfuse sees prompts, so it gets the same rule as model providers: real user data only under terms that keep it private, or self-hosted.
+
+## In place
+- **Logs (November 2026).** Code keeps using the standard `logging` module; structlog formats every record, including uvicorn's. Production writes one JSON object per line, local runs write readable lines. Each request gets an id from `X-Request-ID` (kept only if it looks like an id) or a new one, returned in the response and added to every line written while the request runs. Each request also gets one line with the method, the route pattern rather than the address, the status, the time taken and the user id. Jobs add their id and kind the same way. Fields that can hold personal or financial details are replaced with `[removed]`, and exceptions are written as their type and stack frames without their message, because messages can repeat what caused them.
