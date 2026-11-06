@@ -18,6 +18,12 @@ export type Entry = {
   purpose: string;
   category: string | null;
   category_name: string | null;
+  kind?: "transaction" | "withholding_certificate";
+  tax_withheld_cents?: number | null;
+  certificate_serial?: string | null;
+  // In the ledger: the certificate a payment was linked to, or a certificate's payments.
+  linked_certificate_id?: string | null;
+  linked_payment_ids?: string[];
 };
 
 export type ReviewItem = { evidence: EvidenceItem; entry: Entry | null };

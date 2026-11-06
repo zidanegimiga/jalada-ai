@@ -38,6 +38,46 @@ describe("LedgerList", () => {
   });
 });
 
+describe("LedgerList with certificates", () => {
+  it("links certificates to their page and marks payments counted through them", () => {
+    render(
+      <LedgerList
+        entries={[
+          entry({
+            id: "cert-1",
+            kind: "withholding_certificate",
+            direction: "in",
+            amount_cents: 4_000_000,
+            counterparty: "CLIENT",
+            category_name: "Consultancy",
+            linked_payment_ids: ["pay-1"],
+          }),
+          entry({
+            id: "pay-1",
+            direction: "in",
+            amount_cents: 3_800_000,
+            counterparty: "CLIENT",
+            category_name: "Consultancy",
+            linked_certificate_id: "cert-1",
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/ledger/certificates/cert-1",
+    );
+    expect(
+      screen.getByText(
+        "Withholding certificate · 4 Nov 2026 · 1 payment linked",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Counted on its certificate/)).toBeInTheDocument();
+    expect(screen.getByText("+KSh 38,000.00")).not.toHaveClass("text-money-in");
+  });
+});
+
 describe("MonthCard", () => {
   it("totals money in and out and splits them by purpose", () => {
     render(
