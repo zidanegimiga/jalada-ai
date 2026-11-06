@@ -4,6 +4,7 @@ import logging
 import signal
 import threading
 
+from jalada.adapters.builders import start_error_tracking_from
 from jalada.application.job_runner import Runs, work_until
 from jalada.composition import build_job_runner
 from jalada.config.logging import configure_logging
@@ -30,6 +31,7 @@ def install_stop_signals(stop: threading.Event) -> None:
 def main() -> None:
     settings = load_settings()
     configure_logging(settings.log_level, settings.json_logs)
+    start_error_tracking_from(settings)
     stop = threading.Event()
     install_stop_signals(stop)
     run(settings, stop, POLL_INTERVAL_SECONDS, build_job_runner(settings))

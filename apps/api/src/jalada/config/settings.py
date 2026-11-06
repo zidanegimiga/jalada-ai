@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
     pipeline_max_tokens: int = Field(default=8000, ge=0)
     pipeline_max_cost_usd: Decimal = Field(default=Decimal("0.02"), ge=0)
+    # Errors go to Sentry when this is set. Off otherwise.
+    sentry_dsn: SecretStr | None = None
     # The running version, shown in /health. Render sets RENDER_GIT_COMMIT on every deploy.
     version: str = Field(
         default="development", validation_alias=AliasChoices("JALADA_VERSION", "RENDER_GIT_COMMIT")

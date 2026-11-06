@@ -1,7 +1,8 @@
-"""Adapters built from settings alone: evidence storage and the language model."""
+"""Adapters built from settings alone: storage, the language model and error tracking."""
 
 from typing import TYPE_CHECKING
 
+from jalada.adapters.error_tracking import start_error_tracking
 from jalada.adapters.models.gemini import GeminiModel
 from jalada.adapters.models.ollama import OllamaModel
 from jalada.adapters.models.pricing import Pricing
@@ -15,6 +16,12 @@ from jalada.pipeline.run_types import Budget
 if TYPE_CHECKING:
     from botocore.config import Config
     from mypy_boto3_s3 import S3Client
+
+
+def start_error_tracking_from(settings: Settings) -> bool:
+    """Sentry, when JALADA_SENTRY_DSN is set. True if errors will be sent."""
+    dsn = settings.sentry_dsn.get_secret_value() if settings.sentry_dsn else None
+    return start_error_tracking(dsn, settings.environment, settings.version)
 
 
 def build_s3_client(settings: Settings, config: "Config | None" = None) -> "S3Client":

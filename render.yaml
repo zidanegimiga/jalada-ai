@@ -50,3 +50,6 @@ services:
         sync: false
       - key: JALADA_TELEGRAM_BOT_USERNAME
         sync: false
+      # Optional. Errors go to Sentry once it is set.
+      - key: JALADA_SENTRY_DSN
+        sync: false
