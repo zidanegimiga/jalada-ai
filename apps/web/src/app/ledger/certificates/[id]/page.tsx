@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
 import { CertificatePayments } from "@/features/certificates/components/certificate-payments";
 import { getCertificate } from "@/features/certificates/server/get-certificate";
 
@@ -24,9 +25,7 @@ export default function CertificatePage({
           Back to the ledger
         </Link>
         <h1 className="text-4xl font-bold">Withholding certificate</h1>
-        <Suspense
-          fallback={<p className="text-muted-foreground">Loading...</p>}
-        >
+        <Suspense fallback={<Spinner />}>
           <Details params={params} />
         </Suspense>
       </AppShell>

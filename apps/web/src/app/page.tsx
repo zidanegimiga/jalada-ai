@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
 import { AccountNotice } from "@/features/auth/components/account-notice";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 import { CapturePanel } from "@/features/evidence/components/capture-panel";
@@ -79,9 +80,7 @@ export default function Home() {
         <h2 id="recent-heading" className="text-xl font-bold">
           Recent
         </h2>
-        <Suspense
-          fallback={<p className="text-muted-foreground">Loading...</p>}
-        >
+        <Suspense fallback={<Spinner />}>
           <RecentEvidence />
         </Suspense>
       </section>
