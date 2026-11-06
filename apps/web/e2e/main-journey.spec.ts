@@ -33,16 +33,6 @@ function nav(page: Page, name: string) {
     .getByRole("link", { name });
 }
 
-/** The home page does not refresh on its own yet, so reload until the worker is done. */
-async function waitUntilRead(page: Page) {
-  await expect(async () => {
-    await page.reload();
-    await expect(page.getByText("Needs a look")).toBeVisible({
-      timeout: 1_000,
-    });
-  }).toPass({ timeout: 60_000, intervals: [2_000] });
-}
-
 test("sign up, record a payment, confirm it, export the year and delete the account", async ({
   page,
 }) => {
@@ -66,7 +56,10 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
     await page.getByLabel("M-Pesa message").fill(message.text);
     await page.getByRole("button", { name: "Save message" }).click();
     await expect(page.getByText("Saved.")).toBeVisible();
-    await waitUntilRead(page);
+    // Home checks on the worker and refreshes itself once the message has been read.
+    await expect(page.getByText("Needs a look")).toBeVisible({
+      timeout: 60_000,
+    });
   });
 
   await test.step("confirm it with a category", async () => {

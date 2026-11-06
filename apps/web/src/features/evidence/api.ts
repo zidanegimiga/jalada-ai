@@ -24,3 +24,14 @@ export async function pasteText(text: string): Promise<EvidenceItem> {
     }),
   );
 }
+
+/** The latest state of one piece of evidence, or null if it could not be read. */
+export async function getEvidence(id: string): Promise<EvidenceItem | null> {
+  const response = await fetch(`/v1/evidence/${encodeURIComponent(id)}`);
+  return response.ok ? ((await response.json()) as EvidenceItem) : null;
+}
+
+/** Evidence the worker has not finished with yet. */
+export function isStillReading(item: EvidenceItem): boolean {
+  return item.status === "received" || item.status === "processing";
+}

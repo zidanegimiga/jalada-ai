@@ -7,7 +7,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { AccountNotice } from "@/features/auth/components/account-notice";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 import { CapturePanel } from "@/features/evidence/components/capture-panel";
+import { isStillReading } from "@/features/evidence/api";
 import { EvidenceList } from "@/features/evidence/components/evidence-list";
+import { RefreshWhileReading } from "@/features/evidence/components/refresh-while-reading";
 import { getRecentEvidence } from "@/features/evidence/server/get-recent-evidence";
 import { MonthCard } from "@/features/ledger/components/month-card";
 import { getMonth } from "@/features/ledger/server/queries";
@@ -60,7 +62,15 @@ async function Telegram() {
 }
 
 async function RecentEvidence() {
-  return <EvidenceList items={await getRecentEvidence()} />;
+  const items = await getRecentEvidence();
+  return (
+    <>
+      <EvidenceList items={items} />
+      <RefreshWhileReading
+        waiting={items.filter(isStillReading).map((item) => item.id)}
+      />
+    </>
+  );
 }
 
 export default function Home() {
