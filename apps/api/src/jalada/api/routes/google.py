@@ -52,7 +52,7 @@ def finish_google_sign_in(
     except GoogleSignInFailed:
         response = _to_web(request, "/signin?error=google_failed")
     else:
-        response = _to_web(request, "/")
+        response = _to_web(request, "/?notice=password_removed" if issued.password_removed else "/")
         set_session_cookie(request, response, issued)
     response.delete_cookie(ATTEMPT_COOKIE, path=ATTEMPT_PATH)
     return response

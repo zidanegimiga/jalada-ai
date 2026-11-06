@@ -16,6 +16,10 @@ def _to_user(row: UserRow) -> User:
     return User(row.id, row.email, row.display_name, row.created_at)
 
 
+def _to_credentials(row: UserRow) -> UserCredentials:
+    return UserCredentials(_to_user(row), row.password_hash, row.email_verified_at is not None)
+
+
 class SqlUserRepository:
     def __init__(self, db: DbSession) -> None:
         self._db = db
@@ -29,6 +33,8 @@ class SqlUserRepository:
                 google_subject=google_subject,
                 display_name=user.display_name,
                 created_at=user.created_at,
+                # Google only gives verified emails, so an account made through it starts verified.
+                email_verified_at=user.created_at if google_subject else None,
             )
         )
         try:
@@ -43,7 +49,7 @@ class SqlUserRepository:
 
     def get_credentials(self, email: str) -> UserCredentials | None:
         row = self._db.scalars(select(UserRow).where(UserRow.email == email)).one_or_none()
-        return UserCredentials(_to_user(row), row.password_hash) if row else None
+        return _to_credentials(row) if row else None
 
     def get_by_google_subject(self, subject: str) -> User | None:
         query = select(UserRow).where(UserRow.google_subject == subject)
@@ -54,10 +60,15 @@ class SqlUserRepository:
         """Removes the user. The database cascades to everything that belongs to them."""
         self._db.execute(delete(UserRow).where(UserRow.id == user_id))
 
-    def link_google(self, user_id: UUID, subject: str) -> None:
+    def link_google(self, user_id: UUID, subject: str, verified_at: datetime) -> None:
         self._db.execute(
-            update(UserRow).where(UserRow.id == user_id).values(google_subject=subject)
+            update(UserRow)
+            .where(UserRow.id == user_id)
+            .values(google_subject=subject, email_verified_at=verified_at)
         )
+
+    def remove_password(self, user_id: UUID) -> None:
+        self._db.execute(update(UserRow).where(UserRow.id == user_id).values(password_hash=None))
 
 
 class SqlSessionRepository:
@@ -83,3 +94,6 @@ class SqlSessionRepository:
 
     def delete(self, token_hash: str) -> None:
         self._db.execute(delete(SessionRow).where(SessionRow.token_hash == token_hash))
+
+    def delete_all_for(self, user_id: UUID) -> None:
+        self._db.execute(delete(SessionRow).where(SessionRow.user_id == user_id))

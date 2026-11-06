@@ -34,6 +34,26 @@ def test_a_good_callback_signs_in_and_goes_home(client: TestClient) -> None:
     assert client.get("/v1/me").json()["display_name"] == "Jane Doe"
 
 
+def test_taking_over_an_unverified_account_says_the_password_was_removed(
+    client: TestClient,
+) -> None:
+    client.post(
+        "/v1/auth/signup",
+        json={
+            "email": "jane@example.com",
+            "password": "correct horse battery",
+            "display_name": "Jane",
+        },
+    )
+    state = start(client)
+
+    response = client.get(
+        f"/v1/auth/google/callback?code=good-code&state={state}", follow_redirects=False
+    )
+
+    assert response.headers["location"] == "http://localhost:3000/?notice=password_removed"
+
+
 def test_a_callback_with_the_wrong_state_goes_back_to_sign_in(client: TestClient) -> None:
     start(client)
 

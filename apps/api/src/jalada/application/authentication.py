@@ -1,7 +1,7 @@
 import secrets
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 
 from jalada.application.errors import (
@@ -11,7 +11,13 @@ from jalada.application.errors import (
     NotSignedIn,
     WeakPassword,
 )
-from jalada.application.ports import Clock, GoogleProfile, PasswordHasher, UnitOfWork
+from jalada.application.ports import (
+    Clock,
+    GoogleProfile,
+    PasswordHasher,
+    UnitOfWork,
+    UserCredentials,
+)
 from jalada.domain.sessions import Session, hash_session_token
 from jalada.domain.users import User, is_acceptable_password, normalize_email
 
@@ -21,6 +27,8 @@ class IssuedSession:
     token: str
     user: User
     expires_at: datetime
+    # True when Google sign-in took over an account whose password nobody had proven.
+    password_removed: bool = False
 
 
 class Authenticator:
@@ -69,19 +77,35 @@ class Authenticator:
         if not profile.email_verified:
             raise GoogleSignInFailed
         email = normalize_email(profile.email)
+        password_removed = False
         with self._unit_of_work() as work:
             user = work.users.get_by_google_subject(profile.subject)
             credentials = None if user else work.users.get_credentials(email)
             if credentials:
                 user = credentials.user
-                work.users.link_google(user.id, profile.subject)
+                password_removed = self._link_google(work, credentials, profile.subject)
             elif user is None:
                 name = (profile.name.strip() or email.split("@")[0])[:80]
                 user = User(uuid.uuid4(), email, name, self._clock.now())
                 work.users.add(user, None, google_subject=profile.subject)
             issued = self._start_session(work, user)
             work.commit()
-        return issued
+        return replace(issued, password_removed=password_removed)
+
+    def _link_google(self, work: UnitOfWork, credentials: UserCredentials, subject: str) -> bool:
+        """Link Google to an account with the same email. True if its password was removed.
+
+        Nobody has proven they own the email of an account made with a password, so whoever
+        made it may not be this Google user. Anything they could still use is removed: the
+        password, every session and the Telegram link.
+        """
+        user_id = credentials.user.id
+        if not credentials.email_verified:
+            work.users.remove_password(user_id)
+            work.sessions.delete_all_for(user_id)
+            work.telegram.unlink(user_id)
+        work.users.link_google(user_id, subject, self._clock.now())
+        return not credentials.email_verified and credentials.password_hash is not None
 
     def sign_out(self, token: str) -> None:
         with self._unit_of_work() as work:

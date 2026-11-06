@@ -50,3 +50,8 @@ class SqlTelegramLinks:
         return self._db.scalar(
             select(TelegramLinkRow.chat_id).where(TelegramLinkRow.user_id == user_id)
         )
+
+    def unlink(self, user_id: UUID) -> None:
+        """Removes the user's Telegram link and any code waiting to be used."""
+        self._db.execute(delete(TelegramLinkRow).where(TelegramLinkRow.user_id == user_id))
+        self._db.execute(delete(TelegramLinkCodeRow).where(TelegramLinkCodeRow.user_id == user_id))

@@ -1,5 +1,6 @@
 """Fake repositories for users and sessions."""
 
+from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
@@ -19,7 +20,7 @@ class FakeUsers:
         self.deleted: set[UUID] = set()
 
     def add(self, user: User, password_hash: str | None, google_subject: str | None = None) -> None:
-        self.rows[user.id] = UserCredentials(user, password_hash)
+        self.rows[user.id] = UserCredentials(user, password_hash, google_subject is not None)
         if google_subject:
             self.google_subjects[google_subject] = user.id
 
@@ -34,8 +35,12 @@ class FakeUsers:
         user_id = self.google_subjects.get(subject)
         return self.get(user_id) if user_id else None
 
-    def link_google(self, user_id: UUID, subject: str) -> None:
+    def link_google(self, user_id: UUID, subject: str, verified_at: datetime) -> None:
         self.google_subjects[subject] = user_id
+        self.rows[user_id] = replace(self.rows[user_id], email_verified=True)
+
+    def remove_password(self, user_id: UUID) -> None:
+        self.rows[user_id] = replace(self.rows[user_id], password_hash=None)
 
     def delete(self, user_id: UUID) -> None:
         self.rows.pop(user_id, None)
@@ -55,6 +60,10 @@ class FakeSessions:
 
     def delete(self, token_hash: str) -> None:
         self.rows.pop(token_hash, None)
+
+    def delete_all_for(self, user_id: UUID) -> None:
+        for token_hash in [h for h, s in self.rows.items() if s.user_id == user_id]:
+            del self.rows[token_hash]
 
 
 class FakeTelegramLinks:
@@ -87,3 +96,8 @@ class FakeTelegramLinks:
     def chat_for(self, user_id: UUID) -> int | None:
         found = self.links.get(user_id)
         return found[1] if found else None
+
+    def unlink(self, user_id: UUID) -> None:
+        self.links.pop(user_id, None)
+        for code in [h for h, (owner, _) in self.codes.items() if owner == user_id]:
+            del self.codes[code]

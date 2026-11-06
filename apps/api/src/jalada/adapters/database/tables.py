@@ -40,6 +40,8 @@ class UserRow(Base):
     google_subject: Mapped[str | None] = mapped_column(String(255), unique=True)
     display_name: Mapped[str] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # None until something proves the email belongs to the user, such as Google sign-in.
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SessionRow(Base):

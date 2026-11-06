@@ -43,6 +43,24 @@ def test_codes_link_once_and_links_move(session_factory: sessionmaker[DbSession]
         assert work.telegram.chat_for(first) is None
 
 
+def test_unlink_removes_the_link_and_waiting_codes(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user = add_user(session_factory)
+    with SqlUnitOfWork(session_factory) as work:
+        work.telegram.link(user, 444, 555, NOW)
+        work.telegram.save_code(user, "c" * 64, NOW + timedelta(minutes=10))
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        work.telegram.unlink(user)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.telegram.chat_for(user) is None
+        assert work.telegram.use_code("c" * 64, NOW) is None
+
+
 def test_expired_codes_do_not_work(session_factory: sessionmaker[DbSession]) -> None:
     user = add_user(session_factory)
     with SqlUnitOfWork(session_factory) as work:

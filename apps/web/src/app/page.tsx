@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { AccountNotice } from "@/features/auth/components/account-notice";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 import { CapturePanel } from "@/features/evidence/components/capture-panel";
 import { EvidenceList } from "@/features/evidence/components/evidence-list";
@@ -64,6 +65,9 @@ async function RecentEvidence() {
 export default function Home() {
   return (
     <AppShell>
+      <Suspense>
+        <AccountNotice />
+      </Suspense>
       <Suspense fallback={<div className="h-40" />}>
         <Overview />
       </Suspense>
