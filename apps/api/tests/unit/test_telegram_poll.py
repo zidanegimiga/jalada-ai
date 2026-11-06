@@ -2,7 +2,7 @@ import threading
 from typing import Any
 
 from jalada.modules.telegram.adapters.telegram_bot import ChatFailed
-from jalada.modules.telegram.cli import poll
+from jalada.telegram_cli import poll
 
 
 class ScriptedBot:

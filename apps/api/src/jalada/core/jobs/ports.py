@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Protocol
+from types import TracebackType
+from typing import Any, Protocol, Self
 from uuid import UUID
 
 
@@ -18,3 +19,18 @@ class JobQueue(Protocol):
     def complete(self, job_id: int) -> None: ...
     def fail(self, job_id: int, error: str, retry_at: datetime | None) -> None: ...
     def discard_for(self, user_id: UUID) -> None: ...
+
+
+class JobTransaction(Protocol):
+    """The part of a unit of work the job runner needs: the queue, and committing."""
+
+    jobs: JobQueue
+
+    def __enter__(self) -> Self: ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
+    def commit(self) -> None: ...

@@ -7,6 +7,7 @@ members = ["apps/api", "apps/worker"]
 [dependency-groups]
 dev = [
     "boto3-stubs[s3]>=1.43.124",
+    "import-linter>=2.16",
     "mypy>=2.4",
     "pytest>=9.2",
     "pyyaml>=6.0.3",
@@ -46,3 +47,84 @@ files = ["apps/api/src", "apps/api/tests", "apps/worker/src", "apps/worker/tests
 # pytesseract ships without type hints.
 module = ["pytesseract"]
 ignore_missing_imports = true
+
+# Module boundaries (decision 0020), checked by lint-imports in make check and CI.
+[tool.importlinter]
+root_package = "jalada"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "core and shared never import a module or the pieces that bring modules together"
+type = "forbidden"
+source_modules = ["jalada.core", "jalada.shared"]
+forbidden_modules = ["jalada.modules", "jalada.app", "jalada.builders", "jalada.composition", "jalada.contract", "jalada.dependencies", "jalada.services", "jalada.serve", "jalada.sql_unit_of_work", "jalada.tables", "jalada.unit_of_work", "jalada.migrations"]
+
+[[tool.importlinter.contracts]]
+name = "Domain code has no input or output and no vendor libraries"
+type = "forbidden"
+source_modules = ["jalada.modules.*.domain"]
+forbidden_modules = ["jalada.modules.*.application", "jalada.modules.*.adapters", "jalada.modules.*.api", "jalada.core", "sqlalchemy", "fastapi", "starlette", "boto3", "botocore", "httpx2", "openpyxl", "structlog", "sentry_sdk", "pytesseract", "pdfplumber", "authlib", "argon2", "alembic", "psycopg"]
+
+[[tool.importlinter.contracts]]
+name = "Inside a module, layers only depend downwards"
+type = "layers"
+containers = ["jalada.modules.accounts", "jalada.modules.evidence", "jalada.modules.pipeline", "jalada.modules.ledger", "jalada.modules.exports", "jalada.modules.telegram", "jalada.modules.health"]
+layers = ["(module)", "(api) | (adapters)", "(application)", "(domain)"]
+
+[[tool.importlinter.contracts]]
+name = "accounts does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.accounts"]
+forbidden_modules = ["jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "evidence does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+# Finding evidence that nobody has entered yet joins the evidence and entries tables.
+ignore_imports = ["jalada.modules.evidence.adapters.repository -> jalada.modules.ledger.adapters.tables"]
+source_modules = ["jalada.modules.evidence"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "pipeline does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.pipeline"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "ledger does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.ledger"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "exports does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.exports"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "telegram does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.telegram"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "health does not use another module's adapters or routes"
+type = "forbidden"
+# Direct imports only: routes reach every module indirectly through the shared Services.
+allow_indirect_imports = true
+source_modules = ["jalada.modules.health"]
+forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes"]

@@ -30,7 +30,7 @@ dependencies = [
 [project.scripts]
 jalada-migrate = "jalada.core.database.migrate:main"
 jalada-setup-storage = "jalada.core.storage.setup:main"
-jalada-telegram = "jalada.modules.telegram.cli:main"
+jalada-telegram = "jalada.telegram_cli:main"
 jalada-serve = "jalada.serve:main"
 jalada-openapi = "jalada.contract:main"
 

@@ -42,6 +42,7 @@ check:
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy
+	uv run lint-imports
 	uv run --directory apps/api pytest
 	uv run --directory apps/worker pytest
 	uv run python evals/run_evals.py

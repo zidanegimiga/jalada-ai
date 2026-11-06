@@ -5,10 +5,9 @@ from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Protocol
 
-from jalada.core.jobs.ports import Job
+from jalada.core.jobs.ports import Job, JobTransaction
 from jalada.core.logging import log_context
 from jalada.core.ports import Clock
-from jalada.unit_of_work import UnitOfWork
 
 logger = logging.getLogger("jalada.jobs")
 
@@ -26,7 +25,7 @@ class JobRunner:
 
     def __init__(
         self,
-        unit_of_work: Callable[[], UnitOfWork],
+        unit_of_work: Callable[[], JobTransaction],
         handlers: dict[str, JobHandler],
         clock: Clock,
     ) -> None:

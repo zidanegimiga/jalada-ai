@@ -34,11 +34,13 @@ jalada/
 Rules, checked in continuous integration with import-linter:
 - `core` and `shared` never import a module or the pieces at the top.
 - In every module, `domain` imports no other layer and no vendor library.
-- A module may use another module's `domain` and `application` code, never its `adapters` or `api`.
+- Inside a module, layers only depend downwards: `module.py`, then `api` or `adapters`, then `application`, then `domain`.
+- A module may use another module's `domain`, `application` and response schemas, never its `adapters` or routes. One exception is listed in the contract: finding evidence nobody has entered yet joins the evidence and entries tables.
+- The cross-module rule checks direct imports only for now, because every route reaches the other modules indirectly through the shared `Services`.
 
 To add a feature: create `modules/<name>/` with the four layers and `module.py`, add the module to the list in `app.py`, add its tables to `tables.py`, then run `make migration name="..."` and `make check`.
 
 ## Consequences
 - A feature can be read, reviewed and removed as one folder.
 - The API's behaviour did not change: the OpenAPI contract in `apps/api/openapi.json` and every test stayed the same through the move.
-- One unit of work still opens repositories for every module. Giving each module its own is a later step; it changes every use case and fake but not this layout.
+- One unit of work still opens repositories for every module, and routes still get their use cases from one shared `Services`. Giving each module its own transaction and its own services is a later step; it changes every use case and fake but not this layout.
