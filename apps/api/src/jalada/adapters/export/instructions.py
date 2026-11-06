@@ -25,9 +25,11 @@ NOTES = [
     "These are your own records, grouped to help you fill in your iTax return. They are not "
     "tax advice, and nothing here has been checked by the Kenya Revenue Authority.",
     "Only entries you confirmed are included. Anything still waiting in Jalada AI is not.",
-    "A client who withheld tax may have paid you by M-Pesa or bank as well. That income can "
-    "then appear twice: as the certificate (the gross amount) and as the deposit (the amount "
-    "after tax). Count it once.",
+    "A client who withheld tax usually pays you the rest by M-Pesa or bank. When you link that "
+    "payment to its certificate in Jalada AI (open the certificate in your ledger), it is left "
+    "out of income here, because the certificate's gross amount already counts it. The "
+    "Withholding Tax sheet shows what was linked. A payment you have not linked still appears "
+    "twice: as the certificate and as the deposit.",
     "Costs generally need an electronic tax invoice (eTIMS) from the seller to be allowed. The "
     "Expenses sheet has a column for you to note which ones have one.",
     "Equipment that lasts years, such as a laptop, is claimed over time as a capital allowance, "

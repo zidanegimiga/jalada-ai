@@ -56,6 +56,10 @@ class EntryResponse(BaseModel):
     category: str | None
     category_name: str | None
     confidence: float
+    # Set on a payment linked to a withholding certificate.
+    linked_certificate_id: UUID | None = None
+    # Set on a certificate: the payments linked to it.
+    linked_payment_ids: list[UUID] = Field(default_factory=list)
 
     @classmethod
     def from_entry(cls, entry: Entry) -> "EntryResponse":

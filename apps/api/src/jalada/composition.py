@@ -7,6 +7,7 @@ Start the API with:
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from functools import partial
 
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
@@ -31,6 +32,7 @@ from jalada.api.services import Services
 from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
+from jalada.application.certificate_payments import CertificatePayments
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import PROCESS_EVIDENCE_JOB, EvidenceCapture
 from jalada.application.evidence_processing import EvidenceProcessor
@@ -51,41 +53,38 @@ POLL_INTERVAL_SECONDS = 5.0
 
 
 def build_services(settings: Settings) -> Services:
-    session_factory = sessionmaker(create_database_engine(settings.database_url))
+    unit_of_work = partial(
+        SqlUnitOfWork, sessionmaker(create_database_engine(settings.database_url))
+    )
     clock = SystemClock()
     store = build_evidence_store(settings)
     authenticator = Authenticator(
-        unit_of_work=lambda: SqlUnitOfWork(session_factory),
+        unit_of_work=unit_of_work,
         hasher=Argon2PasswordHasher(),
         clock=clock,
         session_lifetime=timedelta(days=settings.session_days),
     )
-    evidence = EvidenceCapture(
-        unit_of_work=lambda: SqlUnitOfWork(session_factory),
-        store=store,
-        clock=clock,
-    )
+    evidence = EvidenceCapture(unit_of_work=unit_of_work, store=store, clock=clock)
     sign_in_limiter = RateLimiter("5/minute")
     upload_limiter = RateLimiter("60/hour")
-    telegram_linking = TelegramLinking(lambda: SqlUnitOfWork(session_factory), clock)
+    telegram_linking = TelegramLinking(unit_of_work, clock)
     return Services(
         authenticator=authenticator,
         sign_in_limiter=sign_in_limiter,
         evidence=evidence,
         upload_limiter=upload_limiter,
-        review=EntryReview(lambda: SqlUnitOfWork(session_factory), clock),
-        ledger=Ledger(lambda: SqlUnitOfWork(session_factory)),
+        review=EntryReview(unit_of_work, clock),
+        ledger=Ledger(unit_of_work),
+        certificate_payments=CertificatePayments(unit_of_work, clock),
         tax_year_export=TaxYearExport(
-            lambda: SqlUnitOfWork(session_factory),
+            unit_of_work,
             ExcelWorkbookWriter(),
             clock,
             evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
         ),
         telegram_linking=telegram_linking,
-        account_export=AccountExport(
-            lambda: SqlUnitOfWork(session_factory), store, ZipAccountArchive()
-        ),
-        account_deletion=AccountDeletion(lambda: SqlUnitOfWork(session_factory), store),
+        account_export=AccountExport(unit_of_work, store, ZipAccountArchive()),
+        account_deletion=AccountDeletion(unit_of_work, store),
         google_sign_in=build_google_sign_in(settings, authenticator),
         telegram_capture=build_telegram_capture(
             settings, telegram_linking, evidence, sign_in_limiter, upload_limiter

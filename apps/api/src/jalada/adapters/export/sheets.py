@@ -74,6 +74,7 @@ def withholding(sheet: Worksheet, report: TaxYearReport) -> None:
             "Certificate serial",
             "Gross (KSh)",
             "Tax withheld (KSh)",
+            "Linked payments (KSh)",
             "Evidence",
         ],
     )
@@ -84,14 +85,16 @@ def withholding(sheet: Worksheet, report: TaxYearReport) -> None:
         text(sheet, row, 4, entry.certificate_serial)
         money(sheet, row, 5, entry.amount_cents)
         money(sheet, row, 6, entry.tax_withheld_cents)
-        link(sheet, row, 7, report.evidence_links.get(entry.evidence_id))
+        money(sheet, row, 7, report.paid_in_cents(entry))
+        link(sheet, row, 8, report.evidence_links.get(entry.evidence_id))
     total_row = len(report.certificates) + 2
     text(sheet, total_row, 4, "Total", bold=True)
     money(sheet, total_row, 5, sum(e.amount_cents or 0 for e in report.certificates), bold=True)
     money(
         sheet, total_row, 6, sum(e.tax_withheld_cents or 0 for e in report.certificates), bold=True
     )
-    widths(sheet, [12, 32, 14, 24, 16, 22, 10])
+    money(sheet, total_row, 7, sum(report.paid_in_cents(e) for e in report.certificates), bold=True)
+    widths(sheet, [12, 32, 14, 24, 16, 22, 22, 10])
 
 
 def summary(sheet: Worksheet, report: TaxYearReport) -> None:

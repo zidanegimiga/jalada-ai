@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID
 
 from jalada.application.ports import UnitOfWork
@@ -12,6 +12,8 @@ class LedgerPage:
     entries: list[Entry]
     # Where the next page starts, or None on the last page.
     next_position: LedgerPosition | None
+    # Payment id to certificate id, for every link the user has made.
+    certificate_payments: dict[UUID, UUID] = field(default_factory=dict)
 
 
 class Ledger:
@@ -30,12 +32,13 @@ class Ledger:
         with self._unit_of_work() as work:
             # One extra row says whether another page follows.
             entries = work.entries_for(user_id).confirmed(filters, after, size + 1)
+            links = work.certificate_payments_for(user_id).links()
         if len(entries) <= size:
-            return LedgerPage(entries, None)
+            return LedgerPage(entries, None, links)
         last = entries[size - 1]
         if last.occurred_on is None:
             raise RuntimeError("A confirmed entry has no date")
-        return LedgerPage(entries[:size], LedgerPosition(last.occurred_on, last.id))
+        return LedgerPage(entries[:size], LedgerPosition(last.occurred_on, last.id), links)
 
     def year(self, user_id: UUID, year: int) -> list[MonthSummary]:
         with self._unit_of_work() as work:

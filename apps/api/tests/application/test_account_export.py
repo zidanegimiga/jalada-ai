@@ -53,6 +53,9 @@ def export_zip(
 def test_the_archive_holds_every_kind_of_data(
     store: Store, evidence_store: FakeEvidenceStore, user_id: uuid.UUID
 ) -> None:
+    [entry_id] = store.entries
+    certificate_id = uuid.uuid4()
+    store.certificate_payments[entry_id] = (user_id, certificate_id)
     archive = export_zip(store, evidence_store, user_id)
     names = set(archive.namelist())
 
@@ -64,6 +67,7 @@ def test_the_archive_holds_every_kind_of_data(
         "entry_revisions.json",
         "pipeline_runs.json",
         "preferences.json",
+        "certificate_payments.json",
     } <= names
     account = json.loads(archive.read("account.json"))
     assert account["email"] == "jane@example.com" and account["telegram_linked"] is False
@@ -73,6 +77,9 @@ def test_the_archive_holds_every_kind_of_data(
     [run] = json.loads(archive.read("pipeline_runs.json"))
     assert len(run["steps"]) == 4
     assert "jane wanjiku" in json.loads(archive.read("preferences.json"))
+    assert json.loads(archive.read("certificate_payments.json")) == [
+        {"payment_entry_id": str(entry_id), "certificate_entry_id": str(certificate_id)}
+    ]
 
 
 def test_the_originals_come_back_exactly_with_sensible_names(

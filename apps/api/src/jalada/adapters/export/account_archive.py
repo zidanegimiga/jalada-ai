@@ -23,6 +23,7 @@ entries.json          every ledger entry, confirmed or not, amounts in cents
 entry_revisions.json  each confirmation or correction, with the entry before and after
 pipeline_runs.json    how each piece of evidence was read, step by step
 preferences.json      the categories you chose for people and businesses you pay
+certificate_payments.json  payments you linked to withholding certificates, by entry id
 
 Amounts are in cents: 125000 means KSh 1,250.00.
 """
@@ -63,6 +64,15 @@ class ZipAccountArchive:
             archive.writestr(
                 "preferences.json",
                 _json({key: asdict(choice) for key, choice in data.preferences.items()}),
+            )
+            archive.writestr(
+                "certificate_payments.json",
+                _json(
+                    [
+                        {"payment_entry_id": payment, "certificate_entry_id": certificate}
+                        for payment, certificate in data.certificate_payments.items()
+                    ]
+                ),
             )
             for item, content in originals:
                 archive.writestr(file_name(item), content)

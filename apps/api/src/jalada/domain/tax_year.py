@@ -1,6 +1,6 @@
 """Confirmed entries grouped the way the iTax return asks for them. No tax is calculated."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from uuid import UUID
 
@@ -71,6 +71,11 @@ class TaxYearReport:
     months: list[MonthSummary]
     # Where each entry's original evidence can be opened, by evidence id.
     evidence_links: dict[UUID, str]
+    # Payments linked to each certificate, by certificate id. They count through it.
+    certificate_payments: dict[UUID, list[Entry]] = field(default_factory=dict)
+
+    def paid_in_cents(self, certificate: Entry) -> int:
+        return sum(p.amount_cents or 0 for p in self.certificate_payments.get(certificate.id, []))
 
 
 def build_report(
@@ -79,20 +84,29 @@ def build_report(
     months: list[MonthSummary],
     generated_on: date,
     evidence_link: str,
+    certificate_payments: dict[UUID, list[Entry]] | None = None,
 ) -> TaxYearReport:
-    """`evidence_link` has an `{id}` placeholder, filled in for each piece of evidence."""
+    """`evidence_link` has an `{id}` placeholder, filled in for each piece of evidence.
+
+    Payments linked to a certificate are left out of the income sections: the certificate's
+    gross amount already counts them.
+    """
+    payments = certificate_payments or {}
+    counted = {p.id for linked in payments.values() for p in linked}
     in_year = sorted(
         (e for e in entries if e.occurred_on and e.occurred_on.year == year),
         key=lambda e: (e.occurred_on, e.counterparty or ""),
     )
+    sectioned = [e for e in in_year if e.id not in counted]
     return TaxYearReport(
         year=year,
         generated_on=generated_on,
-        income=_sections(INCOME_SECTIONS, in_year),
-        expenses=_sections(EXPENSE_SECTIONS, in_year),
+        income=_sections(INCOME_SECTIONS, sectioned),
+        expenses=_sections(EXPENSE_SECTIONS, sectioned),
         certificates=[e for e in in_year if e.kind == EntryKind.WITHHOLDING_CERTIFICATE],
         months=months,
         evidence_links={e.evidence_id: evidence_link.format(id=e.evidence_id) for e in in_year},
+        certificate_payments=payments,
     )
 
 

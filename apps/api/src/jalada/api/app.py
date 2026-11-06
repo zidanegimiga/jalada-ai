@@ -7,6 +7,7 @@ from jalada.api.errors import add_error_handlers
 from jalada.api.routes import (
     account,
     auth,
+    certificates,
     evidence,
     exports,
     google,
@@ -40,6 +41,7 @@ def create_app(settings: Settings, services: Services, lifespan: Lifespan | None
     app.include_router(evidence.router)
     app.include_router(review.router)
     app.include_router(ledger.router)
+    app.include_router(certificates.router)
     app.include_router(exports.router)
     app.include_router(telegram.router)
     app.include_router(account.router)

@@ -7,6 +7,7 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
+from jalada.adapters.database.certificate_payments import SqlCertificatePayments
 from jalada.adapters.database.evidence_repository import SqlEvidenceRepository
 from jalada.adapters.database.job_queue import SqlJobQueue
 from jalada.adapters.database.ledger_repository import SqlEntryRepository
@@ -15,6 +16,7 @@ from jalada.adapters.database.repositories import SqlSessionRepository, SqlUserR
 from jalada.adapters.database.run_repository import SqlRunRepository
 from jalada.adapters.database.telegram_links import SqlTelegramLinks
 from jalada.application.ports import (
+    CertificatePaymentRepository,
     EntryRepository,
     EvidenceRepository,
     JobQueue,
@@ -52,6 +54,9 @@ class SqlUnitOfWork:
 
     def preferences_for(self, user_id: UUID) -> PreferenceRepository:
         return SqlPreferenceRepository(self._db, user_id)
+
+    def certificate_payments_for(self, user_id: UUID) -> CertificatePaymentRepository:
+        return SqlCertificatePayments(self._db, user_id)
 
     def __exit__(
         self,

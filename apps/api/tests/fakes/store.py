@@ -31,3 +31,5 @@ class Store:
     # Jobs for the job runner: id to [job, status, run_after].
     queue: dict[int, list[Any]] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
+    # Payment id to (user id, certificate id).
+    certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)

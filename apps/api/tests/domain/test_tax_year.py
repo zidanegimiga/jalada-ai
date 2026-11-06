@@ -2,7 +2,7 @@ import uuid
 from dataclasses import replace
 from datetime import date
 
-from samples import confirmed_entry
+from samples import certificate, confirmed_entry, deposit
 
 from jalada.domain.entries import Entry, EntryKind
 from jalada.domain.tax_year import build_report
@@ -73,3 +73,18 @@ def test_each_entry_links_to_its_original_evidence() -> None:
     assert report.evidence_links[entry.evidence_id] == (
         f"https://app.example.com/v1/evidence/{entry.evidence_id}/file"
     )
+
+
+def test_a_payment_linked_to_a_certificate_is_counted_once_through_it() -> None:
+    cert = certificate(USER, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
+    linked = deposit(USER, date(2026, 3, 5), 3_800_000, "CLIENT")
+    unlinked = deposit(USER, date(2026, 6, 5), 1_000_000, "OTHER CLIENT")
+
+    report = build_report(
+        2026, [cert, linked, unlinked], [], date(2026, 11, 5), LINK, {cert.id: [linked]}
+    )
+
+    business = report.income[1]
+    assert business.entries == [cert, unlinked]
+    assert business.total_cents == 5_000_000
+    assert report.paid_in_cents(cert) == 3_800_000

@@ -4,6 +4,7 @@ from jalada.api.rate_limit import RateLimiter
 from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
+from jalada.application.certificate_payments import CertificatePayments
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
@@ -23,6 +24,7 @@ class Services:
     upload_limiter: RateLimiter
     review: EntryReview
     ledger: Ledger
+    certificate_payments: CertificatePayments
     tax_year_export: TaxYearExport
     telegram_linking: TelegramLinking
     account_export: AccountExport

@@ -23,6 +23,7 @@ from jalada.api.services import Services
 from jalada.application.account_deletion import AccountDeletion
 from jalada.application.account_export import AccountExport
 from jalada.application.authentication import Authenticator
+from jalada.application.certificate_payments import CertificatePayments
 from jalada.application.entry_review import EntryReview
 from jalada.application.evidence_capture import EvidenceCapture
 from jalada.application.google_sign_in import GoogleSignIn
@@ -131,6 +132,7 @@ def make_app(
             upload_limiter=RateLimiter(upload_rule),
             review=review,
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
+            certificate_payments=CertificatePayments(lambda: FakeUnitOfWork(store), FixedClock()),
             tax_year_export=TaxYearExport(
                 lambda: FakeUnitOfWork(store),
                 ExcelWorkbookWriter(),

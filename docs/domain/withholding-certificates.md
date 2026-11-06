@@ -26,6 +26,6 @@ Checks the verifier can make:
 - The serial number starts with `KRAWHT`.
 - The transaction date is on or before the certificate date.
 
-A certificate records income that was earned and tax already paid on it. It is entered as a `withholding_certificate` entry with direction in. If the same payment also arrives as an M-Pesa or bank deposit, the deposit is the net amount (gross minus tax), and the two should be linked rather than counted twice. How to link them is an open design point.
+A certificate records income that was earned and tax already paid on it. It is entered as a `withholding_certificate` entry with direction in. If the same payment also arrives as an M-Pesa or bank deposit, the deposit is the net amount (gross minus tax), and the two should be linked rather than counted twice. The user links them from the certificate; a linked payment is then counted through the certificate's gross amount and not again on its own (see the MVP design, "Certificates and the payments that settled them").
 
 Notes from the certificate wording: it says the tax was "deposited to the collector of Income tax", and that its authenticity can be checked on the iTax portal with the certificate number.

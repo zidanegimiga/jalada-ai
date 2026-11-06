@@ -32,7 +32,17 @@ class LedgerResponse(BaseModel):
     @classmethod
     def from_page(cls, page: LedgerPage) -> "LedgerResponse":
         cursor = encode_position(page.next_position) if page.next_position else None
-        return cls(items=[EntryResponse.from_entry(e) for e in page.entries], next_cursor=cursor)
+        links = page.certificate_payments
+        items = [
+            EntryResponse.from_entry(e).model_copy(
+                update={
+                    "linked_certificate_id": links.get(e.id),
+                    "linked_payment_ids": [p for p, c in links.items() if c == e.id],
+                }
+            )
+            for e in page.entries
+        ]
+        return cls(items=items, next_cursor=cursor)
 
 
 class MonthResponse(BaseModel):

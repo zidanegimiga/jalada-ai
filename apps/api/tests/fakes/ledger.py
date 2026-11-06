@@ -1,7 +1,8 @@
 """Fake repositories for entries, preferences and pipeline runs."""
 
+from collections.abc import Collection
 from dataclasses import asdict
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from jalada.application.ports import (
@@ -9,7 +10,7 @@ from jalada.application.ports import (
     Revision,
 )
 from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Entry, EntryStatus
+from jalada.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.pipeline.classifier import Preference
 from jalada.pipeline.run_types import StepRecord
@@ -17,11 +18,16 @@ from jalada.pipeline.run_types import StepRecord
 
 class FakeEntries:
     def __init__(
-        self, rows: dict[UUID, Entry], user_id: UUID, revisions: list[tuple[Entry, Entry]]
+        self,
+        rows: dict[UUID, Entry],
+        user_id: UUID,
+        revisions: list[tuple[Entry, Entry]],
+        linked_payments: Collection[UUID] = (),
     ) -> None:
         self.rows = rows
         self._user_id = user_id
         self._revisions = revisions
+        self._linked_payments = linked_payments
 
     def add(self, entry: Entry) -> None:
         assert entry.user_id == self._user_id
@@ -60,6 +66,8 @@ class FakeEntries:
     def monthly_totals(self, year: int) -> list[Total]:
         sums: dict[tuple[int, Direction, Purpose], int] = {}
         for e in self._mine():
+            if e.id in self._linked_payments:
+                continue
             if e.status == EntryStatus.CONFIRMED and e.occurred_on and e.occurred_on.year == year:
                 key = (e.occurred_on.month, e.direction or Direction.OUT, e.purpose)
                 sums[key] = sums.get(key, 0) + (e.amount_cents or 0)
@@ -73,6 +81,18 @@ class FakeEntries:
 
     def all(self) -> list[Entry]:
         return sorted(self._mine(), key=lambda e: e.created_at)
+
+    def incoming(self, start: date, end: date) -> list[Entry]:
+        found = [
+            e
+            for e in self._mine()
+            if e.status == EntryStatus.CONFIRMED
+            and e.kind == EntryKind.TRANSACTION
+            and e.direction == Direction.IN
+            and e.occurred_on
+            and start <= e.occurred_on <= end
+        ]
+        return sorted(found, key=lambda e: e.occurred_on or start)
 
     def revisions(self) -> list[Revision]:
         mine = {e.id for e in self._mine()}
@@ -95,6 +115,24 @@ def _keeps(filters: LedgerFilter, entry: Entry) -> bool:
         or (filters.purpose and entry.purpose != filters.purpose)
         or (filters.category and entry.category != filters.category)
     )
+
+
+class FakeCertificatePayments:
+    def __init__(self, rows: dict[UUID, tuple[UUID, UUID]], user_id: UUID) -> None:
+        # Payment id to (user id, certificate id).
+        self.rows = rows
+        self._user_id = user_id
+
+    def links(self) -> dict[UUID, UUID]:
+        return {p: c for p, (u, c) in self.rows.items() if u == self._user_id}
+
+    def link(self, certificate_id: UUID, payment_id: UUID, at: datetime) -> None:
+        assert payment_id not in self.rows, "the database refuses a second link"
+        self.rows[payment_id] = (self._user_id, certificate_id)
+
+    def unlink(self, certificate_id: UUID, payment_id: UUID) -> None:
+        if self.rows.get(payment_id) == (self._user_id, certificate_id):
+            del self.rows[payment_id]
 
 
 class FakePreferences:

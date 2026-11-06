@@ -178,6 +178,23 @@ class EntryRevisionRow(Base):
     changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class CertificatePaymentRow(Base):
+    """A payment that settled a withholding certificate. Each payment settles one at most."""
+
+    __tablename__ = "certificate_payments"
+
+    payment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("entries.id", ondelete="CASCADE"), primary_key=True
+    )
+    certificate_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("entries.id", ondelete="CASCADE"), index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class CounterpartyPreferenceRow(Base):
     __tablename__ = "counterparty_preferences"
     __table_args__ = (

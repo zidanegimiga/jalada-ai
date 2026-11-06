@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 from fakes import FakeUnitOfWork, Store
-from samples import confirmed_entry
+from samples import certificate, confirmed_entry, deposit
 
 from jalada.application.ledger import Ledger
 from jalada.domain.categories import Direction, Purpose
@@ -56,6 +56,19 @@ def test_entries_waiting_for_review_stay_out_of_the_ledger(ledger: Ledger, store
     store.entries[waiting.id] = replace(waiting, status=EntryStatus.PROPOSED)
 
     assert waiting.id not in {e.id for e in ledger.page(USER, LedgerFilter()).entries}
+
+
+def test_a_payment_linked_to_a_certificate_is_left_out_of_the_month(
+    ledger: Ledger, store: Store
+) -> None:
+    cert = certificate(USER, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
+    paid = deposit(USER, date(2026, 3, 5), 3_800_000, "CLIENT")
+    store.entries.update({cert.id: cert, paid.id: paid})
+    store.certificate_payments[paid.id] = (USER, cert.id)
+
+    march = ledger.year(USER, 2026)[2]
+
+    assert march.money_in == {Purpose.BUSINESS: 4_000_000}
 
 
 def test_the_year_splits_each_month_into_business_and_personal(ledger: Ledger) -> None:

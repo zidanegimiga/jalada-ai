@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import IO
 from uuid import UUID
 
@@ -29,6 +29,8 @@ class AccountData:
     revisions: list[Revision]
     runs: list[tuple[PipelineRun, list[StepRecord]]]
     preferences: dict[str, Preference]
+    # Payment entry id to the certificate entry id it was linked to.
+    certificate_payments: dict[UUID, UUID] = field(default_factory=dict)
 
 
 class AccountExport:
@@ -65,6 +67,7 @@ class AccountExport:
                 revisions=work.entries_for(user_id).revisions(),
                 runs=work.runs.for_user(user_id),
                 preferences=work.preferences_for(user_id).all(),
+                certificate_payments=work.certificate_payments_for(user_id).links(),
             )
 
     def write(self, user_id: UUID, out: IO[bytes]) -> None:

@@ -121,3 +121,27 @@ def confirmed_entry(user_id: UUID, day: date, cents: int, direction: str, catego
         1.0,
         datetime(2026, 11, 5, tzinfo=UTC),
     )
+
+
+def certificate(user_id: UUID, day: date, gross: int, withheld: int, payer: str) -> "Entry":
+    """A confirmed withholding certificate for consultancy work."""
+    from dataclasses import replace
+
+    from jalada.domain.entries import EntryKind
+
+    return replace(
+        confirmed_entry(user_id, day, gross, "in", "consultancy_fees"),
+        kind=EntryKind.WITHHOLDING_CERTIFICATE,
+        counterparty=payer,
+        certificate_serial=f"KRAWHT{day:%Y%m%d}{gross}",
+        tax_withheld_cents=withheld,
+    )
+
+
+def deposit(user_id: UUID, day: date, cents: int, payer: str) -> "Entry":
+    """Confirmed consultancy money in, as from an M-Pesa or bank deposit."""
+    from dataclasses import replace
+
+    return replace(
+        confirmed_entry(user_id, day, cents, "in", "consultancy_fees"), counterparty=payer
+    )

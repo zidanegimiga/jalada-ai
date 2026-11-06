@@ -76,6 +76,7 @@ All tables have a `uuid` primary key and `created_at`. Every table with user dat
 | `entry_revisions` | `entry_id`, `before`, `after` (jsonb), `changed_at` | Every correction is kept, so the history of an entry is visible. |
 | (categories) | `slug`, `name`, `direction`, `purpose` | A fixed list in code, `domain/categories.py`. Entries store the slug. It moves to a table only if users get their own categories. |
 | `counterparty_preferences` | `user_id`, `counterparty_key`, `category_id`, `purpose`, `times_used` | Written when a user confirms or corrects an entry. The classifier checks this first. |
+| `certificate_payments` | `payment_id` (key), `certificate_id`, `user_id`, `linked_at` | A payment linked to the withholding certificate it settled. The payment is then counted through the certificate. |
 
 ### Category list
 
@@ -133,6 +134,8 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 | `GET /v1/summary/monthly?year=` | Money in and out per month, split by business and personal. |
 | `GET /v1/categories` | The category list. |
 | `GET /v1/exports/{year}.xlsx` | The tax year workbook. |
+| `GET /v1/certificates/{id}` | A withholding certificate, the payments linked to it, and up to five likely payments to link. |
+| `POST /v1/certificates/{id}/payments`, `DELETE /v1/certificates/{id}/payments/{payment_id}` | Link or unlink a payment. |
 | `POST /v1/telegram/link-code` | Creates a code to link a Telegram account. |
 | `POST /v1/telegram/webhook` | Telegram updates. Checked against the secret token header. |
 | `GET /v1/account/export` | A zip of everything held about the user: account, entries and revisions, evidence details with every original file, pipeline runs and remembered choices. No password hash or session data. |
@@ -163,7 +166,7 @@ All routes are under `/v1`, take and return JSON unless noted, and need a sessio
 | Instructions | What each sheet is, the year covered, that figures are records and not tax advice, and which iTax sheet each section relates to. |
 | Income | Confirmed money in, grouped as employment (relates to `F_Employment_Income`), business and consultancy (relates to `B_Profit_Loss_Account_Self`), and not income (support, own transfers, refunds), each with date, counterparty, amount and evidence link. |
 | Expenses | Confirmed business costs, with items that last years flagged separately for capital allowance, and a column for whether an eTIMS invoice is attached. Personal costs are left out. |
-| Withholding Tax | One row per certificate: payer, payer tax number, serial number, date, gross amount, tax withheld (relates to `O_WHT_Credits`). |
+| Withholding Tax | One row per certificate: payer, payer tax number, serial number, date, gross amount, tax withheld, the payments linked to it (relates to `O_WHT_Credits`). |
 | Summary | Totals per group and per month. No tax is calculated. |
 
 Text taken from evidence is always written as plain text, so a counterparty such as `=HYPERLINK(...)` can never become a live formula. Every sheet prints landscape, one page wide.
@@ -176,6 +179,8 @@ Text taken from evidence is always written as plain text, so a counterparty such
 - Free model tiers and local models only see invented data. Real users' evidence goes only to a provider whose terms exclude training on it (decision 0012).
 - Export and delete are in the first version.
 
-## Open questions
+## Certificates and the payments that settled them
 
-1. **Certificate and deposit linking.** A withholding certificate and the M-Pesa or bank deposit for the same job describe the same income. Proposal: when both exist, the review screen suggests linking them, and the export counts the certificate's gross amount once.
+A withholding certificate and the M-Pesa or bank deposit for the same job describe the same income. The user links them from the certificate in the ledger. Jalada suggests up to five confirmed deposits from 90 days before to 60 days after the certificate's date: the exact expected amount (gross minus tax withheld) first, then the same payer, then the nearest date. A certificate can have several payments; a payment settles one certificate; linked payments cannot add up to more than the gross amount.
+
+A linked payment is counted through its certificate: the workbook's income sections and the monthly view leave it out, and the Withholding Tax sheet shows it. Links are stored in `certificate_payments` (`payment_id` as the key, `certificate_id`, `user_id`, `linked_at`). Nothing is linked automatically.

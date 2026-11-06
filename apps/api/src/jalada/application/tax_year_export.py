@@ -2,7 +2,7 @@ from collections.abc import Callable
 from datetime import date
 from uuid import UUID
 
-from jalada.application.ports import Clock, UnitOfWork, WorkbookWriter
+from jalada.application.ports import Clock, EntryRepository, UnitOfWork, WorkbookWriter
 from jalada.domain.dates import kenyan_date
 from jalada.domain.entries import Entry
 from jalada.domain.ledger import LedgerFilter, LedgerPosition, summarise
@@ -39,11 +39,25 @@ class TaxYearExport:
             entries = work.entries_for(user_id)
             confirmed = _all_pages(lambda after: entries.confirmed(year_filter, after, PAGE_SIZE))
             months = summarise(entries.monthly_totals(year))
+            links = work.certificate_payments_for(user_id).links()
+            payments = _payments_by_certificate(entries, links)
         today = kenyan_date(self._clock.now())
-        return build_report(year, confirmed, months, today, self._evidence_link)
+        return build_report(year, confirmed, months, today, self._evidence_link, payments)
 
     def workbook(self, user_id: UUID, year: int) -> bytes:
         return self._writer.write(self.report(user_id, year))
+
+
+def _payments_by_certificate(
+    entries: EntryRepository, links: dict[UUID, UUID]
+) -> dict[UUID, list[Entry]]:
+    """Linked payments grouped by certificate, wherever in time each payment falls."""
+    grouped: dict[UUID, list[Entry]] = {}
+    for payment_id, certificate_id in links.items():
+        payment = entries.get(payment_id)
+        if payment:
+            grouped.setdefault(certificate_id, []).append(payment)
+    return grouped
 
 
 def _all_pages(fetch: Callable[[LedgerPosition | None], list[Entry]]) -> list[Entry]:

@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
@@ -16,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.adapters.database.tables import EntryRevisionRow, EntryRow
+from jalada.adapters.database.tables import CertificatePaymentRow, EntryRevisionRow, EntryRow
 from jalada.application.ports import Revision
 from jalada.domain.categories import Direction, Purpose
 from jalada.domain.entries import Entry, EntryKind, EntryStatus
@@ -91,6 +91,8 @@ class SqlEntryRepository:
                 EntryRow.user_id == self._user_id,
                 EntryRow.status == EntryStatus.CONFIRMED,
                 extract("year", EntryRow.occurred_on) == year,
+                # A payment linked to a certificate is already counted in its gross amount.
+                ~exists().where(CertificatePaymentRow.payment_id == EntryRow.id),
             )
             .group_by(month, EntryRow.direction, EntryRow.purpose)
         )
@@ -120,6 +122,16 @@ class SqlEntryRepository:
 
     def has_certificate_serial(self, serial: str) -> bool:
         return self._exists(EntryRow.certificate_serial == serial)
+
+    def incoming(self, start: date, end: date) -> list[Entry]:
+        """Confirmed money in between two dates, oldest first."""
+        query = self._mine().where(
+            EntryRow.status == EntryStatus.CONFIRMED,
+            EntryRow.kind == EntryKind.TRANSACTION,
+            EntryRow.direction == Direction.IN,
+            EntryRow.occurred_on.between(start, end),
+        )
+        return [_to_entry(row) for row in self._db.scalars(query.order_by(EntryRow.occurred_on))]
 
     def _mine(self) -> Select[EntryRow]:
         return select(EntryRow).where(EntryRow.user_id == self._user_id)
