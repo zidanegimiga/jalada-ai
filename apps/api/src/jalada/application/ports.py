@@ -218,7 +218,11 @@ class Limiter(Protocol):
 class ProcessingNotifier(Protocol):
     """Tells the user what the pipeline made of their evidence."""
 
-    def notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None: ...
+    def notify(
+        self, evidence: Evidence, outcome: str, entry: Entry | None, reasons: list[str]
+    ) -> None:
+        """`reasons` are the verifier's reasons for holding the entry back, if any."""
+        ...
 
 
 class ArchiveWriter(Protocol):

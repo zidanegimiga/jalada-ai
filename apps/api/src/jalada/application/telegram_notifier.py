@@ -1,10 +1,29 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from jalada.application.ports import ChatChannel, UnitOfWork
 from jalada.domain.categories import CATEGORIES, Direction
 from jalada.domain.entries import Entry
 from jalada.domain.evidence import Evidence, EvidenceSource
 from jalada.domain.money import format_ksh
+
+# The verifier's reasons for holding an entry back, in words for the user.
+REASONS = {
+    "purpose not certain": "I was not sure what it was for.",
+    "amount or date not certain": "I was not sure I read the amount and date right.",
+    "no amount": "I could not find the amount.",
+    "no date": "I could not find the date.",
+    "date is in the future": "The date is after today, which looks wrong.",
+    "date is more than seven years ago": (
+        "The date is more than seven years ago, which looks wrong."
+    ),
+    "no direction": "I could not tell if the money came in or went out.",
+    "no certificate serial": "I could not find the certificate number.",
+    "no tax amounts": "I could not find the tax amounts.",
+    "tax withheld does not match gross amount times rate": (
+        "The tax withheld does not match the amount and rate."
+    ),
+}
+SOMETHING_ELSE = "Some details need a look."
 
 
 class TelegramNotifier:
@@ -17,24 +36,28 @@ class TelegramNotifier:
         self._bot = bot
         self._review_url = review_url
 
-    def notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None:
+    def notify(
+        self, evidence: Evidence, outcome: str, entry: Entry | None, reasons: list[str]
+    ) -> None:
         if evidence.source != EvidenceSource.TELEGRAM:
             return
         with self._unit_of_work() as work:
             chat_id = work.telegram.chat_for(evidence.user_id)
         if chat_id is not None:
-            self._bot.send(chat_id, self.message(outcome, entry))
+            self._bot.send(chat_id, self.message(outcome, entry, reasons))
 
-    def message(self, outcome: str, entry: Entry | None) -> str:
+    def message(self, outcome: str, entry: Entry | None, reasons: Sequence[str] = ()) -> str:
         if outcome == "duplicate":
             return "That transaction is already in your records."
         if entry is None or entry.amount_cents is None:
             return f"I could not read that one. You can type it in here: {self._review_url}"
         summary = _summary(entry)
         category = CATEGORIES.get(entry.category or "")
-        if outcome == "proposed" and category:
-            return f"{summary}: {category.name}. Confirm it here: {self._review_url}"
-        return f"{summary}. I was not sure what it was for. Check it here: {self._review_url}"
+        if category:
+            summary = f"{summary}: {category.name}"
+        if outcome == "proposed":
+            return f"{summary}. Confirm it here: {self._review_url}"
+        return f"{summary}. {_explain(reasons)} Check it here: {self._review_url}"
 
 
 def _summary(entry: Entry) -> str:
@@ -45,3 +68,9 @@ def _summary(entry: Entry) -> str:
     if entry.occurred_on:
         words.append(f"on {entry.occurred_on.day} {entry.occurred_on:%b %Y}")
     return " ".join(words)
+
+
+def _explain(reasons: Sequence[str]) -> str:
+    """One sentence per reason, each said once, in the order the verifier found them."""
+    sentences = dict.fromkeys(REASONS.get(reason, SOMETHING_ELSE) for reason in reasons)
+    return " ".join(sentences) or SOMETHING_ELSE

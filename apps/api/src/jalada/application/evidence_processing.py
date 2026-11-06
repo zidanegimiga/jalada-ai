@@ -85,15 +85,17 @@ class EvidenceProcessor:
             model=self._model,
         )
         entry = self._save(evidence, result, started)
-        self._notify(evidence, result.outcome, entry)
+        self._notify(evidence, result.outcome, entry, _reasons(result))
         return result.outcome
 
-    def _notify(self, evidence: Evidence, outcome: str, entry: Entry | None) -> None:
+    def _notify(
+        self, evidence: Evidence, outcome: str, entry: Entry | None, reasons: list[str]
+    ) -> None:
         """Telling the user is a courtesy. If it fails, the saved result still stands."""
         if self._notifier is None:
             return
         try:
-            self._notifier.notify(evidence, outcome, entry)
+            self._notifier.notify(evidence, outcome, entry, reasons)
         except Exception as error:
             logger.warning("notifying about evidence failed with %s", type(error).__name__)
 
@@ -161,3 +163,8 @@ class EvidenceProcessor:
             created_at=self._clock.now(),
             payer_tax_number=extraction.payer_tax_number,
         )
+
+
+def _reasons(result: PipelineResult) -> list[str]:
+    verdict = result.verdict
+    return verdict.problems + verdict.review_reasons if verdict else []
