@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Literal, Self
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
@@ -17,7 +17,8 @@ class Settings(BaseSettings):
     setting stops the app at startup instead of failing later.
     """
 
-    model_config = SettingsConfigDict(env_prefix="JALADA_", frozen=True)
+    # populate_by_name: the version has its own environment names but is still `version` in code.
+    model_config = SettingsConfigDict(env_prefix="JALADA_", frozen=True, populate_by_name=True)
 
     environment: Environment
     database_url: str = Field(pattern=r"^postgresql\+psycopg://")
@@ -63,6 +64,15 @@ class Settings(BaseSettings):
     pipeline_max_attempts: int = Field(default=3, ge=1, le=5)
     pipeline_max_tokens: int = Field(default=8000, ge=0)
     pipeline_max_cost_usd: Decimal = Field(default=Decimal("0.02"), ge=0)
+    # The running version, shown in /health. Render sets RENDER_GIT_COMMIT on every deploy.
+    version: str = Field(
+        default="development", validation_alias=AliasChoices("JALADA_VERSION", "RENDER_GIT_COMMIT")
+    )
+
+    @field_validator("version")
+    @classmethod
+    def default_empty_version(cls, value: str) -> str:
+        return value.strip() or "development"
 
     @model_validator(mode="after")
     def check_model_settings(self) -> Self:

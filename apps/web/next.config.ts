@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const apiUrl = process.env.API_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
+  // The commit being built: Netlify sets COMMIT_REF. Shown on the account page.
+  env: { APP_VERSION: process.env.COMMIT_REF ?? "development" },
   // Stop next dev from writing an AGENTS.md file into the app.
   agentRules: false,
   // Copy only the files the server needs into .next/standalone, for a small Docker image.
