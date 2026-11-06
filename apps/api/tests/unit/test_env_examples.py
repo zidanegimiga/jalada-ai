@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[4]
 LOCAL = ROOT / ".env.example"
 PRODUCTION = ROOT / ".env.production.example"
 # Read outside the API's settings: by the web app, or by docker compose on your machine.
-WEB_KEYS = ["API_URL"]
+WEB_KEYS = ["API_URL", "NEXT_PUBLIC_SENTRY_DSN"]
 LOCAL_ONLY_KEYS = ["POSTGRES_PASSWORD"]
 
 
