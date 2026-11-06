@@ -1,6 +1,6 @@
 COMPOSE := docker compose -f infra/docker-compose.yml $(if $(wildcard .env),--env-file .env)
 
-.PHONY: up up-ollama up-telegram ollama-model down logs db migrate migration check test-integration e2e format
+.PHONY: up up-ollama up-telegram ollama-model down logs db migrate migration check test-integration e2e openapi format
 
 # Build and start the whole stack in the background.
 up:
@@ -52,6 +52,11 @@ test-integration: db
 	JALADA_TEST_DATABASE_URL=postgresql+psycopg://jalada:jalada@localhost:5433/jalada_test \
 	JALADA_TEST_S3_ENDPOINT=http://localhost:8333 \
 		uv run --directory apps/api pytest -m integration
+
+# After changing the API on purpose: rewrite apps/api/openapi.json, which a test compares
+# with the running code.
+openapi:
+	uv run --directory apps/api jalada-openapi
 
 # The main journey in a browser, against a separate, throwaway copy of the whole stack.
 # Its own project name keeps your local data out of it. Stop your stack first (make down):
