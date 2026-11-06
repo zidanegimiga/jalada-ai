@@ -6,8 +6,8 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 from jalada.api.schemas.evidence import EvidenceResponse
 from jalada.application.entry_review import ReviewItem
-from jalada.domain.categories import CATEGORIES, Direction
-from jalada.domain.entries import Correction, Entry
+from jalada.domain.categories import CATEGORIES, Direction, Purpose
+from jalada.domain.entries import Correction, Entry, EntryKind, EntryStatus
 from jalada.domain.money import to_cents
 
 
@@ -41,10 +41,10 @@ class CorrectionRequest(BaseModel):
 class EntryResponse(BaseModel):
     id: UUID
     evidence_id: UUID
-    kind: str
-    status: str
+    kind: EntryKind
+    status: EntryStatus
     occurred_on: date | None
-    direction: str | None
+    direction: Direction | None
     amount_cents: int | None
     counterparty: str | None
     reference: str | None
@@ -52,7 +52,7 @@ class EntryResponse(BaseModel):
     certificate_serial: str | None
     tax_withheld_cents: int | None
     payer_tax_number: str | None
-    purpose: str
+    purpose: Purpose
     category: str | None
     category_name: str | None
     confidence: float

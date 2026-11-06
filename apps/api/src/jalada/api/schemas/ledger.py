@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from jalada.api.schemas.entries import EntryResponse
 from jalada.application.ledger import LedgerPage
-from jalada.domain.categories import CATEGORIES, Purpose
+from jalada.domain.categories import CATEGORIES, Direction, Purpose
 from jalada.domain.ledger import LedgerPosition, MonthSummary
 
 
@@ -74,8 +74,8 @@ class YearResponse(BaseModel):
 class CategoryResponse(BaseModel):
     slug: str
     name: str
-    direction: str
-    purpose: str
+    direction: Direction
+    purpose: Purpose
 
 
 def all_categories() -> list[CategoryResponse]:

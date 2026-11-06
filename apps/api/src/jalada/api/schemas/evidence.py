@@ -3,7 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from jalada.domain.evidence import MAX_TEXT_CHARACTERS, Evidence
+from jalada.domain.evidence import (
+    MAX_TEXT_CHARACTERS,
+    Evidence,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceStatus,
+)
 
 
 class PasteRequest(BaseModel):
@@ -12,9 +18,9 @@ class PasteRequest(BaseModel):
 
 class EvidenceResponse(BaseModel):
     id: UUID
-    source: str
-    kind: str
-    status: str
+    source: EvidenceSource
+    kind: EvidenceKind
+    status: EvidenceStatus
     content_type: str
     size_bytes: int
     received_at: datetime

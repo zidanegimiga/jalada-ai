@@ -1,0 +1,2 @@
+# Generated from apps/api/openapi.json by npm run types.
+src/lib/api-types.ts

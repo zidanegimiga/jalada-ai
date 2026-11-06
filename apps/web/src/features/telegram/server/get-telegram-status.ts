@@ -1,8 +1,9 @@
 import "server-only";
 
+import type { Schema } from "@/lib/api-schema";
 import { apiGet } from "@/lib/server-api";
 
-export type TelegramStatus = { available: boolean; linked: boolean };
+export type TelegramStatus = Schema<"TelegramStatus">;
 
 export async function getTelegramStatus(): Promise<TelegramStatus> {
   return (

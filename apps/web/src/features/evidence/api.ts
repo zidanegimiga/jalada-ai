@@ -1,13 +1,6 @@
-export type EvidenceItem = {
-  id: string;
-  source: "web_upload" | "web_paste" | "telegram";
-  kind: string;
-  status: string;
-  content_type: string;
-  size_bytes: number;
-  received_at: string;
-  duplicate: boolean;
-};
+import type { Schema } from "@/lib/api-schema";
+
+export type EvidenceItem = Schema<"EvidenceResponse">;
 
 async function parse(response: Response): Promise<EvidenceItem> {
   const data = await response.json().catch(() => ({}));

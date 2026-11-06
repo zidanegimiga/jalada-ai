@@ -18,16 +18,14 @@
       "CategoryResponse": {
         "properties": {
           "direction": {
-            "title": "Direction",
-            "type": "string"
+            "$ref": "#/components/schemas/Direction"
           },
           "name": {
             "title": "Name",
             "type": "string"
           },
           "purpose": {
-            "title": "Purpose",
-            "type": "string"
+            "$ref": "#/components/schemas/Purpose"
           },
           "slug": {
             "title": "Slug",
@@ -166,6 +164,14 @@
         "title": "Direction",
         "type": "string"
       },
+      "EntryKind": {
+        "enum": [
+          "transaction",
+          "withholding_certificate"
+        ],
+        "title": "EntryKind",
+        "type": "string"
+      },
       "EntryResponse": {
         "properties": {
           "amount_cents": {
@@ -230,13 +236,12 @@
           "direction": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/Direction"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Direction"
+            ]
           },
           "evidence_id": {
             "format": "uuid",
@@ -249,8 +254,7 @@
             "type": "string"
           },
           "kind": {
-            "title": "Kind",
-            "type": "string"
+            "$ref": "#/components/schemas/EntryKind"
           },
           "linked_certificate_id": {
             "anyOf": [
@@ -307,8 +311,7 @@
             "title": "Payer Tax Number"
           },
           "purpose": {
-            "title": "Purpose",
-            "type": "string"
+            "$ref": "#/components/schemas/Purpose"
           },
           "reference": {
             "anyOf": [
@@ -322,8 +325,7 @@
             "title": "Reference"
           },
           "status": {
-            "title": "Status",
-            "type": "string"
+            "$ref": "#/components/schemas/EntryStatus"
           },
           "tax_withheld_cents": {
             "anyOf": [
@@ -359,6 +361,29 @@
         "title": "EntryResponse",
         "type": "object"
       },
+      "EntryStatus": {
+        "enum": [
+          "proposed",
+          "needs_review",
+          "confirmed",
+          "rejected"
+        ],
+        "title": "EntryStatus",
+        "type": "string"
+      },
+      "EvidenceKind": {
+        "enum": [
+          "unknown",
+          "mpesa_message",
+          "statement",
+          "receipt",
+          "withholding_certificate",
+          "payslip",
+          "free_text"
+        ],
+        "title": "EvidenceKind",
+        "type": "string"
+      },
       "EvidenceList": {
         "properties": {
           "items": {
@@ -392,8 +417,7 @@
             "type": "string"
           },
           "kind": {
-            "title": "Kind",
-            "type": "string"
+            "$ref": "#/components/schemas/EvidenceKind"
           },
           "received_at": {
             "format": "date-time",
@@ -405,12 +429,10 @@
             "type": "integer"
           },
           "source": {
-            "title": "Source",
-            "type": "string"
+            "$ref": "#/components/schemas/EvidenceSource"
           },
           "status": {
-            "title": "Status",
-            "type": "string"
+            "$ref": "#/components/schemas/EvidenceStatus"
           }
         },
         "required": [
@@ -424,6 +446,28 @@
         ],
         "title": "EvidenceResponse",
         "type": "object"
+      },
+      "EvidenceSource": {
+        "enum": [
+          "web_upload",
+          "web_paste",
+          "telegram"
+        ],
+        "title": "EvidenceSource",
+        "type": "string"
+      },
+      "EvidenceStatus": {
+        "enum": [
+          "received",
+          "processing",
+          "proposed",
+          "needs_review",
+          "confirmed",
+          "duplicate",
+          "failed"
+        ],
+        "title": "EvidenceStatus",
+        "type": "string"
       },
       "HTTPValidationError": {
         "properties": {
