@@ -6,8 +6,8 @@ import pytest
 from joserfc import jwt
 from joserfc.jwk import KeySet, RSAKey
 
-from jalada.adapters.identity.google import GoogleOpenIdClient
-from jalada.application.errors import GoogleSignInFailed
+from jalada.modules.accounts.adapters.google import GoogleOpenIdClient
+from jalada.shared.errors import GoogleSignInFailed
 
 KEY = RSAKey.generate_key(2048, parameters={"kid": "test-key"})
 OTHER_KEY = RSAKey.generate_key(2048, parameters={"kid": "test-key"})

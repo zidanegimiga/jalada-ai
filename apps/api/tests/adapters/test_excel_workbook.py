@@ -7,11 +7,11 @@ import pytest
 from openpyxl import Workbook, load_workbook
 from samples import confirmed_entry
 
-from jalada.adapters.export.workbook import ExcelWorkbookWriter
-from jalada.domain.categories import Purpose
-from jalada.domain.entries import EntryKind
-from jalada.domain.ledger import MonthSummary
-from jalada.domain.tax_year import build_report
+from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
+from jalada.modules.exports.domain.tax_year import build_report
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.entries import EntryKind
+from jalada.modules.ledger.domain.ledger import MonthSummary
 
 USER = uuid.uuid4()
 INJECTION = '=HYPERLINK("https://evil.example.com","Click")'
@@ -32,14 +32,19 @@ def workbook() -> Workbook:
         counterparty=INJECTION,
         mpesa_code="UK5AB1CD23",
     )
+    payment = replace(
+        confirmed_entry(USER, date(2026, 3, 5), 3_800_000, "in", "consultancy_fees"),
+        counterparty="EXAMPLE CONSULTING LTD",
+    )
     months = [MonthSummary(m) for m in range(1, 13)]
     months[2].money_in[Purpose.BUSINESS] = 4_000_000
     report = build_report(
         2026,
-        [certificate, shop],
+        [certificate, shop, payment],
         months,
         date(2026, 11, 5),
         "https://app.example.com/v1/evidence/{id}/file",
+        {certificate.id: [payment]},
     )
     return load_workbook(io.BytesIO(ExcelWorkbookWriter().write(report)))
 
@@ -62,7 +67,7 @@ def test_instructions_name_the_year_and_say_this_is_not_tax_advice(workbook: Wor
     assert "Jalada AI records for 2026" in cells
     assert "Tax year 1 January to 31 December 2026. Made on 05/11/2026." in cells
     assert "not tax advice" in cells
-    assert "Count it once" in cells
+    assert "link that payment to its certificate" in cells
 
 
 def test_income_rows_carry_dates_amounts_sources_and_links(workbook: Workbook) -> None:
@@ -97,14 +102,23 @@ def test_amounts_keep_their_cents(workbook: Workbook) -> None:
 def test_withholding_tax_lists_each_certificate_with_its_payer(workbook: Workbook) -> None:
     sheet = workbook["Withholding Tax"]
 
-    assert [c.value for c in sheet[2]][1:6] == [
+    assert [c.value for c in sheet[2]][1:7] == [
         "EXAMPLE CONSULTING LTD",
         "P000000000A",
         "KRAWHTEON0000000001",
         40000,
         2000,
+        38000,
     ]
     assert sheet["D3"].value == "Total" and sheet["F3"].value == 2000
+    assert sheet["G3"].value == 38000
+
+
+def test_a_linked_payment_is_not_listed_as_income_again(workbook: Workbook) -> None:
+    amounts = [row[3].value for row in workbook["Income"].iter_rows() if row[3].value]
+
+    assert 38000 not in amounts
+    assert 40000 in amounts
 
 
 def test_the_summary_totals_groups_and_months_without_calculating_tax(workbook: Workbook) -> None:

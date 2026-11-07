@@ -9,11 +9,11 @@ import signal
 import sys
 import threading
 
-from jalada.adapters.channels.telegram_bot import ChatFailed, TelegramBot
-from jalada.application.telegram_capture import TelegramCapture
 from jalada.composition import build_services, build_telegram_bot
-from jalada.config.logging import configure_logging
-from jalada.config.settings import load_settings
+from jalada.core.logging import configure_logging
+from jalada.core.settings import load_settings
+from jalada.modules.telegram.adapters.telegram_bot import ChatFailed, TelegramBot
+from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 
 logger = logging.getLogger("jalada.telegram")
 
@@ -35,7 +35,7 @@ def poll(bot: TelegramBot, capture: TelegramCapture, stop: threading.Event) -> N
 
 def main() -> None:
     settings = load_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.json_logs)
     bot = build_telegram_bot(settings)
     capture = build_services(settings).telegram_capture
     if bot is None or capture is None:

@@ -1,7 +1,7 @@
 import pytest
 
-from jalada.domain.sessions import hash_session_token
-from jalada.domain.users import is_acceptable_password, normalize_email
+from jalada.modules.accounts.domain.sessions import hash_session_token
+from jalada.modules.accounts.domain.users import is_acceptable_password, normalize_email
 
 
 def test_emails_are_trimmed_and_lowercased() -> None:

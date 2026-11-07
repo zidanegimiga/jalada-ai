@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 if TYPE_CHECKING:
-    from jalada.domain.entries import Entry
+    from jalada.modules.ledger.domain.entries import Entry
 
 JPEG = b"\xff\xd8\xff\xe0" + b"\x00\x10JFIF" + b"\x00" * 50
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 50
@@ -98,8 +98,8 @@ def confirmed_entry(user_id: UUID, day: date, cents: int, direction: str, catego
     import uuid
     from datetime import UTC, datetime
 
-    from jalada.domain.categories import CATEGORIES, Direction
-    from jalada.domain.entries import Entry, EntryKind, EntryStatus
+    from jalada.modules.ledger.domain.categories import CATEGORIES, Direction
+    from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 
     return Entry(
         uuid.uuid4(),
@@ -120,4 +120,28 @@ def confirmed_entry(user_id: UUID, day: date, cents: int, direction: str, catego
         category,
         1.0,
         datetime(2026, 11, 5, tzinfo=UTC),
+    )
+
+
+def certificate(user_id: UUID, day: date, gross: int, withheld: int, payer: str) -> "Entry":
+    """A confirmed withholding certificate for consultancy work."""
+    from dataclasses import replace
+
+    from jalada.modules.ledger.domain.entries import EntryKind
+
+    return replace(
+        confirmed_entry(user_id, day, gross, "in", "consultancy_fees"),
+        kind=EntryKind.WITHHOLDING_CERTIFICATE,
+        counterparty=payer,
+        certificate_serial=f"KRAWHT{day:%Y%m%d}{gross}",
+        tax_withheld_cents=withheld,
+    )
+
+
+def deposit(user_id: UUID, day: date, cents: int, payer: str) -> "Entry":
+    """Confirmed consultancy money in, as from an M-Pesa or bank deposit."""
+    from dataclasses import replace
+
+    return replace(
+        confirmed_entry(user_id, day, cents, "in", "consultancy_fees"), counterparty=payer
     )

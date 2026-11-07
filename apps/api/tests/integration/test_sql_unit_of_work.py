@@ -6,10 +6,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.application.errors import EmailAlreadyRegistered
-from jalada.domain.sessions import Session
-from jalada.domain.users import User
+from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.accounts.domain.users import User
+from jalada.shared.errors import EmailAlreadyRegistered
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 
@@ -77,10 +77,40 @@ def test_google_accounts_are_found_and_linked(session_factory: sessionmaker[DbSe
     with SqlUnitOfWork(session_factory) as work:
         work.users.add(created, None, google_subject="google-1")
         work.users.add(linked, "hash")
-        work.users.link_google(linked.id, "google-2")
+        unverified = work.users.get_credentials("jane@example.com")
+        assert unverified is not None and not unverified.email_verified
+        work.users.link_google(linked.id, "google-2", NOW)
         work.commit()
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.users.get_by_google_subject("google-1") == created
         assert work.users.get_by_google_subject("google-2") == linked
         assert work.users.get_by_google_subject("google-3") is None
+        for email in ("amina@example.com", "jane@example.com"):
+            credentials = work.users.get_credentials(email)
+            assert credentials is not None and credentials.email_verified
+
+
+def test_a_password_and_every_session_can_be_removed(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, other = make_user(), make_user("amina@example.com")
+    with SqlUnitOfWork(session_factory) as work:
+        work.users.add(user, "hash")
+        work.users.add(other, "hash")
+        work.sessions.add(Session("c" * 64, user.id, NOW + timedelta(days=1)))
+        work.sessions.add(Session("d" * 64, user.id, NOW + timedelta(days=1)))
+        work.sessions.add(Session("e" * 64, other.id, NOW + timedelta(days=1)))
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        work.users.remove_password(user.id)
+        work.sessions.delete_all_for(user.id)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        credentials = work.users.get_credentials("jane@example.com")
+        assert credentials is not None and credentials.password_hash is None
+        assert work.sessions.get_active("c" * 64, NOW) is None
+        assert work.sessions.get_active("d" * 64, NOW) is None
+        assert work.sessions.get_active("e" * 64, NOW) is not None

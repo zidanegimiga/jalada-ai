@@ -6,14 +6,14 @@ import pytest
 from fakes import FakeEvidenceStore, FakeTextReader, FakeUnitOfWork, FixedClock, Store
 from samples import JPEG, MPESA_SENT
 
-from jalada.application.entry_review import EntryReview
-from jalada.application.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Correction, Entry, EntryStatus
-from jalada.domain.evidence import EvidenceSource, EvidenceStatus
-from jalada.pipeline.run_types import Budget
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceSource, EvidenceStatus
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.entries import Correction, Entry, EntryStatus
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.domain.run_types import Budget
+from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
 
 USER = uuid.uuid4()
 OTHER = uuid.uuid4()

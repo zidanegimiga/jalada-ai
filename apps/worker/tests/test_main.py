@@ -6,7 +6,7 @@ from collections.abc import Iterator
 import pytest
 from pydantic import SecretStr
 
-from jalada.config.settings import Settings
+from jalada.core.settings import Settings
 from jalada_worker.main import install_stop_signals, run
 
 

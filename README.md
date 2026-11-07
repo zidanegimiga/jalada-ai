@@ -117,6 +117,8 @@ Free tiers and local models are only for invented data. In production the app re
 
 The API is described for Render in [`render.yaml`](render.yaml), and the web app for Netlify in [`netlify.toml`](netlify.toml). Every production setting, and what it is for, is listed in [`.env.production.example`](.env.production.example), in the same order as the local [`.env.example`](.env.example). Real values live only in the hosts' settings.
 
+The API answers two health checks, neither needing a session. `/health` only says the process is up, and is what Render polls. `/health/ready` also checks that the database and the evidence bucket answer, returning 503 and the name of whatever failed; point uptime monitors at it. Both report the running version.
+
 ### Telegram bot
 
 People can send receipts, PDFs and forwarded M-Pesa messages to a Telegram bot instead of the web app.
@@ -166,6 +168,10 @@ make check
 ```
 
 This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and the web tests, the same as CI. `make test-integration` runs the database tests against Postgres in Docker. `make format` fixes formatting.
+
+The API's contract lives in `apps/api/openapi.json`, and a test fails when the code no longer matches it. After changing the API on purpose, `make openapi` rewrites it and regenerates the web app's types in `apps/web/src/lib/api-types.ts`; CI fails if those are stale.
+
+`make e2e` runs the main journey in a browser with Playwright: sign up, paste an M-Pesa message, wait for the worker to read it, confirm it, find it in the ledger, download the year's workbook and delete the account. It builds a separate copy of the whole stack under its own Docker project, so your local data is untouched, and removes it afterwards. Stop your own stack first (`make down`), because both use the same ports. Running it several times within a minute trips the sign-in rate limit. CI runs the same journey on every pull request.
 
 After changing a table in `apps/api/src/jalada/adapters/database/tables.py`, generate a migration with `make migration name="what changed"`.
 

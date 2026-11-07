@@ -2,12 +2,12 @@ import uuid
 from datetime import date, timedelta
 
 from fakes import FakeUnitOfWork, FixedClock, Store
-from samples import confirmed_entry
+from samples import certificate, confirmed_entry, deposit
 
-from jalada.application.tax_year_export import TaxYearExport
-from jalada.domain.categories import Purpose
-from jalada.domain.dates import kenyan_date
-from jalada.domain.tax_year import TaxYearReport
+from jalada.modules.exports.application.tax_year_export import TaxYearExport
+from jalada.modules.exports.domain.tax_year import TaxYearReport
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.shared.dates import kenyan_date
 
 USER = uuid.uuid4()
 
@@ -46,3 +46,16 @@ def test_the_workbook_covers_every_confirmed_entry_of_the_year(
     assert report.months[0].money_out[Purpose.BUSINESS] == 1_000 * 124
     assert report.generated_on == kenyan_date(clock.now())
     assert export.content_type == "application/test"
+
+
+def test_linked_payments_reach_the_report_even_from_another_year(store: Store) -> None:
+    cert = certificate(USER, date(2026, 1, 10), 4_000_000, 200_000, "CLIENT")
+    december = deposit(USER, date(2025, 12, 28), 3_800_000, "CLIENT")
+    store.entries.update({cert.id: cert, december.id: december})
+    store.certificate_payments[december.id] = (USER, cert.id)
+    export = TaxYearExport(lambda: FakeUnitOfWork(store), RecordingWriter(), FixedClock(), "{id}")
+
+    report = export.report(USER, 2026)
+
+    assert report.certificate_payments == {cert.id: [december]}
+    assert report.paid_in_cents(cert) == 3_800_000

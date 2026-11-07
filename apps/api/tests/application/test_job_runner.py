@@ -1,9 +1,11 @@
+import logging
 from typing import Any
 
+import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store, later
 
-from jalada.application.job_runner import JobRunner
-from jalada.application.ports import Job
+from jalada.core.jobs.ports import Job
+from jalada.core.jobs.runner import JobRunner
 
 
 class Handler:
@@ -78,3 +80,17 @@ def test_a_failing_give_up_does_not_stop_the_runner(store: Store, clock: FixedCl
         clock.current = later(clock, 60)
 
     assert store.queue[1][1] == "failed"
+
+
+def test_a_failure_is_logged_with_the_job_and_its_type_only(
+    store: Store, clock: FixedClock, caplog: pytest.LogCaptureFixture
+) -> None:
+    runner = runner_with(store, clock, Handler(fail_times=1))
+
+    with caplog.at_level(logging.ERROR, logger="jalada.jobs"):
+        runner.run_one()
+
+    [record] = caplog.records
+    assert record.getMessage() == "job failed with ConnectionError, will retry"
+    assert record.exc_info is not None, "the stack goes to the log formatter and error tracking"
+    assert "Ksh" not in record.getMessage()

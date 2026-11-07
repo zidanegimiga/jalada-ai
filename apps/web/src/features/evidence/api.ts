@@ -1,13 +1,6 @@
-export type EvidenceItem = {
-  id: string;
-  source: "web_upload" | "web_paste" | "telegram";
-  kind: string;
-  status: string;
-  content_type: string;
-  size_bytes: number;
-  received_at: string;
-  duplicate: boolean;
-};
+import type { Schema } from "@/lib/api-schema";
+
+export type EvidenceItem = Schema<"EvidenceResponse">;
 
 async function parse(response: Response): Promise<EvidenceItem> {
   const data = await response.json().catch(() => ({}));
@@ -30,4 +23,15 @@ export async function pasteText(text: string): Promise<EvidenceItem> {
       body: JSON.stringify({ text }),
     }),
   );
+}
+
+/** The latest state of one piece of evidence, or null if it could not be read. */
+export async function getEvidence(id: string): Promise<EvidenceItem | null> {
+  const response = await fetch(`/v1/evidence/${encodeURIComponent(id)}`);
+  return response.ok ? ((await response.json()) as EvidenceItem) : null;
+}
+
+/** Evidence the worker has not finished with yet. */
+export function isStillReading(item: EvidenceItem): boolean {
+  return item.status === "received" || item.status === "processing";
 }

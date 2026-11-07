@@ -6,18 +6,18 @@ from uuid import UUID
 
 from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.evidence import FakeEvidence, FakeJobs
-from fakes.ledger import FakeEntries, FakePreferences, FakeRuns
+from fakes.ledger import FakeCertificatePayments, FakeEntries, FakePreferences, FakeRuns
 from fakes.store import Store
-from jalada.application.ports import (
+from jalada.core.jobs.ports import JobQueue
+from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.evidence.application.ports import EvidenceRepository
+from jalada.modules.ledger.application.ports import (
+    CertificatePaymentRepository,
     EntryRepository,
-    EvidenceRepository,
-    JobQueue,
     PreferenceRepository,
-    RunRepository,
-    SessionRepository,
-    TelegramLinks,
-    UserRepository,
 )
+from jalada.modules.pipeline.application.ports import RunRepository
+from jalada.modules.telegram.application.ports import TelegramLinks
 
 
 class FakeUnitOfWork:
@@ -39,6 +39,7 @@ class FakeUnitOfWork:
         self._entries = dict(self._store.entries)
         self._revisions = list(self._store.revisions)
         self._preferences = {user: dict(p) for user, p in self._store.preferences.items()}
+        self._certificate_payments = dict(self._store.certificate_payments)
         self._runs = FakeRuns(list(self._store.runs))
         self.runs: RunRepository = self._runs
         self._telegram = FakeTelegramLinks(
@@ -51,10 +52,13 @@ class FakeUnitOfWork:
         return FakeEvidence(self._evidence, user_id, self._entries)
 
     def entries_for(self, user_id: UUID) -> EntryRepository:
-        return FakeEntries(self._entries, user_id, self._revisions)
+        return FakeEntries(self._entries, user_id, self._revisions, self._certificate_payments)
 
     def preferences_for(self, user_id: UUID) -> PreferenceRepository:
         return FakePreferences(self._preferences.setdefault(user_id, {}))
+
+    def certificate_payments_for(self, user_id: UUID) -> CertificatePaymentRepository:
+        return FakeCertificatePayments(self._certificate_payments, user_id)
 
     def __exit__(
         self,
@@ -77,6 +81,7 @@ class FakeUnitOfWork:
         self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
+        self._store.certificate_payments = self._certificate_payments
         for user_id in self._users.deleted:
             self._cascade(user_id)
 
@@ -89,6 +94,9 @@ class FakeUnitOfWork:
         store.revisions = [(b, a) for b, a in store.revisions if a.user_id != user_id]
         store.runs = [(r, s) for r, s in store.runs if r.user_id != user_id]
         store.preferences.pop(user_id, None)
+        store.certificate_payments = {
+            p: link for p, link in store.certificate_payments.items() if link[0] != user_id
+        }
         store.telegram_links.pop(user_id, None)
         store.telegram_codes = {k: c for k, c in store.telegram_codes.items() if c[0] != user_id}
         store.google_subjects = {k: u for k, u in store.google_subjects.items() if u != user_id}

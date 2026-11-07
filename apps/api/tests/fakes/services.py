@@ -5,11 +5,9 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from jalada.application.errors import GoogleSignInFailed
-from jalada.application.ports import (
-    GoogleProfile,
-)
-from jalada.pipeline.model import ImageInput, ModelReply, ModelUsage
+from jalada.modules.accounts.application.ports import GoogleProfile
+from jalada.modules.pipeline.domain.model import ImageInput, ModelReply, ModelUsage
+from jalada.shared.errors import GoogleSignInFailed
 
 
 class FakeHasher:

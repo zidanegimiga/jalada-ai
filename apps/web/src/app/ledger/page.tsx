@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
 import { buttonVariants } from "@/components/ui/button";
 import { ExportCard } from "@/features/export/components/export-card";
 import { LedgerFilters } from "@/features/ledger/components/ledger-filters";
@@ -48,7 +49,7 @@ export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
       <Suspense>
         <LedgerFilters />
       </Suspense>
-      <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
+      <Suspense fallback={<Spinner />}>
         <Entries query={searchParams as Promise<LedgerQuery>} />
       </Suspense>
     </AppShell>

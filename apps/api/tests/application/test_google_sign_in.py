@@ -1,10 +1,10 @@
 import pytest
 from fakes import FakeGoogle, Store
 
-from jalada.application.authentication import Authenticator
-from jalada.application.errors import GoogleSignInFailed
-from jalada.application.google_sign_in import GoogleAttempt, GoogleSignIn
-from jalada.application.ports import GoogleProfile
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.google_sign_in import GoogleAttempt, GoogleSignIn
+from jalada.modules.accounts.application.ports import GoogleProfile
+from jalada.shared.errors import GoogleSignInFailed, InvalidCredentials, NotSignedIn
 
 PROFILE = GoogleProfile("google-123", "Jane@Example.com", True, "Jane Doe")
 
@@ -37,7 +37,36 @@ def test_google_links_to_an_existing_account_with_the_same_email(
 
     assert issued.user == existing.user
     assert store.google_subjects["google-123"] == existing.user.id
-    assert authenticator.sign_in("jane@example.com", "correct horse battery").user == existing.user
+    assert store.users[existing.user.id].email_verified
+
+
+def test_google_takes_an_unverified_account_away_from_whoever_made_it(
+    authenticator: Authenticator, store: Store
+) -> None:
+    # Someone signs up with Jane's email before she ever uses Jalada, and links their Telegram.
+    squatter = authenticator.sign_up("jane@example.com", "squatter password", "Jane")
+    store.telegram_links[squatter.user.id] = (999, 999)
+
+    issued = authenticator.sign_in_with_google(PROFILE)
+
+    assert issued.password_removed
+    with pytest.raises(InvalidCredentials):
+        authenticator.sign_in("jane@example.com", "squatter password")
+    with pytest.raises(NotSignedIn):
+        authenticator.current_user(squatter.token)
+    assert authenticator.current_user(issued.token) == squatter.user
+    assert squatter.user.id not in store.telegram_links
+
+
+def test_a_verified_account_keeps_its_sessions_when_google_signs_in_again(
+    authenticator: Authenticator,
+) -> None:
+    first = authenticator.sign_in_with_google(PROFILE)
+
+    again = authenticator.sign_in_with_google(PROFILE)
+
+    assert not again.password_removed
+    assert authenticator.current_user(first.token) == first.user
 
 
 def test_an_unverified_google_email_is_refused(authenticator: Authenticator, store: Store) -> None:

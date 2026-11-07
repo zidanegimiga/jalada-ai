@@ -6,10 +6,15 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore
-from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
-from jalada.domain.users import User
+from jalada.modules.accounts.domain.users import User
+from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
+from jalada.modules.evidence.domain.evidence import (
+    Evidence,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceStatus,
+)
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 

@@ -1,8 +1,6 @@
-export type User = {
-  id: string;
-  email: string;
-  display_name: string;
-};
+import type { Schema } from "@/lib/api-schema";
+
+export type User = Schema<"UserResponse">;
 
 export class AuthError extends Error {}
 
@@ -16,13 +14,23 @@ async function post(path: string, body?: unknown): Promise<Response> {
   });
   if (!response.ok) {
     const data = (await response.json().catch(() => ({}))) as ErrorBody;
-    throw new AuthError(data.error?.message ?? "Something went wrong. Try again.");
+    throw new AuthError(
+      data.error?.message ?? "Something went wrong. Try again.",
+    );
   }
   return response;
 }
 
-export async function signUp(email: string, password: string, displayName: string): Promise<User> {
-  const response = await post("/v1/auth/signup", { email, password, display_name: displayName });
+export async function signUp(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<User> {
+  const response = await post("/v1/auth/signup", {
+    email,
+    password,
+    display_name: displayName,
+  });
   return (await response.json()) as User;
 }
 

@@ -3,8 +3,8 @@ import shutil
 import pytest
 from samples import JPEG, make_pdf, make_receipt_photo
 
-from jalada.adapters.text.ocr import OcrText, TesseractOcr
-from jalada.adapters.text.reader import EvidenceTextReader
+from jalada.modules.pipeline.adapters.text.ocr import OcrText, TesseractOcr
+from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
 
 needs_tesseract = pytest.mark.skipif(
     not shutil.which("tesseract"), reason="Tesseract not installed"

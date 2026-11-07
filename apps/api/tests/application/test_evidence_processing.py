@@ -13,13 +13,13 @@ from fakes import (
 )
 from samples import CERTIFICATE, JPEG, MPESA_SENT, PDF
 
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.domain.categories import Purpose
-from jalada.domain.entries import EntryStatus
-from jalada.domain.evidence import EvidenceKind, EvidenceSource, EvidenceStatus
-from jalada.pipeline.classifier import Preference
-from jalada.pipeline.run_types import Budget
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceKind, EvidenceSource, EvidenceStatus
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.entries import EntryStatus
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.domain.classifier import Preference
+from jalada.modules.pipeline.domain.run_types import Budget
 
 USER = uuid.uuid4()
 

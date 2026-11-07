@@ -3,8 +3,8 @@ from datetime import timedelta
 
 from fakes import FakeUnitOfWork, FixedClock, Store
 
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.domain.telegram import CODE_ALPHABET, CODE_LENGTH
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
+from jalada.modules.telegram.domain.telegram import CODE_ALPHABET, CODE_LENGTH
 
 USER = uuid.uuid4()
 

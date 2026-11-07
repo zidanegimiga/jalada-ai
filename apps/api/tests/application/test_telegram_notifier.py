@@ -6,16 +6,16 @@ import pytest
 from fakes import FakeChat, FakeEvidenceStore, FakeTextReader, FakeUnitOfWork, FixedClock, Store
 from samples import JPEG, MPESA_SENT, confirmed_entry
 
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.evidence_processing import EvidenceProcessor
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.application.telegram_notifier import REASONS, TelegramNotifier
-from jalada.domain.categories import Purpose
-from jalada.domain.entries import EntryStatus
-from jalada.domain.evidence import EvidenceKind, EvidenceSource
-from jalada.domain.extraction import Classification, Extraction
-from jalada.pipeline.run_types import Budget
-from jalada.pipeline.verifier import verify
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceKind, EvidenceSource
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.entries import EntryStatus
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.domain.extraction import Classification, Extraction
+from jalada.modules.pipeline.domain.run_types import Budget
+from jalada.modules.pipeline.domain.verifier import verify
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
+from jalada.modules.telegram.application.telegram_notifier import REASONS, TelegramNotifier
 
 USER = uuid.uuid4()
 REVIEW = "https://app.example.com/review"

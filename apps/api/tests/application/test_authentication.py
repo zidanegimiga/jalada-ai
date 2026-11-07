@@ -3,8 +3,8 @@ from datetime import timedelta
 import pytest
 from fakes import FakeHasher, FixedClock, Store
 
-from jalada.application.authentication import Authenticator
-from jalada.application.errors import (
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.shared.errors import (
     EmailAlreadyRegistered,
     InvalidCredentials,
     NotSignedIn,

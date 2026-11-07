@@ -15,7 +15,7 @@ Users have scattered income, many small payments, and often small or basic phone
 ## Architecture
 - **Ports and adapters.** Business logic depends on interfaces (ports), never on vendor libraries. Each vendor sits behind an adapter. Swapping a provider means one new adapter and one configuration change.
 - **Dependency injection.** Each app wires adapters into use cases in one composition root. No global singletons, no clients created inside functions.
-- **Backend layers.** `domain` holds pure rules with no input or output. `application` holds use cases and port interfaces. `adapters` implements ports. `api` holds thin routes that only call use cases.
+- **Feature modules.** The API is split by feature under `jalada/modules/` (accounts, evidence, pipeline, ledger, exports, telegram, health). Each module has the same layers: `domain` holds pure rules with no input or output, `application` holds use cases and the ports they need, `adapters` implements those ports, and `api` holds thin routes and schemas that only call use cases. `jalada/core/` holds infrastructure any module can use, and `jalada/shared/` small helpers; neither imports a module. Modules may use each other's domain and application code, never another module's adapters or tables. Decision 0020 explains the layout and how to add a module.
 - **Configuration** comes from the environment and is validated at startup. No secrets in code, logs or tests.
 
 ## Size and naming
@@ -50,6 +50,6 @@ Users have scattered income, many small payments, and often small or basic phone
 Docs use short, plain sentences. No em dashes and no emojis. Spell out every acronym the first time and say what it means.
 
 ## Where things are
-- `apps/api`: the FastAPI service and the `jalada` package. `apps/worker`: runs pipeline jobs. `apps/web`: the Next.js app.
+- `apps/api`: the FastAPI service and the `jalada` package: `core/`, `shared/`, `modules/`, and at the top the pieces that bring the modules together (`app.py`, `composition.py`, `services.py`, `unit_of_work.py`, `tables.py`). `apps/worker`: runs pipeline jobs. `apps/web`: the Next.js app.
 - `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: notes on Kenyan tax, M-Pesa messages and withholding certificates, to verify rather than treat as tax advice.
 - `evals/`: invented fixtures and the pipeline scoring script. `infra/`: docker compose.

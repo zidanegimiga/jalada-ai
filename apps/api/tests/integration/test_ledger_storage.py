@@ -10,14 +10,19 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.application.ports import PipelineRun
-from jalada.domain.categories import Direction, Purpose
-from jalada.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
-from jalada.domain.ledger import LedgerFilter, LedgerPosition, Total
-from jalada.domain.users import User
-from jalada.pipeline.run_types import StepRecord
+from jalada.modules.accounts.domain.users import User
+from jalada.modules.evidence.domain.evidence import (
+    Evidence,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceStatus,
+)
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
+from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.pipeline.application.ports import PipelineRun
+from jalada.modules.pipeline.domain.run_types import StepRecord
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 

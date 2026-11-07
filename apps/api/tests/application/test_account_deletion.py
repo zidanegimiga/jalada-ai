@@ -4,12 +4,12 @@ import pytest
 from fakes import FakeEvidenceStore, FakeUnitOfWork, Store
 from samples import JPEG, MPESA
 
-from jalada.application.account_deletion import AccountDeletion
-from jalada.application.authentication import Authenticator
-from jalada.application.errors import ConfirmationMismatch
-from jalada.application.evidence_capture import EvidenceCapture
-from jalada.application.telegram_linking import TelegramLinking
-from jalada.domain.evidence import EvidenceSource
+from jalada.modules.accounts.application.account_deletion import AccountDeletion
+from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceSource
+from jalada.modules.telegram.application.telegram_linking import TelegramLinking
+from jalada.shared.errors import ConfirmationMismatch
 
 
 @pytest.fixture

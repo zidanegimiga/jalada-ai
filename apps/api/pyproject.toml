@@ -21,15 +21,18 @@ dependencies = [
     "pydantic-settings>=2.16",
     "pytesseract>=0.3.13",
     "python-multipart>=0.0.33",
+    "sentry-sdk>=2.74.0",
     "sqlalchemy>=2.1",
+    "structlog>=26.1.0",
     "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
-jalada-migrate = "jalada.adapters.database.migrate:main"
-jalada-setup-storage = "jalada.adapters.storage.setup:main"
+jalada-migrate = "jalada.core.database.migrate:main"
+jalada-setup-storage = "jalada.core.storage.setup:main"
 jalada-telegram = "jalada.telegram_cli:main"
 jalada-serve = "jalada.serve:main"
+jalada-openapi = "jalada.contract:main"
 
 [build-system]
 requires = ["uv_build>=0.9,<0.14"]

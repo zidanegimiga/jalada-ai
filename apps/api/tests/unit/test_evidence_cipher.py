@@ -3,7 +3,7 @@ import base64
 import pytest
 from cryptography.exceptions import InvalidTag
 
-from jalada.adapters.security.evidence_cipher import EvidenceCipher
+from jalada.modules.evidence.adapters.cipher import EvidenceCipher
 
 KEY = b"k" * 32
 

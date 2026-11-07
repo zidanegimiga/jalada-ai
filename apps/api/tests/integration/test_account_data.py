@@ -10,16 +10,21 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
-from jalada.adapters.database.tables import Base
-from jalada.adapters.database.unit_of_work import SqlUnitOfWork
-from jalada.adapters.storage.s3_store import EncryptedS3EvidenceStore
-from jalada.application.account_deletion import AccountDeletion
-from jalada.application.ports import PipelineRun
-from jalada.domain.categories import Purpose
-from jalada.domain.evidence import Evidence, EvidenceKind, EvidenceSource, EvidenceStatus
-from jalada.domain.sessions import Session
-from jalada.domain.users import User
-from jalada.pipeline.run_types import StepRecord
+from jalada.core.database.base import Base
+from jalada.modules.accounts.application.account_deletion import AccountDeletion
+from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.accounts.domain.users import User
+from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
+from jalada.modules.evidence.domain.evidence import (
+    Evidence,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceStatus,
+)
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.pipeline.application.ports import PipelineRun
+from jalada.modules.pipeline.domain.run_types import StepRecord
+from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
 

@@ -3,9 +3,13 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
+import { AccountNotice } from "@/features/auth/components/account-notice";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 import { CapturePanel } from "@/features/evidence/components/capture-panel";
+import { isStillReading } from "@/features/evidence/api";
 import { EvidenceList } from "@/features/evidence/components/evidence-list";
+import { RefreshWhileReading } from "@/features/evidence/components/refresh-while-reading";
 import { getRecentEvidence } from "@/features/evidence/server/get-recent-evidence";
 import { MonthCard } from "@/features/ledger/components/month-card";
 import { getMonth } from "@/features/ledger/server/queries";
@@ -58,12 +62,23 @@ async function Telegram() {
 }
 
 async function RecentEvidence() {
-  return <EvidenceList items={await getRecentEvidence()} />;
+  const items = await getRecentEvidence();
+  return (
+    <>
+      <EvidenceList items={items} />
+      <RefreshWhileReading
+        waiting={items.filter(isStillReading).map((item) => item.id)}
+      />
+    </>
+  );
 }
 
 export default function Home() {
   return (
     <AppShell>
+      <Suspense>
+        <AccountNotice />
+      </Suspense>
       <Suspense fallback={<div className="h-40" />}>
         <Overview />
       </Suspense>
@@ -75,9 +90,7 @@ export default function Home() {
         <h2 id="recent-heading" className="text-xl font-bold">
           Recent
         </h2>
-        <Suspense
-          fallback={<p className="text-muted-foreground">Loading...</p>}
-        >
+        <Suspense fallback={<Spinner />}>
           <RecentEvidence />
         </Suspense>
       </section>

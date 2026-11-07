@@ -6,8 +6,8 @@ from typing import Any
 import httpx2
 import pytest
 
-from jalada.adapters.models.ollama import OllamaModel
-from jalada.pipeline.model import ImageInput, ModelFailed
+from jalada.modules.pipeline.adapters.models.ollama import OllamaModel
+from jalada.modules.pipeline.domain.model import ImageInput, ModelFailed
 
 SCHEMA = {"type": "object", "properties": {"amount_ksh": {"type": "string"}}}
 

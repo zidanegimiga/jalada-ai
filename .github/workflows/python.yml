@@ -52,6 +52,8 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
+      - name: Module boundaries (decision 0020)
+        run: uv run lint-imports
       - run: uv run --directory apps/api pytest
       - run: uv run --directory apps/worker pytest
       - name: Pipeline evaluations

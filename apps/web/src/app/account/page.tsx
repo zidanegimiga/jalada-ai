@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
 import { buttonVariants } from "@/components/ui/button";
 import { DeleteAccountForm } from "@/features/account/components/delete-account-form";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { getVersions } from "@/features/account/server/get-versions";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 
 async function Account() {
@@ -56,12 +58,24 @@ async function Account() {
   );
 }
 
+async function Versions() {
+  const { web, api } = await getVersions();
+  return (
+    <p className="text-sm text-muted-foreground">
+      Version: web {web}, API {api}
+    </p>
+  );
+}
+
 export default function AccountPage() {
   return (
     <AppShell>
       <h1 className="text-4xl font-bold">Account</h1>
-      <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
+      <Suspense fallback={<Spinner />}>
         <Account />
+      </Suspense>
+      <Suspense>
+        <Versions />
       </Suspense>
     </AppShell>
   );

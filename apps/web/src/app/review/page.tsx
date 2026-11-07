@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Spinner } from "@/components/ui/spinner";
 import { ReviewCard } from "@/features/review/components/review-card";
 import {
   getCategories,
@@ -36,7 +37,7 @@ export default function ReviewPage() {
   return (
     <AppShell>
       <h1 className="text-4xl font-bold">To check</h1>
-      <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
+      <Suspense fallback={<Spinner />}>
         <ReviewQueue />
       </Suspense>
     </AppShell>
