@@ -1,0 +1,65 @@
+# Models Jalada AI knows how to call. Adding a model is an entry here (or in
+# JALADA_EXTRA_MODELS); using it is adding its name to JALADA_MODEL_CHAIN.
+#
+# provider        the adapter: gemini, ollama or openai_compatible
+# model           the provider's own id
+# account         the JALADA_MODEL_PROVIDERS entry with its key and address (default: provider)
+# vision          can read photos
+# context_tokens  kept cautious: requests here are a few thousand tokens
+# prices          US dollars per million tokens, paid tier, as listed on priced_on.
+#                 Google lists increases from 1 January 2027: check before relying on them.
+
+[[model]]
+name = "gemini-3.5-flash-lite"
+provider = "gemini"
+model = "gemini-3.5-flash-lite"
+vision = true
+context_tokens = 128_000
+timeout_seconds = 30
+input_price = "0.30"
+output_price = "2.50"
+priced_on = "2026-11-07"
+
+[[model]]
+name = "gemini-3.1-flash-lite"
+provider = "gemini"
+model = "gemini-3.1-flash-lite"
+vision = true
+context_tokens = 128_000
+timeout_seconds = 30
+input_price = "0.25"
+output_price = "1.50"
+priced_on = "2026-11-07"
+
+[[model]]
+name = "gemini-3.6-flash"
+provider = "gemini"
+model = "gemini-3.6-flash"
+vision = true
+context_tokens = 128_000
+timeout_seconds = 45
+input_price = "0.75"
+output_price = "3.75"
+priced_on = "2026-11-07"
+
+# A local model through Ollama, for working with invented data at no cost.
+[[model]]
+name = "ollama-qwen2.5vl"
+provider = "ollama"
+model = "qwen2.5vl:3b"
+vision = true
+context_tokens = 32_000
+timeout_seconds = 300
+
+# Any OpenAI-compatible provider works the same way, with no code. For example, with an
+# "openrouter" entry in JALADA_MODEL_PROVIDERS holding its api_key and base_url:
+#
+# [[model]]
+# name = "openrouter-some-model"
+# provider = "openai_compatible"
+# account = "openrouter"
+# model = "vendor/model-id"
+# vision = true
+# context_tokens = 128_000
+# input_price = "0.00"
+# output_price = "0.00"

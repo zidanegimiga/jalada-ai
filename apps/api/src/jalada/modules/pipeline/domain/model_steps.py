@@ -7,7 +7,7 @@ from typing import Any
 from jalada.modules.evidence.domain.evidence import EvidenceKind
 from jalada.modules.ledger.domain.categories import CATEGORIES, Direction, Purpose
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
-from jalada.modules.pipeline.domain.model import ImageInput, LanguageModel, ModelUsage
+from jalada.modules.pipeline.domain.model import ImageInput, LanguageModel, ModelReply
 from jalada.modules.pipeline.domain.prompts import (
     CLASSIFICATION_INSTRUCTIONS,
     EXTRACTION_INSTRUCTIONS,
@@ -26,19 +26,19 @@ def extract_with_model(
     text: str | None,
     image: ImageInput | None,
     feedback: list[str],
-) -> tuple[Extraction | None, float, ModelUsage]:
+) -> tuple[Extraction | None, float, ModelReply]:
     content = f"Evidence text:\n{text[:MAX_TEXT_SENT]}" if text else "The evidence is the photo."
     if feedback:
         content += "\n\nA check found these problems with your last answer: " + "; ".join(feedback)
     reply = model.complete(
         EXTRACTION_INSTRUCTIONS, content, EXTRACTION_SCHEMA, None if text else image
     )
-    return _to_extraction(reply.data), _confidence(reply.data), reply.usage
+    return _to_extraction(reply.data), _confidence(reply.data), reply
 
 
 def classify_with_model(
     model: LanguageModel, extraction: Extraction
-) -> tuple[Classification, ModelUsage]:
+) -> tuple[Classification, ModelReply]:
     direction = extraction.direction or Direction.OUT
     details = {
         "direction": direction,
@@ -51,7 +51,7 @@ def classify_with_model(
         f"Categories:\n{category_list(direction)}\n\nPayment:\n{json.dumps(details, default=str)}"
     )
     reply = model.complete(CLASSIFICATION_INSTRUCTIONS, content, classification_schema(direction))
-    return _to_classification(reply.data, direction), reply.usage
+    return _to_classification(reply.data, direction), reply
 
 
 def _to_extraction(data: dict[str, Any]) -> Extraction | None:

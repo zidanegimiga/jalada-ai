@@ -33,10 +33,14 @@ class ModelReply:
 
     data: dict[str, Any]
     usage: ModelUsage
+    # Which model answered, when several were tried.
+    answered_by: str = ""
+    # Every call made for this answer: {"model", "outcome", "latency_ms"}, failures included.
+    attempts: tuple[dict[str, Any], ...] = ()
 
 
 class ModelFailed(Exception):
-    """The provider could not be reached or returned something that is not JSON."""
+    """No model could give a usable answer: every one failed, was skipped, or was unsuitable."""
 
 
 class LanguageModel(Protocol):

@@ -6,8 +6,9 @@ from typing import Any
 import httpx2
 import pytest
 
+from jalada.core.resilience.failures import FailureKind, ProviderFailure
 from jalada.modules.pipeline.adapters.models.ollama import OllamaModel
-from jalada.modules.pipeline.domain.model import ImageInput, ModelFailed
+from jalada.modules.pipeline.domain.model import ImageInput
 
 SCHEMA = {"type": "object", "properties": {"amount_ksh": {"type": "string"}}}
 
@@ -53,13 +54,16 @@ def test_the_reply_is_read_back_and_costs_nothing() -> None:
 
 
 @pytest.mark.parametrize(
-    ("status", "body"),
+    ("status", "body", "kind"),
     [
-        (404, {"error": "model 'test-vision' not found"}),
-        (200, {"message": {"content": "not json"}}),
-        (200, {"message": {}}),
+        (404, {"error": "model 'test-vision' not found"}, FailureKind.MISCONFIGURED),
+        (500, {"error": "out of memory"}, FailureKind.UNAVAILABLE),
+        (200, {"message": {"content": "not json"}}, FailureKind.BAD_OUTPUT),
+        (200, {"message": {}}, FailureKind.BAD_OUTPUT),
     ],
 )
-def test_failures_become_model_failed(status: int, body: dict[str, Any]) -> None:
-    with pytest.raises(ModelFailed):
+def test_failures_have_a_kind(status: int, body: dict[str, Any], kind: FailureKind) -> None:
+    with pytest.raises(ProviderFailure) as failure:
         model_answering(status, body, []).complete("i", "c", SCHEMA)
+
+    assert failure.value.kind == kind

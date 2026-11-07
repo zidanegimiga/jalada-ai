@@ -8,9 +8,9 @@ from jalada.core.storage.client import create_s3_client
 from jalada.modules.evidence.adapters.cipher import EvidenceCipher
 from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
 from jalada.modules.evidence.application.ports import EvidenceStore
-from jalada.modules.pipeline.adapters.models.gemini import GeminiModel
-from jalada.modules.pipeline.adapters.models.ollama import OllamaModel
-from jalada.modules.pipeline.adapters.models.pricing import Pricing
+from jalada.modules.pipeline.adapters.models.chain import ChainLink, ModelChain
+from jalada.modules.pipeline.adapters.models.profiles import load_accounts, load_catalogue
+from jalada.modules.pipeline.adapters.models.registry import ModelSetupError, build_model
 from jalada.modules.pipeline.domain.model import LanguageModel
 from jalada.modules.pipeline.domain.run_types import Budget
 
@@ -42,13 +42,30 @@ def build_evidence_store(settings: Settings) -> EvidenceStore:
 
 
 def build_language_model(settings: Settings) -> LanguageModel | None:
-    name = settings.resolved_model_name
-    if settings.model_provider == "gemini" and settings.gemini_api_key:
-        pricing = Pricing(settings.model_input_price, settings.model_output_price)
-        return GeminiModel(settings.gemini_api_key.get_secret_value(), name, pricing)
-    if settings.model_provider == "ollama":
-        return OllamaModel(settings.ollama_url, name)
-    return None
+    """The models named in JALADA_MODEL_CHAIN, as one chain that falls back in order.
+
+    None when no model is named. Any setting that cannot work stops startup with a
+    ModelSetupError saying which one.
+    """
+    names = settings.model_chain_names
+    if not names:
+        return None
+    try:
+        catalogue = load_catalogue(settings.extra_models)
+        secret = settings.model_providers.get_secret_value() if settings.model_providers else ""
+        accounts = load_accounts(secret)
+    except (ValueError, TypeError) as error:
+        # The message names the problem only: the providers setting holds API keys.
+        raise ModelSetupError(
+            f"JALADA_MODEL_PROVIDERS or JALADA_EXTRA_MODELS is not valid: {type(error).__name__}"
+        ) from None
+    links = []
+    for name in names:
+        profile = catalogue.get(name)
+        if profile is None:
+            raise ModelSetupError(f"JALADA_MODEL_CHAIN names {name!r}, not in the catalogue")
+        links.append(ChainLink(profile, build_model(profile, accounts)))
+    return ModelChain(links)
 
 
 def build_budget(settings: Settings) -> Budget:

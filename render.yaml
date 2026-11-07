@@ -50,6 +50,12 @@ services:
         sync: false
       - key: JALADA_TELEGRAM_BOT_USERNAME
         sync: false
+      # Optional. Models for evidence the rules cannot read (decision 0021). The app will not
+      # start with a model until JALADA_MODEL_ALLOWED_FOR_REAL_DATA is true (decision 0012).
+      - key: JALADA_MODEL_CHAIN
+        sync: false
+      - key: JALADA_MODEL_PROVIDERS
+        sync: false
       # Optional. Errors go to Sentry once it is set.
       - key: JALADA_SENTRY_DSN
         sync: false

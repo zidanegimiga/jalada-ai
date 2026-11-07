@@ -23,7 +23,7 @@ PAYMENT = Extraction(EvidenceKind.RECEIPT, date(2026, 11, 4), Direction.OUT, 125
 
 
 def test_a_good_reply_becomes_an_extraction_in_cents() -> None:
-    extraction, confidence, usage = extract_with_model(ScriptedModel(GOOD), "text", None, [])
+    extraction, confidence, reply = extract_with_model(ScriptedModel(GOOD), "text", None, [])
 
     assert extraction is not None
     assert extraction.amount_cents == 125000
@@ -32,7 +32,7 @@ def test_a_good_reply_becomes_an_extraction_in_cents() -> None:
     assert extraction.counterparty == "SAMPLE SHOP"
     assert extraction.kind == EvidenceKind.RECEIPT
     assert confidence == 0.92
-    assert usage.tokens == 150
+    assert reply.usage.tokens == 150
 
 
 @pytest.mark.parametrize(
