@@ -6,8 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
-ModelProvider = Literal["none", "gemini", "ollama"]
-DEFAULT_MODELS = {"gemini": "gemini-2.5-flash", "ollama": "qwen2.5vl:3b"}
 
 
 class Settings(BaseSettings):
@@ -40,14 +38,13 @@ class Settings(BaseSettings):
     # Base64 encoded 32-byte keys, comma separated. The first encrypts new evidence.
     # Keep older keys after the first so evidence encrypted with them can still be read.
     evidence_keys: SecretStr
-    # The language model used when rules cannot read or classify evidence.
-    model_provider: ModelProvider = "none"
-    model_name: str | None = None
-    gemini_api_key: SecretStr | None = None
-    ollama_url: str = "http://localhost:11434"
-    # US dollars per million tokens, for the cost recorded on each run. Zero on free tiers.
-    model_input_price: Decimal = Field(default=Decimal(0), ge=0)
-    model_output_price: Decimal = Field(default=Decimal(0), ge=0)
+    # Language models for evidence the rules and OCR cannot read (decision 0021).
+    # Catalogue names, comma separated, in the order to try them. Empty: no model is used.
+    model_chain: str = ""
+    # JSON: how to reach each provider, such as {"gemini": {"api_key": "..."}}.
+    model_providers: SecretStr | None = None
+    # JSON list of extra catalogue entries, for models not in catalogue.toml.
+    extra_models: str = ""
     # Set to true only for a provider whose terms exclude training on the data sent to it.
     model_allowed_for_real_data: bool = False
     # Telegram bot. Switched off unless the token and the bot's username are both set.
@@ -78,9 +75,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def check_model_settings(self) -> Self:
-        if self.model_provider == "gemini" and self.gemini_api_key is None:
-            raise ValueError("JALADA_GEMINI_API_KEY is needed for the gemini provider")
-        uses_model = self.model_provider != "none"
+        uses_model = bool(self.model_chain_names)
         if self.environment == "production" and uses_model and not self.model_allowed_for_real_data:
             raise ValueError(
                 "Real users' evidence may only go to a provider whose terms exclude training on "
@@ -94,8 +89,8 @@ class Settings(BaseSettings):
         return self.environment == "production"
 
     @property
-    def resolved_model_name(self) -> str:
-        return self.model_name or DEFAULT_MODELS.get(self.model_provider, "")
+    def model_chain_names(self) -> list[str]:
+        return [name.strip() for name in self.model_chain.split(",") if name.strip()]
 
 
 def load_settings() -> Settings:

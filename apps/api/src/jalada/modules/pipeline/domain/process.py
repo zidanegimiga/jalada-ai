@@ -9,7 +9,12 @@ from jalada.modules.pipeline.domain.classifier import Preference, classify
 from jalada.modules.pipeline.domain.detector import detect
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
 from jalada.modules.pipeline.domain.extractor import extract_with_rules
-from jalada.modules.pipeline.domain.model import LanguageModel, ModelFailed, ModelUsage
+from jalada.modules.pipeline.domain.model import (
+    LanguageModel,
+    ModelFailed,
+    ModelReply,
+    ModelUsage,
+)
 from jalada.modules.pipeline.domain.model_steps import classify_with_model, extract_with_model
 from jalada.modules.pipeline.domain.run_types import (
     Budget,
@@ -100,23 +105,23 @@ class _Run:
         if model is None:
             return None, "rules" if attempt == 1 else "model", 1.0
         try:
-            extraction, sureness, usage = extract_with_model(
+            extraction, sureness, reply = extract_with_model(
                 model, evidence.text, evidence.image, feedback
             )
-        except ModelFailed:
-            self.record("extract", attempt, {"method": "model"}, {}, "model failed")
+        except ModelFailed as failed:
+            # The summary names models and failure kinds only, never content.
+            given = {"method": "model", "failures": str(failed)}
+            self.record("extract", attempt, given, {}, "model failed")
             return None, "model", 0.0
-        self._spend(usage)
+        self._spend(reply.usage)
         self.record(
             "extract",
             attempt,
             {
                 "method": "model",
-                "model": model.name,
+                **_model_call(model, reply),
                 "photo": evidence.text is None,
                 "feedback": feedback,
-                "input_tokens": usage.input_tokens,
-                "output_tokens": usage.output_tokens,
             },
             {**_fields(extraction), "confidence": sureness},
             "ok" if extraction else "nothing",
@@ -127,12 +132,13 @@ class _Run:
         self, extraction: Extraction, preferences: dict[str, Preference], attempt: int
     ) -> Classification:
         classification = classify(extraction, preferences)
+        call: dict[str, Any] = {}
         if classification.purpose == Purpose.UNSURE and classification.category is None:
-            classification = self._classify_with_model(extraction, classification)
+            classification, call = self._classify_with_model(extraction, classification)
         self.record(
             "classify",
             attempt,
-            {"source": classification.source},
+            {"source": classification.source, **call},
             {
                 "purpose": classification.purpose,
                 "category": classification.category,
@@ -144,16 +150,17 @@ class _Run:
 
     def _classify_with_model(
         self, extraction: Extraction, fallback: Classification
-    ) -> Classification:
+    ) -> tuple[Classification, dict[str, Any]]:
+        """The model's classification, and what to record about the call."""
         model = self._usable_model()
         if model is None:
-            return fallback
+            return fallback, {}
         try:
-            classification, usage = classify_with_model(model, extraction)
-        except ModelFailed:
-            return fallback
-        self._spend(usage)
-        return classification
+            classification, reply = classify_with_model(model, extraction)
+        except ModelFailed as failed:
+            return fallback, {"failures": str(failed)}
+        self._spend(reply.usage)
+        return classification, _model_call(model, reply)
 
     def _usable_model(self) -> LanguageModel | None:
         """The model, if there is one and the budget still allows a call."""
@@ -169,6 +176,16 @@ class _Run:
         duration = int((now - self._clock) * 1000)
         self._clock = now
         self.result.steps.append(StepRecord(step, attempt, given, output, verdict, duration))
+
+
+def _model_call(model: LanguageModel, reply: ModelReply) -> dict[str, Any]:
+    """Which model answered, every attempt including failed ones, and the tokens used."""
+    return {
+        "model": reply.answered_by or model.name,
+        "attempts": list(reply.attempts),
+        "input_tokens": reply.usage.input_tokens,
+        "output_tokens": reply.usage.output_tokens,
+    }
 
 
 def _fields(extraction: Extraction | None) -> dict[str, Any]:

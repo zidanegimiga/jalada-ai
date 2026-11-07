@@ -102,16 +102,18 @@ cp .env.example .env
 
 Fixed formats (M-Pesa messages, withholding certificates) are read with rules. Photos go through Tesseract first. When neither works, a language model reads the evidence, if one is set up. Without one, that evidence simply waits for review.
 
-To use a local model with Ollama (about 3 GB to download):
+Models are chosen in settings, not code (decision 0021). `JALADA_MODEL_CHAIN` lists models from the catalogue in `apps/api/src/jalada/modules/pipeline/adapters/models/catalogue.toml`, in the order to try them; if one fails (rate limit, outage, timeout, an answer that does not match, input too large), the next takes over. `JALADA_MODEL_PROVIDERS` holds each provider's key and address as JSON. Gemini, Ollama and any OpenAI-compatible provider (OpenAI, OpenRouter, Groq and others) are supported; a new model of those kinds is a catalogue entry or a `JALADA_EXTRA_MODELS` entry, with no code.
+
+For Gemini, in `.env`:
 
 ```bash
-make up-ollama
-make ollama-model
+JALADA_MODEL_CHAIN=gemini-3.5-flash-lite,gemini-3.1-flash-lite
+JALADA_MODEL_PROVIDERS={"gemini": {"api_key": "your-key"}}
 ```
 
-Then set `JALADA_MODEL_PROVIDER=ollama` in `.env` and run `make up-ollama` again. For Gemini, set `JALADA_MODEL_PROVIDER=gemini` and `JALADA_GEMINI_API_KEY`.
+To use a local model with Ollama instead (about 3 GB to download), run `make up-ollama` and `make ollama-model`, then set `JALADA_MODEL_CHAIN=ollama-qwen2.5vl` and run `make up-ollama` again.
 
-Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set for a provider whose terms exclude training on what it is sent.
+Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set when every model in the chain is on terms that exclude training on what it is sent.
 
 ### Deploying
 

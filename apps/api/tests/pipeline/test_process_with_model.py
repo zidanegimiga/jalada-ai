@@ -4,6 +4,10 @@ from decimal import Decimal
 from fakes import ScriptedModel
 from samples import CERTIFICATE, MPESA_SENT
 
+from jalada.core.resilience.failures import FailureKind, ProviderFailure
+from jalada.core.resilience.retry import RetryPolicy
+from jalada.modules.pipeline.adapters.models.chain import ChainLink, ModelChain
+from jalada.modules.pipeline.adapters.models.profiles import ModelProfile
 from jalada.modules.pipeline.domain.model import ImageInput, ModelFailed
 from jalada.modules.pipeline.domain.process import run_pipeline
 from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput, PipelineResult
@@ -113,3 +117,45 @@ def test_model_steps_record_tokens_but_not_the_evidence() -> None:
     assert extract.input["model"] == "scripted"
     assert extract.input["input_tokens"] == 100
     assert "jpeg" not in repr(extract.input)
+
+
+def test_the_steps_record_which_model_answered_and_every_fallback() -> None:
+    primary = ScriptedModel(ProviderFailure(FailureKind.UNAVAILABLE), {"wrong": "shape"})
+    backup = ScriptedModel(RECEIPT, STOCK)
+    chain = ModelChain(
+        [link("primary", primary), link("backup", backup)],
+        retry=RetryPolicy(tries=1),
+        sleep=lambda _: None,
+    )
+
+    result = run_pipeline(
+        EvidenceInput(None, "image/jpeg", PHOTO), {}, lambda _: False, TODAY, Budget(), chain
+    )
+
+    extract = next(
+        s for s in result.steps if s.step == "extract" and s.input.get("method") == "model"
+    )
+    assert extract.input["model"] == "backup"
+    assert [(a["model"], a["outcome"]) for a in extract.input["attempts"]] == [
+        ("primary", "unavailable"),
+        ("backup", "ok"),
+    ]
+    classify = next(s for s in result.steps if s.step == "classify")
+    assert classify.input["model"] == "backup"
+
+
+def test_when_no_model_can_answer_the_step_says_why() -> None:
+    down = ScriptedModel(ProviderFailure(FailureKind.MISCONFIGURED))
+    chain = ModelChain([link("only", down)], retry=RetryPolicy(tries=1), sleep=lambda _: None)
+
+    result = run_pipeline(
+        EvidenceInput(None, "image/jpeg", PHOTO), {}, lambda _: False, TODAY, Budget(), chain
+    )
+
+    failed = next(s for s in result.steps if s.verdict == "model failed")
+    assert failed.input["failures"] == "only: misconfigured"
+    assert result.outcome == "needs_review"
+
+
+def link(name: str, model: ScriptedModel) -> ChainLink:
+    return ChainLink(ModelProfile(name=name, provider="test", model=name, vision=True), model)

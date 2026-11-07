@@ -61,6 +61,7 @@ def test_the_production_example_holds_no_real_values() -> None:
     secrets = [
         "JALADA_STORAGE_SECRET_KEY",
         "JALADA_GOOGLE_CLIENT_SECRET",
+        "JALADA_MODEL_PROVIDERS",
         "JALADA_TELEGRAM_BOT_TOKEN",
         "JALADA_EVIDENCE_KEYS",
     ]
