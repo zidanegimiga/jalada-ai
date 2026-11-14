@@ -9,9 +9,15 @@ from samples import JPEG, MPESA_SENT, PDF, certificate, confirmed_entry
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceSource, EvidenceStatus
 from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.domain.audit import AuditAction
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Correction, Entry, EntryStatus
-from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
+from jalada.modules.ledger.domain.transactions import (
+    EvidenceRole,
+    TransactionStatus,
+    as_entry,
+    from_entry,
+)
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.domain.run_types import Budget
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
@@ -49,7 +55,7 @@ def test_an_entry_without_a_category_cannot_be_confirmed_as_is(
         review.confirm(USER, processed.id)
 
 
-def test_correcting_confirms_learns_and_keeps_a_revision(
+def test_correcting_confirms_learns_and_keeps_the_history(
     review: EntryReview, processed: Entry, store: Store
 ) -> None:
     confirmed = review.confirm(
@@ -61,7 +67,10 @@ def test_correcting_confirms_learns_and_keeps_a_revision(
     assert confirmed.purpose == Purpose.PERSONAL
     assert confirmed.confirmed_at is not None
     assert store.evidence[processed.evidence_id].status == EvidenceStatus.CONFIRMED
-    assert store.revisions == [(processed, confirmed)]
+    assert as_entry(store.transactions[processed.id]) == confirmed
+    [_, corrected] = store.audit_events
+    assert corrected.action == AuditAction.CORRECTED
+    assert corrected.after is not None and corrected.after["amount_cents"] == 16000
     learned = store.preferences[USER]["jane wanjiku"]
     assert (learned.category, learned.times_used) == ("personal_family_support", 1)
     assert review.queue(USER) == []
@@ -87,7 +96,10 @@ def test_confirming_twice_without_changes_does_nothing_more(
 
     review.confirm(USER, processed.id)
 
-    assert len(store.revisions) == 1
+    assert [e.action for e in store.audit_events] == [
+        AuditAction.PROPOSED,
+        AuditAction.CORRECTED,
+    ]
 
 
 @pytest.mark.parametrize(
@@ -140,14 +152,14 @@ def test_typing_in_needs_the_evidence_to_be_mine(review: EntryReview) -> None:
         review.enter_by_hand(USER, uuid.uuid4(), Correction(category="personal_food"))
 
 
-def test_not_a_transaction_rejects_the_entry_and_keeps_a_revision(
+def test_not_a_transaction_rejects_the_payment_and_keeps_the_history(
     review: EntryReview, processed: Entry, store: Store
 ) -> None:
     review.mark_not_a_transaction(USER, processed.evidence_id)
 
-    rejected = store.entries[processed.id]
-    assert rejected.status == EntryStatus.REJECTED
-    assert store.revisions == [(processed, rejected)]
+    rejected = store.transactions[processed.id]
+    assert rejected.status == TransactionStatus.REJECTED
+    assert store.audit_events[-1].action == AuditAction.REJECTED
     assert store.evidence[processed.evidence_id].status == EvidenceStatus.NOT_A_TRANSACTION
     assert USER not in store.preferences
     assert review.queue(USER) == []

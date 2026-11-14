@@ -42,6 +42,15 @@ class SqlTransactions:
         found = self._load(self._mine().where(TransactionRow.id == transaction_id))
         return found[0] if found else None
 
+    def for_evidence(self, evidence_id: UUID) -> Transaction | None:
+        linked = select(TransactionEvidenceRow.transaction_id).where(
+            TransactionEvidenceRow.user_id == self._user_id,
+            TransactionEvidenceRow.evidence_id == evidence_id,
+        )
+        query = self._mine().where(TransactionRow.id.in_(linked))
+        found = self._load(query.order_by(TransactionRow.created_at).limit(1))
+        return found[0] if found else None
+
     def pending(self, limit: int) -> list[Transaction]:
         waiting = [TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW]
         query = self._mine().where(TransactionRow.status.in_(waiting))

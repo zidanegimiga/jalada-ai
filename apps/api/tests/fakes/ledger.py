@@ -186,6 +186,14 @@ class FakeTransactions:
         found = self.rows.get(transaction_id)
         return found if found and found.user_id == self._user_id else None
 
+    def for_evidence(self, evidence_id: UUID) -> Transaction | None:
+        linked = [
+            t
+            for t in self.rows.values()
+            if t.user_id == self._user_id and evidence_id in {e.evidence_id for e in t.evidence}
+        ]
+        return min(linked, key=lambda t: t.created_at) if linked else None
+
     def pending(self, limit: int) -> list[Transaction]:
         waiting = (TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW)
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]

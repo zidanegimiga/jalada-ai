@@ -1,14 +1,12 @@
-import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from uuid import UUID
 
 from jalada.core.ports import Clock
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceStatus
-from jalada.modules.ledger.application import history
-from jalada.modules.ledger.application.transaction_mirror import mirror_entry
+from jalada.modules.ledger.application import history, payment_review
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
-from jalada.modules.ledger.domain.categories import CATEGORIES, Purpose
+from jalada.modules.ledger.domain.categories import CATEGORIES
 from jalada.modules.ledger.domain.entries import (
     Correction,
     Entry,
@@ -17,7 +15,7 @@ from jalada.modules.ledger.domain.entries import (
     counterparty_key,
     missing_fields,
 )
-from jalada.modules.ledger.domain.transactions import as_entry
+from jalada.modules.ledger.domain.transactions import TransactionStatus, as_entry
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
 from jalada.unit_of_work import UnitOfWork
 
@@ -54,79 +52,76 @@ class EntryReview:
 
     def confirm(self, user_id: UUID, entry_id: UUID, correction: Correction | None = None) -> Entry:
         with self._unit_of_work() as work:
-            entry = work.entries_for(user_id).get(entry_id)
-            if entry is None:
-                raise EntryNotFound
-            if entry.status == EntryStatus.CONFIRMED and correction is None:
-                return entry
-            confirmed = self._confirmed(_corrected(entry, correction or Correction()))
-            work.entries_for(user_id).update(confirmed)
-            mirrored = mirror_entry(work, confirmed)
-            work.entries_for(user_id).add_revision(entry, confirmed, self._clock.now())
-            changed = correction is not None and any(vars(correction).values())
-            action = AuditAction.CORRECTED if changed else AuditAction.CONFIRMED
-            history.record(work, entry, confirmed, mirrored, Actor.USER, action, self._clock.now())
-            self._learn(work, user_id, confirmed)
-            work.evidence_for(user_id).set_status(entry.evidence_id, EvidenceStatus.CONFIRMED)
+            payment = work.transactions_for(user_id).get(entry_id)
+            if payment is not None:
+                if payment.status == TransactionStatus.CONFIRMED and correction is None:
+                    return as_entry(payment)
+                done = payment_review.confirm(
+                    work, payment, correction or Correction(), self._clock.now()
+                )
+                work.commit()
+                return as_entry(done)
+            confirmed = self._confirm_certificate(work, user_id, entry_id, correction)
             work.commit()
         return confirmed
 
     def enter_by_hand(self, user_id: UUID, evidence_id: UUID, values: Correction) -> Entry:
-        """For evidence nothing could read: the user types the entry in."""
+        """For evidence nothing could read: the user types the payment in."""
         with self._unit_of_work() as work:
-            if work.evidence_for(user_id).get(evidence_id) is None:
+            evidence = work.evidence_for(user_id).get(evidence_id)
+            if evidence is None:
                 raise EvidenceNotFound
-            if work.entries_for(user_id).for_evidence(evidence_id):
+            if work.transactions_for(user_id).for_evidence(evidence_id) or work.entries_for(
+                user_id
+            ).for_evidence(evidence_id):
                 raise InvalidEntry("This evidence already has an entry.")
-            blank = Entry(
-                uuid.uuid4(),
-                user_id,
-                evidence_id,
-                None,
-                EntryKind.TRANSACTION,
-                EntryStatus.NEEDS_REVIEW,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Purpose.UNSURE,
-                None,
-                1.0,
-                self._clock.now(),
-            )
-            entry = self._confirmed(_corrected(blank, values))
-            work.entries_for(user_id).add(entry)
-            mirrored = mirror_entry(work, entry)
-            now = self._clock.now()
-            history.record(work, None, entry, mirrored, Actor.USER, AuditAction.ENTERED, now)
-            self._learn(work, user_id, entry)
-            work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.CONFIRMED)
+            payment = payment_review.enter(work, evidence, values, self._clock.now())
             work.commit()
-        return entry
+        return as_entry(payment)
 
     def mark_not_a_transaction(self, user_id: UUID, evidence_id: UUID) -> None:
-        """The evidence leaves the review queue. Its entry, if any, is kept as rejected."""
+        """The evidence leaves the review queue. Its payment or certificate, if any, is kept
+        as rejected."""
         with self._unit_of_work() as work:
             if work.evidence_for(user_id).get(evidence_id) is None:
                 raise EvidenceNotFound
-            entry = work.entries_for(user_id).for_evidence(evidence_id)
-            if entry and entry.status == EntryStatus.CONFIRMED:
-                raise InvalidEntry("This is already in your ledger.")
-            if entry and entry.status != EntryStatus.REJECTED:
-                rejected = replace(entry, status=EntryStatus.REJECTED)
-                work.entries_for(user_id).update(rejected)
-                mirrored = mirror_entry(work, rejected)
-                now = self._clock.now()
-                work.entries_for(user_id).add_revision(entry, rejected, now)
-                history.record(
-                    work, entry, rejected, mirrored, Actor.USER, AuditAction.REJECTED, now
-                )
+            payment = work.transactions_for(user_id).for_evidence(evidence_id)
+            if payment is not None:
+                payment_review.reject(work, payment, self._clock.now())
+            else:
+                self._reject_certificate(work, user_id, evidence_id)
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.NOT_A_TRANSACTION)
             work.commit()
+
+    def _confirm_certificate(
+        self, work: UnitOfWork, user_id: UUID, entry_id: UUID, correction: Correction | None
+    ) -> Entry:
+        entry = work.entries_for(user_id).get(entry_id)
+        if entry is None:
+            raise EntryNotFound
+        if entry.status == EntryStatus.CONFIRMED and correction is None:
+            return entry
+        confirmed = self._confirmed(_corrected(entry, correction or Correction()))
+        now = self._clock.now()
+        work.entries_for(user_id).update(confirmed)
+        work.entries_for(user_id).add_revision(entry, confirmed, now)
+        changed = correction is not None and any(vars(correction).values())
+        action = AuditAction.CORRECTED if changed else AuditAction.CONFIRMED
+        history.record_entry(work, entry, confirmed, Actor.USER, action, now)
+        self._learn(work, user_id, confirmed)
+        work.evidence_for(user_id).set_status(entry.evidence_id, EvidenceStatus.CONFIRMED)
+        return confirmed
+
+    def _reject_certificate(self, work: UnitOfWork, user_id: UUID, evidence_id: UUID) -> None:
+        entry = work.entries_for(user_id).for_evidence(evidence_id)
+        if entry and entry.status == EntryStatus.CONFIRMED:
+            raise InvalidEntry("This is already in your ledger.")
+        if entry and entry.status != EntryStatus.REJECTED:
+            rejected = replace(entry, status=EntryStatus.REJECTED)
+            now = self._clock.now()
+            work.entries_for(user_id).update(rejected)
+            work.entries_for(user_id).add_revision(entry, rejected, now)
+            history.record_entry(work, entry, rejected, Actor.USER, AuditAction.REJECTED, now)
 
     def _confirmed(self, entry: Entry) -> Entry:
         missing = missing_fields(entry)

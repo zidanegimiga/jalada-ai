@@ -2,11 +2,10 @@
 design 03, "Moving from entries". This goes once nothing reads entries."""
 
 from dataclasses import replace
-from uuid import UUID
 
 from jalada.modules.evidence.domain.evidence import EvidenceKind
+from jalada.modules.ledger.application.evidence_accounts import account_for
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
-from jalada.modules.ledger.domain.money_accounts import MoneyAccountKind
 from jalada.modules.ledger.domain.transactions import (
     EvidenceRole,
     Transaction,
@@ -34,12 +33,7 @@ def mirror_entry(work: UnitOfWork, entry: Entry) -> Mirrored:
         return existing, updated
     evidence = work.evidence_for(entry.user_id).get(entry.evidence_id)
     kind = evidence.kind if evidence else EvidenceKind.UNKNOWN
-    account_id = _mpesa_account(work, entry.user_id) if kind == EvidenceKind.MPESA_MESSAGE else None
+    account_id = account_for(work, entry.user_id, kind)
     created = from_entry(entry, account_id, role_for(kind))
     transactions.add(created)
     return None, created
-
-
-def _mpesa_account(work: UnitOfWork, user_id: UUID) -> UUID | None:
-    accounts = work.money_accounts_for(user_id).all()
-    return next((a.id for a in accounts if a.kind == MoneyAccountKind.MPESA), None)
