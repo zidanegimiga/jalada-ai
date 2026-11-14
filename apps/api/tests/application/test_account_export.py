@@ -69,6 +69,7 @@ def test_the_archive_holds_every_kind_of_data(
         "preferences.json",
         "certificate_payments.json",
         "money_accounts.json",
+        "transactions.json",
     } <= names
     account = json.loads(archive.read("account.json"))
     assert account["email"] == "jane@example.com" and account["telegram_linked"] is False
@@ -81,6 +82,12 @@ def test_the_archive_holds_every_kind_of_data(
     assert json.loads(archive.read("certificate_payments.json")) == [
         {"payment_entry_id": str(entry_id), "certificate_entry_id": str(certificate_id)}
     ]
+    [transaction] = json.loads(archive.read("transactions.json"))
+    assert transaction["id"] == entry["id"] and transaction["status"] == "confirmed"
+    assert transaction["lines"] == [
+        {"amount_cents": 15000, "category": "personal_family_support", "purpose": "personal"}
+    ]
+    assert transaction["evidence"][0]["role"] == "payment_proof"
     accounts = json.loads(archive.read("money_accounts.json"))
     assert sorted((a["kind"], a["name"]) for a in accounts) == [
         ("cash", "Cash"),

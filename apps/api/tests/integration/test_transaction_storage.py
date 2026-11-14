@@ -119,3 +119,17 @@ def test_only_proposed_and_doubtful_transactions_are_pending(
     with SqlUnitOfWork(session_factory) as work:
         assert work.transactions_for(waiting.user_id).pending(10) == [waiting]
         assert work.transactions_for(uuid.uuid4()).pending(10) == []
+
+
+def test_all_lists_every_transaction_of_one_user(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    first = saved(session_factory)
+    later = replace(first, id=uuid.uuid4(), payment_code=None, created_at=NOW, evidence=())
+    saved(session_factory, "UK5AB1CD77")  # someone else's
+    with SqlUnitOfWork(session_factory) as work:
+        work.transactions_for(first.user_id).add(later)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.transactions_for(first.user_id).all() == [first, later]

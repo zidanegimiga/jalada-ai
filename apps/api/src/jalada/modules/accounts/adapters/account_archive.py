@@ -25,6 +25,7 @@ pipeline_runs.json    how each piece of evidence was read, step by step
 preferences.json      the categories you chose for people and businesses you pay
 certificate_payments.json  payments you linked to withholding certificates, by entry id
 money_accounts.json   where your money sits: M-Pesa, cash, banks and cards
+transactions.json     money that moved, each with its lines and the evidence about it
 
 Amounts are in cents: 125000 means KSh 1,250.00.
 """
@@ -76,6 +77,7 @@ class ZipAccountArchive:
                 ),
             )
             archive.writestr("money_accounts.json", _json([asdict(a) for a in data.money_accounts]))
+            archive.writestr("transactions.json", _json([asdict(t) for t in data.transactions]))
             for item, content in originals:
                 archive.writestr(file_name(item), content)
 

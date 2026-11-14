@@ -84,6 +84,10 @@ class TransactionRepository(Protocol):
         """Newest first, by date and then id, starting after `after`."""
         ...
 
+    def all(self) -> list[Transaction]:
+        """Every transaction, oldest first, for the data download."""
+        ...
+
     def monthly_totals(self, year: int) -> list[Total]:
         """Confirmed lines per month, direction and purpose. Payments linked to a
         certificate are left out: the certificate's gross amount counts them."""

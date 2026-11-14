@@ -219,6 +219,10 @@ class FakeTransactions:
             ]
         return found[:limit]
 
+    def all(self) -> list[Transaction]:
+        mine = [t for t in self.rows.values() if t.user_id == self._user_id]
+        return sorted(mine, key=lambda t: (t.created_at, t.id))
+
     def monthly_totals(self, year: int) -> list[Total]:
         sums: dict[tuple[int, Direction, Purpose], int] = {}
         for t in self.rows.values():

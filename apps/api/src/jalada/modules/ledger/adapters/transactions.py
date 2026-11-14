@@ -61,6 +61,9 @@ class SqlTransactions:
         order = (TransactionRow.occurred_on.desc(), TransactionRow.id.desc())
         return self._load(query.order_by(*order).limit(limit))
 
+    def all(self) -> list[Transaction]:
+        return self._load(self._mine().order_by(TransactionRow.created_at, TransactionRow.id))
+
     def monthly_totals(self, year: int) -> list[Total]:
         month = extract("month", TransactionRow.occurred_on)
         line = TransactionLineRow
