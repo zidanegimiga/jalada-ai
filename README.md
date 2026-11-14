@@ -108,7 +108,7 @@ For Gemini, in `.env`:
 
 ```bash
 JALADA_MODEL_CHAIN=gemini-3.5-flash-lite,gemini-3.1-flash-lite
-JALADA_MODEL_PROVIDERS={"gemini": {"api_key": "your-key"}}
+JALADA_MODEL_PROVIDERS='{"gemini": {"api_key": "your-key"}}'
 ```
 
 To use a local model, install [Ollama](https://ollama.com) on your computer and run `ollama pull qwen2.5vl:3b` (about 3 GB). It runs outside Docker because on a Mac only the native app can use the graphics chip. Add `ollama-qwen2.5vl` to `JALADA_MODEL_CHAIN` and an `ollama` entry to `JALADA_MODEL_PROVIDERS`: `{"ollama": {"base_url": "http://host.docker.internal:11434"}}` when the API runs in compose (`make up`), or `http://localhost:11434` when it runs with `uv run`. Local models never run in production.
