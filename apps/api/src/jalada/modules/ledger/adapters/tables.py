@@ -188,6 +188,8 @@ class TransactionEvidenceRow(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
+    # The order links were added in. The first is the evidence the transaction came from.
+    seq: Mapped[int] = mapped_column(BigInteger, Identity(always=True))
     role: Mapped[str] = mapped_column(String(20))
     linked_by: Mapped[str] = mapped_column(String(10))
     linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
