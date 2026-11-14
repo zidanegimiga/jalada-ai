@@ -15,8 +15,9 @@ x-backend-environment: &backend-environment
   # A fixed key for local data only. Production keys come from the host's secret settings.
   JALADA_EVIDENCE_KEYS: ${JALADA_EVIDENCE_KEYS:-bG9jYWwtZGV2ZWxvcG1lbnQta2V5LTMyLWJ5dGVzISE=}
   JALADA_MODEL_CHAIN: ${JALADA_MODEL_CHAIN:-}
-  # Inside compose, Ollama is reached by its service name.
-  JALADA_MODEL_PROVIDERS: ${JALADA_MODEL_PROVIDERS:-{"ollama":{"base_url":"http://ollama:11434"}}}
+  # Ollama runs on the computer itself, not in compose: on a Mac only the native app can
+  # use the graphics chip. Containers reach it at host.docker.internal.
+  JALADA_MODEL_PROVIDERS: ${JALADA_MODEL_PROVIDERS:-{"ollama":{"base_url":"http://host.docker.internal:11434"}}}
   JALADA_EXTRA_MODELS: ${JALADA_EXTRA_MODELS:-}
   JALADA_TELEGRAM_BOT_TOKEN: ${JALADA_TELEGRAM_BOT_TOKEN:-}
   JALADA_TELEGRAM_BOT_USERNAME: ${JALADA_TELEGRAM_BOT_USERNAME:-}
@@ -59,6 +60,8 @@ services:
       dockerfile: apps/api/Dockerfile
     command: ["sh", "-c", "jalada-migrate && jalada-setup-storage"]
     environment: *backend-environment
+    # Docker Desktop provides this name already; Linux needs it mapped.
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,6 +73,8 @@ services:
       context: ..
       dockerfile: apps/api/Dockerfile
     environment: *backend-environment
+    # Docker Desktop provides this name already; Linux needs it mapped.
+    extra_hosts: ["host.docker.internal:host-gateway"]
     ports:
       - "8000:8000"
     healthcheck:
@@ -86,6 +91,8 @@ services:
       context: ..
       dockerfile: apps/worker/Dockerfile
     environment: *backend-environment
+    # Docker Desktop provides this name already; Linux needs it mapped.
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -111,20 +118,12 @@ services:
     profiles: ["telegram"]
     command: ["jalada-telegram", "poll"]
     environment: *backend-environment
+    # Docker Desktop provides this name already; Linux needs it mapped.
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       migrate:
         condition: service_completed_successfully
 
-  # Optional local language model: make up-ollama, then make ollama-model.
-  ollama:
-    image: ollama/ollama:0.40.14
-    profiles: ["ollama"]
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-
 volumes:
   postgres-data:
   storage-data:
-  ollama-data:
