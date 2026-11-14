@@ -5,7 +5,9 @@ from uuid import UUID
 
 from jalada.core.ports import Clock
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceStatus
+from jalada.modules.ledger.application import history
 from jalada.modules.ledger.application.transaction_mirror import mirror_entry
+from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.categories import CATEGORIES, Purpose
 from jalada.modules.ledger.domain.entries import (
     Correction,
@@ -59,8 +61,11 @@ class EntryReview:
                 return entry
             confirmed = self._confirmed(_corrected(entry, correction or Correction()))
             work.entries_for(user_id).update(confirmed)
-            mirror_entry(work, confirmed)
+            mirrored = mirror_entry(work, confirmed)
             work.entries_for(user_id).add_revision(entry, confirmed, self._clock.now())
+            changed = correction is not None and any(vars(correction).values())
+            action = AuditAction.CORRECTED if changed else AuditAction.CONFIRMED
+            history.record(work, entry, confirmed, mirrored, Actor.USER, action, self._clock.now())
             self._learn(work, user_id, confirmed)
             work.evidence_for(user_id).set_status(entry.evidence_id, EvidenceStatus.CONFIRMED)
             work.commit()
@@ -95,7 +100,9 @@ class EntryReview:
             )
             entry = self._confirmed(_corrected(blank, values))
             work.entries_for(user_id).add(entry)
-            mirror_entry(work, entry)
+            mirrored = mirror_entry(work, entry)
+            now = self._clock.now()
+            history.record(work, None, entry, mirrored, Actor.USER, AuditAction.ENTERED, now)
             self._learn(work, user_id, entry)
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.CONFIRMED)
             work.commit()
@@ -112,8 +119,12 @@ class EntryReview:
             if entry and entry.status != EntryStatus.REJECTED:
                 rejected = replace(entry, status=EntryStatus.REJECTED)
                 work.entries_for(user_id).update(rejected)
-                mirror_entry(work, rejected)
-                work.entries_for(user_id).add_revision(entry, rejected, self._clock.now())
+                mirrored = mirror_entry(work, rejected)
+                now = self._clock.now()
+                work.entries_for(user_id).add_revision(entry, rejected, now)
+                history.record(
+                    work, entry, rejected, mirrored, Actor.USER, AuditAction.REJECTED, now
+                )
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.NOT_A_TRANSACTION)
             work.commit()
 

@@ -7,27 +7,37 @@ from uuid import UUID
 from jalada.modules.evidence.domain.evidence import EvidenceKind
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.money_accounts import MoneyAccountKind
-from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry, role_for
+from jalada.modules.ledger.domain.transactions import (
+    EvidenceRole,
+    Transaction,
+    from_entry,
+    role_for,
+)
 from jalada.unit_of_work import UnitOfWork
 
+Mirrored = tuple[Transaction | None, Transaction | None]
 
-def mirror_entry(work: UnitOfWork, entry: Entry) -> None:
-    """Saves the transaction an entry stands for, in the same database transaction.
-    Certificates are not transactions and are left alone."""
+
+def mirror_entry(work: UnitOfWork, entry: Entry) -> Mirrored:
+    """Saves the transaction an entry stands for, in the same database transaction, and
+    returns it before and after. Certificates are not transactions and are left alone."""
     if entry.kind != EntryKind.TRANSACTION:
-        return
+        return None, None
     transactions = work.transactions_for(entry.user_id)
     existing = transactions.get(entry.id)
     if existing:
         # The account and the evidence links are the transaction's own: an entry knows
         # neither, so they are kept as they are.
         updated = from_entry(entry, existing.account_id, EvidenceRole.OTHER)
-        transactions.update(replace(updated, evidence=existing.evidence))
-        return
+        updated = replace(updated, evidence=existing.evidence)
+        transactions.update(updated)
+        return existing, updated
     evidence = work.evidence_for(entry.user_id).get(entry.evidence_id)
     kind = evidence.kind if evidence else EvidenceKind.UNKNOWN
     account_id = _mpesa_account(work, entry.user_id) if kind == EvidenceKind.MPESA_MESSAGE else None
-    transactions.add(from_entry(entry, account_id, role_for(kind)))
+    created = from_entry(entry, account_id, role_for(kind))
+    transactions.add(created)
+    return None, created
 
 
 def _mpesa_account(work: UnitOfWork, user_id: UUID) -> UUID | None:
