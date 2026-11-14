@@ -71,10 +71,16 @@ class SqlEntryRepository:
         return [_to_entry(row) for row in self._db.scalars(query)]
 
     def confirmed(
-        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+        self,
+        filters: LedgerFilter,
+        after: LedgerPosition | None,
+        limit: int,
+        kind: EntryKind | None = None,
     ) -> list[Entry]:
         query = self._mine().where(EntryRow.status == EntryStatus.CONFIRMED)
         query = query.where(*_conditions(filters))
+        if kind:
+            query = query.where(EntryRow.kind == kind)
         if after:
             # Keyset paging: everything strictly older than where the last page ended.
             query = query.where(

@@ -1,7 +1,7 @@
 from dataclasses import asdict
 from uuid import UUID
 
-from sqlalchemy import Select, delete, select, update
+from sqlalchemy import Select, and_, delete, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session as DbSession
 
@@ -11,6 +11,7 @@ from jalada.modules.ledger.adapters.tables import (
     TransactionLineRow,
     TransactionRow,
 )
+from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition
 from jalada.modules.ledger.domain.transactions import Transaction, TransactionStatus
 
 PARTS = ("lines", "evidence")
@@ -38,6 +39,25 @@ class SqlTransactions:
         waiting = [TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW]
         query = self._mine().where(TransactionRow.status.in_(waiting))
         return self._load(query.order_by(TransactionRow.created_at).limit(limit))
+
+    def confirmed(
+        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+    ) -> list[Transaction]:
+        query = self._mine().where(TransactionRow.status == TransactionStatus.CONFIRMED)
+        query = query.where(*transaction_rows.conditions(filters))
+        if after:
+            # Keyset paging: everything strictly older than where the last page ended.
+            query = query.where(
+                or_(
+                    TransactionRow.occurred_on < after.occurred_on,
+                    and_(
+                        TransactionRow.occurred_on == after.occurred_on,
+                        TransactionRow.id < after.entry_id,
+                    ),
+                )
+            )
+        order = (TransactionRow.occurred_on.desc(), TransactionRow.id.desc())
+        return self._load(query.order_by(*order).limit(limit))
 
     def update(self, transaction: Transaction) -> None:
         self._check_owner(transaction)

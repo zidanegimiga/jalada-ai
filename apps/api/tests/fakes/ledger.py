@@ -52,10 +52,16 @@ class FakeEntries:
         return found[:limit]
 
     def confirmed(
-        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+        self,
+        filters: LedgerFilter,
+        after: LedgerPosition | None,
+        limit: int,
+        kind: EntryKind | None = None,
     ) -> list[Entry]:
         found = [
-            e for e in self._mine() if e.status == EntryStatus.CONFIRMED and _keeps(filters, e)
+            e
+            for e in self._mine()
+            if e.status == EntryStatus.CONFIRMED and _keeps(filters, e) and kind in (None, e.kind)
         ]
         found.sort(key=lambda e: (e.occurred_on, e.id), reverse=True)
         if after:
@@ -118,6 +124,21 @@ def _keeps(filters: LedgerFilter, entry: Entry) -> bool:
     )
 
 
+def _keeps_transaction(filters: LedgerFilter, t: Transaction) -> bool:
+    day = t.occurred_on
+    if (filters.start and (day is None or day < filters.start)) or (
+        filters.end and (day is None or day > filters.end)
+    ):
+        return False
+    if filters.direction and t.direction != filters.direction:
+        return False
+    return any(
+        (not filters.purpose or line.purpose == filters.purpose)
+        and (not filters.category or line.category == filters.category)
+        for line in t.lines
+    )
+
+
 class FakeCertificatePayments:
     def __init__(self, rows: dict[UUID, tuple[UUID, UUID]], user_id: UUID) -> None:
         # Payment id to (user id, certificate id).
@@ -173,6 +194,23 @@ class FakeTransactions:
         waiting = (TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW)
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         found = sorted((t for t in mine if t.status in waiting), key=lambda t: t.created_at)
+        return found[:limit]
+
+    def confirmed(
+        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+    ) -> list[Transaction]:
+        found = [
+            t
+            for t in self.rows.values()
+            if t.user_id == self._user_id
+            and t.status == TransactionStatus.CONFIRMED
+            and _keeps_transaction(filters, t)
+        ]
+        found.sort(key=lambda t: (t.occurred_on, t.id), reverse=True)
+        if after:
+            found = [
+                t for t in found if (t.occurred_on, t.id) < (after.occurred_on, after.entry_id)
+            ]
         return found[:limit]
 
     def update(self, transaction: Transaction) -> None:

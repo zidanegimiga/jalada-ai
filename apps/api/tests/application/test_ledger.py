@@ -10,6 +10,7 @@ from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 
 USER = uuid.uuid4()
 
@@ -24,7 +25,7 @@ def ledger(store: Store) -> Ledger:
         confirmed_entry(USER, date(2025, 12, 30), 99_000, "out", "personal_food"),
         confirmed_entry(uuid.uuid4(), date(2026, 1, 5), 1_000, "out", "personal_food"),
     ]
-    store.entries = {e.id: e for e in entries}
+    store.save_entries(*entries)
     return Ledger(lambda: FakeUnitOfWork(store))
 
 
@@ -53,7 +54,7 @@ def test_filters_narrow_the_ledger(ledger: Ledger) -> None:
 
 def test_entries_waiting_for_review_stay_out_of_the_ledger(ledger: Ledger, store: Store) -> None:
     waiting = confirmed_entry(USER, date(2026, 1, 6), 1_000, "out", "personal_food")
-    store.entries[waiting.id] = replace(waiting, status=EntryStatus.PROPOSED)
+    store.save_entries(replace(waiting, status=EntryStatus.PROPOSED))
 
     assert waiting.id not in {e.id for e in ledger.page(USER, LedgerFilter()).entries}
 
@@ -63,7 +64,7 @@ def test_a_payment_linked_to_a_certificate_is_left_out_of_the_month(
 ) -> None:
     cert = certificate(USER, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
     paid = deposit(USER, date(2026, 3, 5), 3_800_000, "CLIENT")
-    store.entries.update({cert.id: cert, paid.id: paid})
+    store.save_entries(cert, paid)
     store.certificate_payments[paid.id] = (USER, cert.id)
 
     march = ledger.year(USER, 2026)[2]
@@ -80,3 +81,12 @@ def test_the_year_splits_each_month_into_business_and_personal(ledger: Ledger) -
     assert january.money_out == {Purpose.BUSINESS: 25_000}
     assert february.money_out == {Purpose.PERSONAL: 80_000}
     assert months[11].money_out == {}, "December 2025 belongs to last year"
+
+
+def test_payments_are_read_from_transactions(ledger: Ledger, store: Store) -> None:
+    entry = confirmed_entry(USER, date(2026, 4, 1), 7_000, "out", "personal_food")
+    store.transactions[entry.id] = from_entry(entry, None, EvidenceRole.OTHER)
+
+    listed = ledger.page(USER, LedgerFilter(start=date(2026, 4, 1))).entries
+
+    assert listed == [entry], "a payment with no entry beside it is still listed"

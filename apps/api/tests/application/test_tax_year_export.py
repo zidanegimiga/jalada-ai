@@ -31,9 +31,9 @@ def test_the_workbook_covers_every_confirmed_entry_of_the_year(
         entry = confirmed_entry(
             USER, first + timedelta(days=n % 365), 1_000, "out", "business_stock"
         )
-        store.entries[entry.id] = entry
+        store.save_entries(entry)
     other = confirmed_entry(uuid.uuid4(), first, 1_000, "out", "business_stock")
-    store.entries[other.id] = other
+    store.save_entries(other)
     writer = RecordingWriter()
     export = TaxYearExport(lambda: FakeUnitOfWork(store), writer, clock, "/v1/evidence/{id}/file")
 
@@ -51,7 +51,7 @@ def test_the_workbook_covers_every_confirmed_entry_of_the_year(
 def test_linked_payments_reach_the_report_even_from_another_year(store: Store) -> None:
     cert = certificate(USER, date(2026, 1, 10), 4_000_000, 200_000, "CLIENT")
     december = deposit(USER, date(2025, 12, 28), 3_800_000, "CLIENT")
-    store.entries.update({cert.id: cert, december.id: december})
+    store.save_entries(cert, december)
     store.certificate_payments[december.id] = (USER, cert.id)
     export = TaxYearExport(lambda: FakeUnitOfWork(store), RecordingWriter(), FixedClock(), "{id}")
 

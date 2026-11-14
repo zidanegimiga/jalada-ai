@@ -20,7 +20,7 @@ def payments(store: Store) -> CertificatePayments:
 
 def add(store: Store, *entries: Entry) -> tuple[Entry, ...]:
     for entry in entries:
-        store.entries[entry.id] = entry
+        store.save_entries(entry)
     return entries
 
 

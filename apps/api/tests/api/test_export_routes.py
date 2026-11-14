@@ -16,7 +16,7 @@ def sign_up(client: TestClient, email: str = "jane@example.com") -> uuid.UUID:
 def test_the_workbook_downloads_as_an_attachment(client: TestClient, store: Store) -> None:
     user = sign_up(client)
     entry = confirmed_entry(user, date(2026, 1, 31), 6_000_000, "in", "salary")
-    store.entries[entry.id] = entry
+    store.save_entries(entry)
 
     response = client.get("/v1/exports/2026.xlsx")
 
@@ -33,7 +33,7 @@ def test_the_workbook_downloads_as_an_attachment(client: TestClient, store: Stor
 def test_the_workbook_only_holds_my_own_entries(client: TestClient, store: Store) -> None:
     sign_up(client)
     stranger = confirmed_entry(uuid.uuid4(), date(2026, 1, 31), 6_000_000, "in", "salary")
-    store.entries[stranger.id] = stranger
+    store.save_entries(stranger)
 
     income = load_workbook(io.BytesIO(client.get("/v1/exports/2026.xlsx").content))["Income"]
 

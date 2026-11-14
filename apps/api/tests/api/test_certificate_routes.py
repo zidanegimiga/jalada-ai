@@ -15,7 +15,7 @@ def test_a_certificate_shows_its_suggestions_and_payments(client: TestClient, st
     user = signed_in_user(client)
     cert = certificate(user, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
     paid = deposit(user, date(2026, 3, 5), 3_800_000, "CLIENT")
-    store.entries.update({cert.id: cert, paid.id: paid})
+    store.save_entries(cert, paid)
 
     shown = client.get(f"/v1/certificates/{cert.id}").json()
     linked = client.post(
@@ -34,7 +34,7 @@ def test_a_bad_link_explains_itself(client: TestClient, store: Store) -> None:
     user = signed_in_user(client)
     cert = certificate(user, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
     too_big = deposit(user, date(2026, 3, 5), 5_000_000, "CLIENT")
-    store.entries.update({cert.id: cert, too_big.id: too_big})
+    store.save_entries(cert, too_big)
 
     response = client.post(
         f"/v1/certificates/{cert.id}/payments", json={"payment_id": str(too_big.id)}
@@ -47,7 +47,7 @@ def test_a_bad_link_explains_itself(client: TestClient, store: Store) -> None:
 def test_another_users_certificate_is_not_found(client: TestClient, store: Store) -> None:
     signed_in_user(client)
     theirs = certificate(uuid.uuid4(), date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
-    store.entries[theirs.id] = theirs
+    store.save_entries(theirs)
 
     assert client.get(f"/v1/certificates/{theirs.id}").status_code == 404
 
@@ -62,7 +62,7 @@ def test_the_ledger_marks_linked_certificates_and_payments(
     user = signed_in_user(client)
     cert = certificate(user, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
     paid = deposit(user, date(2026, 3, 5), 3_800_000, "CLIENT")
-    store.entries.update({cert.id: cert, paid.id: paid})
+    store.save_entries(cert, paid)
     client.post(f"/v1/certificates/{cert.id}/payments", json={"payment_id": str(paid.id)})
 
     items = {item["id"]: item for item in client.get("/v1/entries").json()["items"]}

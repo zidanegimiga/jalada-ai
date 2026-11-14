@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, exists, select
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.modules.ledger.adapters.tables import (
@@ -13,6 +13,7 @@ from jalada.modules.ledger.adapters.tables import (
     TransactionRow,
 )
 from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.ledger import LedgerFilter
 from jalada.modules.ledger.domain.transactions import (
     EvidenceLink,
     EvidenceRole,
@@ -73,3 +74,23 @@ def _transaction(
         lines=tuple(lines),
         evidence=tuple(links),
     )
+
+
+def conditions(filters: LedgerFilter) -> list[ColumnElement[bool]]:
+    """The filters as conditions on transactions. Purpose and category are on the lines, so
+    a transaction matches when any of its lines does."""
+    found: list[ColumnElement[bool]] = []
+    if filters.start:
+        found.append(TransactionRow.occurred_on >= filters.start)
+    if filters.end:
+        found.append(TransactionRow.occurred_on <= filters.end)
+    if filters.direction:
+        found.append(TransactionRow.direction == filters.direction)
+    line: list[ColumnElement[bool]] = []
+    if filters.purpose:
+        line.append(TransactionLineRow.purpose == filters.purpose)
+    if filters.category:
+        line.append(TransactionLineRow.category == filters.category)
+    if line:
+        found.append(exists().where(TransactionLineRow.transaction_id == TransactionRow.id, *line))
+    return found
