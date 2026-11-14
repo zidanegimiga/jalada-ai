@@ -1,6 +1,6 @@
 import secrets
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 
@@ -16,6 +16,10 @@ from jalada.shared.errors import (
     WeakPassword,
 )
 from jalada.unit_of_work import UnitOfWork
+
+# Runs inside the sign-up transaction when a new user is created, so other modules can set
+# up what every user needs without this module knowing about them.
+UserCreated = Callable[[UnitOfWork, User], None]
 
 
 @dataclass(frozen=True)
@@ -36,8 +40,10 @@ class Authenticator:
         hasher: PasswordHasher,
         clock: Clock,
         session_lifetime: timedelta,
+        on_user_created: Sequence[UserCreated] = (),
     ) -> None:
         self._unit_of_work = unit_of_work
+        self._on_user_created = on_user_created
         self._hasher = hasher
         self._clock = clock
         self._session_lifetime = session_lifetime
@@ -53,6 +59,7 @@ class Authenticator:
                 raise EmailAlreadyRegistered
             user = User(uuid.uuid4(), email, display_name.strip(), self._clock.now())
             work.users.add(user, self._hasher.hash(password))
+            self._created(work, user)
             issued = self._start_session(work, user)
             work.commit()
         return issued
@@ -84,9 +91,14 @@ class Authenticator:
                 name = (profile.name.strip() or email.split("@")[0])[:80]
                 user = User(uuid.uuid4(), email, name, self._clock.now())
                 work.users.add(user, None, google_subject=profile.subject)
+                self._created(work, user)
             issued = self._start_session(work, user)
             work.commit()
         return replace(issued, password_removed=password_removed)
+
+    def _created(self, work: UnitOfWork, user: User) -> None:
+        for listener in self._on_user_created:
+            listener(work, user)
 
     def _link_google(self, work: UnitOfWork, credentials: UserCredentials, subject: str) -> bool:
         """Link Google to an account with the same email. True if its password was removed.

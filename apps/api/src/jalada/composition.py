@@ -37,6 +37,7 @@ from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.application.money_accounts import open_default_accounts
 from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
 from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
@@ -61,6 +62,7 @@ def build_services(settings: Settings) -> Services:
         hasher=Argon2PasswordHasher(),
         clock=clock,
         session_lifetime=timedelta(days=settings.session_days),
+        on_user_created=[open_default_accounts],
     )
     evidence = EvidenceCapture(unit_of_work=unit_of_work, store=store, clock=clock)
     sign_in_limiter = RateLimiter("5/minute")

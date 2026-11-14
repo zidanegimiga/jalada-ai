@@ -57,3 +57,4 @@ def test_everything_about_the_user_is_deleted(
     assert all(s.user_id == other.id for s in store.sessions.values())
     assert all(p.get("user_id") == str(other.id) for _, p in store.jobs)
     assert jane not in store.telegram_links
+    assert {a.user_id for a in store.money_accounts.values()} == {other.id}
