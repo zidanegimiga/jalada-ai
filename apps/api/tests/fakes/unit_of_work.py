@@ -63,7 +63,7 @@ class FakeUnitOfWork:
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
-        return FakeEvidence(self._evidence, user_id, self._entries)
+        return FakeEvidence(self._evidence, user_id, self._entries, self._transactions)
 
     def entries_for(self, user_id: UUID) -> EntryRepository:
         return FakeEntries(self._entries, user_id, self._revisions, self._certificate_payments)

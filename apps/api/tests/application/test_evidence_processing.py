@@ -46,7 +46,7 @@ def test_a_message_from_a_known_counterparty_becomes_a_proposed_entry(
 
     assert processor.process(USER, evidence.id) == "proposed"
 
-    [entry] = store.entries.values()
+    [entry] = store.payments()
     assert entry.status == EntryStatus.PROPOSED
     assert entry.amount_cents == 15000
     assert entry.category == "personal_family_support"
@@ -78,7 +78,7 @@ def test_an_unknown_counterparty_becomes_an_entry_that_needs_review(
 
     processor.process(USER, evidence.id)
 
-    [entry] = store.entries.values()
+    [entry] = store.payments()
     assert entry.status == EntryStatus.NEEDS_REVIEW
     assert entry.purpose == Purpose.UNSURE
     assert store.evidence[evidence.id].status == EvidenceStatus.NEEDS_REVIEW
@@ -106,7 +106,7 @@ def test_the_same_transaction_sent_twice_is_a_duplicate(
     second = capture.capture_text(USER, MPESA_SENT.replace("  ", " "), EvidenceSource.WEB_PASTE)
 
     assert processor.process(USER, second.evidence.id) == "duplicate"
-    assert len(store.entries) == 1
+    assert len(store.payments()) == 1
     assert store.evidence[second.evidence.id].status == EvidenceStatus.DUPLICATE
 
 
@@ -116,7 +116,7 @@ def test_a_photo_without_text_needs_review_and_creates_no_entry(
     evidence = capture.capture_file(USER, JPEG, EvidenceSource.WEB_UPLOAD).evidence
 
     assert processor.process(USER, evidence.id) == "needs_review"
-    assert store.entries == {}
+    assert store.entries == {} and store.transactions == {}
 
 
 def test_giving_up_marks_the_evidence_as_failed(

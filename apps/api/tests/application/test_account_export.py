@@ -35,7 +35,7 @@ def user_id(
     EvidenceProcessor(
         lambda: FakeUnitOfWork(store), evidence_store, FakeTextReader(), clock, Budget()
     ).process(user.id, message.id)
-    [entry] = store.entries.values()
+    [entry] = store.payments()
     review.confirm(user.id, entry.id, Correction(category="personal_family_support"))
     return user.id
 

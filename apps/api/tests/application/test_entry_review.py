@@ -36,7 +36,7 @@ def processed(
     )
     evidence = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
     processor.process(USER, evidence.id)
-    [entry] = store.entries.values()
+    [entry] = store.payments()
     return entry
 
 

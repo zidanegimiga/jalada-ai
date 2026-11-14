@@ -72,8 +72,9 @@ def test_old_revisions_are_copied_into_the_trail(session_factory: sessionmaker[D
     proposed = replace(entry, status=EntryStatus.PROPOSED)
     rejected = replace(entry, id=uuid.uuid4(), status=EntryStatus.REJECTED)
     with SqlUnitOfWork(session_factory) as work:
-        work.entries_for(user.id).add(entry)
-        work.entries_for(user.id).add(rejected)
+        for each in (entry, rejected):
+            work.entries_for(user.id).add(each)
+            work.transactions_for(user.id).add(from_entry(each, None, EvidenceRole.OTHER))
         work.entries_for(user.id).add_revision(proposed, entry, NOW)
         work.entries_for(user.id).add_revision(proposed, rejected, NOW)
         work.commit()

@@ -116,3 +116,72 @@ def test_a_transaction_that_disagrees_with_its_entry_stops_the_copy(
     with SqlUnitOfWork(session_factory) as work:
         fixed = work.transactions_for(user.id).get(entry.id)
     assert fixed is not None and fixed.amount_cents == 15000
+
+
+def run_removal() -> None:
+    """Runs migration 0014 again over whatever the test has saved."""
+    assert DATABASE_URL
+    config = alembic_config(DATABASE_URL)
+    command.downgrade(config, "0013")
+    command.upgrade(config, "head")
+
+
+def test_payment_entries_are_removed_and_certificates_kept(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, message, _ = setup_evidence(session_factory)
+    paid = replace(
+        confirmed_entry(user.id, date(2026, 10, 1), 15000, "out", "personal_food"),
+        evidence_id=message.id,
+    )
+    cert = replace(
+        certificate(user.id, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT"),
+        evidence_id=message.id,
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.entries_for(user.id).add(paid)
+        work.entries_for(user.id).add(cert)
+        work.transactions_for(user.id).add(from_entry(paid, None, EvidenceRole.OTHER))
+        work.commit()
+
+    run_removal()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.entries_for(user.id).get(paid.id) is None
+        assert work.entries_for(user.id).get(cert.id) == cert
+        assert work.transactions_for(user.id).get(paid.id) is not None
+
+    assert DATABASE_URL
+    command.downgrade(alembic_config(DATABASE_URL), "0013")
+    try:
+        with SqlUnitOfWork(session_factory) as work:
+            assert work.entries_for(user.id).get(paid.id) == paid, "going back puts it back"
+    finally:
+        command.upgrade(alembic_config(DATABASE_URL), "head")
+
+
+def test_a_payment_entry_with_no_transaction_stops_the_removal(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, message, _ = setup_evidence(session_factory)
+    orphan = replace(
+        confirmed_entry(user.id, date(2026, 10, 1), 15000, "out", "personal_food"),
+        evidence_id=message.id,
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.entries_for(user.id).add(orphan)
+        work.commit()
+    assert DATABASE_URL
+    config = alembic_config(DATABASE_URL)
+    command.downgrade(config, "0013")
+
+    try:
+        with pytest.raises(RuntimeError, match="1 payment entries have no transaction"):
+            command.upgrade(config, "head")
+        with SqlUnitOfWork(session_factory) as work:
+            assert work.entries_for(user.id).get(orphan.id) == orphan, "nothing was removed"
+    finally:
+        with session_factory() as db:
+            db.execute(text("DELETE FROM entries WHERE id = :id"), {"id": orphan.id})
+            db.commit()
+        command.upgrade(config, "head")
