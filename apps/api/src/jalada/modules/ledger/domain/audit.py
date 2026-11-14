@@ -21,6 +21,8 @@ class AuditAction(StrEnum):
     CORRECTED = "corrected"
     ENTERED = "entered"
     REJECTED = "rejected"
+    # More evidence linked to a record that already exists.
+    LINKED = "linked"
 
 
 class SubjectType(StrEnum):

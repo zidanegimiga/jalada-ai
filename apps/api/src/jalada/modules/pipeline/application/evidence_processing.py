@@ -1,6 +1,7 @@
 import logging
 import uuid
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -10,6 +11,7 @@ from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.modules.ledger.application import history
 from jalada.modules.ledger.application.evidence_accounts import account_for
+from jalada.modules.ledger.application.matching import link_exact_match
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.transactions import as_entry
@@ -28,6 +30,7 @@ STATUS_FOR_OUTCOME = {
     "proposed": EvidenceStatus.PROPOSED,
     "needs_review": EvidenceStatus.NEEDS_REVIEW,
     "duplicate": EvidenceStatus.DUPLICATE,
+    "linked": EvidenceStatus.LINKED,
 }
 
 
@@ -85,9 +88,9 @@ class EvidenceProcessor:
             budget=self._budget,
             model=self._model,
         )
-        entry = self._save(evidence, result, started)
-        self._notify(evidence, result.outcome, entry, _reasons(result))
-        return result.outcome
+        outcome, entry = self._save(evidence, result, started)
+        self._notify(evidence, outcome, entry, _reasons(result))
+        return outcome
 
     def _notify(
         self, evidence: Evidence, outcome: str, entry: Entry | None, reasons: list[str]
@@ -108,7 +111,11 @@ class EvidenceProcessor:
             serial = extraction.certificate_serial
             return bool(serial and work.entries_for(user_id).has_certificate_serial(serial))
 
-    def _save(self, evidence: Evidence, result: PipelineResult, started: datetime) -> Entry | None:
+    def _save(
+        self, evidence: Evidence, result: PipelineResult, started: datetime
+    ) -> tuple[str, Entry | None]:
+        """Saves the run and what it found. Returns the outcome, which is "linked" when a
+        duplicate turned out to be another copy of a payment already recorded."""
         run = PipelineRun(
             id=uuid.uuid4(),
             user_id=evidence.user_id,
@@ -121,17 +128,32 @@ class EvidenceProcessor:
             started_at=started,
             finished_at=self._clock.now(),
         )
+        extraction, classification = result.extraction, result.classification
         with self._unit_of_work() as work:
+            linked = None
+            if extraction and result.outcome == "duplicate":
+                linked = link_exact_match(
+                    work,
+                    evidence,
+                    extraction.kind,
+                    extraction.mpesa_code,
+                    extraction.amount_cents,
+                    extraction.direction,
+                    extraction.occurred_on,
+                    run.finished_at,
+                )
+            if linked:
+                run = replace(run, outcome="linked")
+            # Saved before what it found, which points back at it.
             work.runs.add(run, result.steps)
-            status = STATUS_FOR_OUTCOME[result.outcome]
-            work.evidence_for(evidence.user_id).set_outcome(evidence.id, result.kind, status)
-            proposed = None
-            extraction, classification = result.extraction, result.classification
+            found = as_entry(linked) if linked else None
             if extraction and classification and result.outcome != "duplicate":
                 ready = result.outcome == "proposed"
-                proposed = self._propose(work, evidence, run, ready, extraction, classification)
+                found = self._propose(work, evidence, run, ready, extraction, classification)
+            status = STATUS_FOR_OUTCOME[run.outcome]
+            work.evidence_for(evidence.user_id).set_outcome(evidence.id, result.kind, status)
             work.commit()
-        return proposed
+        return run.outcome, found
 
     @staticmethod
     def _propose(

@@ -47,6 +47,19 @@ def test_messages_say_what_was_found_and_where_to_check() -> None:
     assert notifier.message("duplicate", None) == "That transaction is already in your records."
 
 
+def test_a_linked_copy_says_which_payment_it_joined() -> None:
+    notifier = TelegramNotifier(lambda: FakeUnitOfWork(Store()), FakeChat(), REVIEW)
+    entry = replace(
+        confirmed_entry(USER, date(2026, 11, 13), 35_000, "out", "personal_food"),
+        counterparty="SAMPLE KIOSK",
+    )
+
+    assert notifier.message("linked", entry) == (
+        "That is the same payment as KSh 350.00 to SAMPLE KIOSK on 13 Nov 2026, "
+        "so I added it there as proof."
+    )
+
+
 def test_a_held_entry_says_why_it_was_held() -> None:
     notifier = TelegramNotifier(lambda: FakeUnitOfWork(Store()), FakeChat(), REVIEW)
     entry = replace(

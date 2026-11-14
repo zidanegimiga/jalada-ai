@@ -677,7 +677,7 @@ export interface components {
          * EvidenceStatus
          * @enum {string}
          */
-        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "not_a_transaction" | "failed";
+        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "linked" | "not_a_transaction" | "failed";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */

@@ -15,8 +15,11 @@ from samples import CERTIFICATE, JPEG, MPESA_SENT, PDF
 
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceKind, EvidenceSource, EvidenceStatus
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.domain.audit import AuditAction
 from jalada.modules.ledger.domain.categories import Purpose
 from jalada.modules.ledger.domain.entries import EntryStatus
+from jalada.modules.ledger.domain.transactions import EvidenceRole, LinkedBy, TransactionStatus
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import Budget
@@ -97,7 +100,7 @@ def test_a_certificate_pdf_is_read_and_proposed(
     assert entry.payer_tax_number == "P000000000A"
 
 
-def test_the_same_transaction_sent_twice_is_a_duplicate(
+def test_the_same_payment_sent_twice_is_linked_to_it(
     capture: EvidenceCapture, processor: EvidenceProcessor, store: Store
 ) -> None:
     first = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
@@ -105,9 +108,44 @@ def test_the_same_transaction_sent_twice_is_a_duplicate(
     # The same transaction code with different spacing, so it is new evidence.
     second = capture.capture_text(USER, MPESA_SENT.replace("  ", " "), EvidenceSource.WEB_PASTE)
 
+    assert processor.process(USER, second.evidence.id) == "linked"
+
+    [payment] = store.transactions.values()
+    assert [(link.evidence_id, link.linked_by) for link in payment.evidence] == [
+        (first.id, LinkedBy.PIPELINE),
+        (second.evidence.id, LinkedBy.EXACT),
+    ]
+    assert payment.evidence[1].role == EvidenceRole.PAYMENT_PROOF
+    assert payment.status == TransactionStatus.NEEDS_REVIEW, "linking confirms nothing"
+    assert store.evidence[second.evidence.id].status == EvidenceStatus.LINKED
+    assert store.audit_events[-1].action == AuditAction.LINKED
+    assert store.runs[-1][0].outcome == "linked"
+
+
+def test_the_same_code_with_another_amount_stays_a_duplicate(
+    capture: EvidenceCapture, processor: EvidenceProcessor, store: Store
+) -> None:
+    first = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
+    processor.process(USER, first.id)
+    changed = MPESA_SENT.replace("Ksh150.00 sent", "Ksh160.00 sent")
+    second = capture.capture_text(USER, changed, EvidenceSource.WEB_PASTE).evidence
+
+    assert processor.process(USER, second.id) == "duplicate"
+
+    [payment] = store.transactions.values()
+    assert len(payment.evidence) == 1
+    assert store.evidence[second.id].status == EvidenceStatus.DUPLICATE
+
+
+def test_a_copy_of_a_payment_marked_not_a_transaction_stays_a_duplicate(
+    capture: EvidenceCapture, processor: EvidenceProcessor, store: Store, review: EntryReview
+) -> None:
+    first = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
+    processor.process(USER, first.id)
+    review.mark_not_a_transaction(USER, first.id)
+    second = capture.capture_text(USER, MPESA_SENT.replace("  ", " "), EvidenceSource.WEB_PASTE)
+
     assert processor.process(USER, second.evidence.id) == "duplicate"
-    assert len(store.payments()) == 1
-    assert store.evidence[second.evidence.id].status == EvidenceStatus.DUPLICATE
 
 
 def test_a_photo_without_text_needs_review_and_creates_no_entry(

@@ -50,6 +50,8 @@ class TelegramNotifier:
     def message(self, outcome: str, entry: Entry | None, reasons: Sequence[str] = ()) -> str:
         if outcome == "duplicate":
             return "That transaction is already in your records."
+        if outcome == "linked" and entry is not None:
+            return f"That is the same payment as {_summary(entry)}, so I added it there as proof."
         if entry is None or entry.amount_cents is None:
             return f"I could not read that one. You can type it in here: {self._review_url}"
         summary = _summary(entry)
