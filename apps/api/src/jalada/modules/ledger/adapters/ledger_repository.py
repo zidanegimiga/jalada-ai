@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -63,15 +63,24 @@ class SqlEntryRepository:
             )
         )
 
-    def pending(self, limit: int) -> list[Entry]:
-        query = self._mine().where(EntryRow.status.in_(PENDING)).limit(limit)
+    def pending(self, limit: int, kind: EntryKind | None = None) -> list[Entry]:
+        query = self._mine().where(EntryRow.status.in_(PENDING))
+        if kind:
+            query = query.where(EntryRow.kind == kind)
+        query = query.limit(limit)
         return [_to_entry(row) for row in self._db.scalars(query)]
 
     def confirmed(
-        self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
+        self,
+        filters: LedgerFilter,
+        after: LedgerPosition | None,
+        limit: int,
+        kind: EntryKind | None = None,
     ) -> list[Entry]:
         query = self._mine().where(EntryRow.status == EntryStatus.CONFIRMED)
         query = query.where(*_conditions(filters))
+        if kind:
+            query = query.where(EntryRow.kind == kind)
         if after:
             # Keyset paging: everything strictly older than where the last page ended.
             query = query.where(
@@ -83,7 +92,7 @@ class SqlEntryRepository:
         query = query.order_by(EntryRow.occurred_on.desc(), EntryRow.id.desc()).limit(limit)
         return [_to_entry(row) for row in self._db.scalars(query)]
 
-    def monthly_totals(self, year: int) -> list[Total]:
+    def monthly_totals(self, year: int, kind: EntryKind | None = None) -> list[Total]:
         month = extract("month", EntryRow.occurred_on)
         query = (
             select(month, EntryRow.direction, EntryRow.purpose, func.sum(EntryRow.amount_cents))
@@ -93,6 +102,7 @@ class SqlEntryRepository:
                 extract("year", EntryRow.occurred_on) == year,
                 # A payment linked to a certificate is already counted in its gross amount.
                 ~exists().where(CertificatePaymentRow.payment_id == EntryRow.id),
+                *([EntryRow.kind == kind] if kind else []),
             )
             .group_by(month, EntryRow.direction, EntryRow.purpose)
         )
@@ -117,21 +127,8 @@ class SqlEntryRepository:
             for row in self._db.scalars(query)
         ]
 
-    def has_mpesa_code(self, code: str) -> bool:
-        return self._exists(EntryRow.mpesa_code == code)
-
     def has_certificate_serial(self, serial: str) -> bool:
         return self._exists(EntryRow.certificate_serial == serial)
-
-    def incoming(self, start: date, end: date) -> list[Entry]:
-        """Confirmed money in between two dates, oldest first."""
-        query = self._mine().where(
-            EntryRow.status == EntryStatus.CONFIRMED,
-            EntryRow.kind == EntryKind.TRANSACTION,
-            EntryRow.direction == Direction.IN,
-            EntryRow.occurred_on.between(start, end),
-        )
-        return [_to_entry(row) for row in self._db.scalars(query.order_by(EntryRow.occurred_on))]
 
     def _mine(self) -> Select[EntryRow]:
         return select(EntryRow).where(EntryRow.user_id == self._user_id)

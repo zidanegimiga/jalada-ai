@@ -35,7 +35,7 @@ def user_id(
     EvidenceProcessor(
         lambda: FakeUnitOfWork(store), evidence_store, FakeTextReader(), clock, Budget()
     ).process(user.id, message.id)
-    [entry] = store.entries.values()
+    [entry] = store.payments()
     review.confirm(user.id, entry.id, Correction(category="personal_family_support"))
     return user.id
 
@@ -53,7 +53,7 @@ def export_zip(
 def test_the_archive_holds_every_kind_of_data(
     store: Store, evidence_store: FakeEvidenceStore, user_id: uuid.UUID
 ) -> None:
-    [entry_id] = store.entries
+    [entry_id] = store.transactions
     certificate_id = uuid.uuid4()
     store.certificate_payments[entry_id] = (user_id, certificate_id)
     archive = export_zip(store, evidence_store, user_id)
@@ -68,17 +68,30 @@ def test_the_archive_holds_every_kind_of_data(
         "pipeline_runs.json",
         "preferences.json",
         "certificate_payments.json",
+        "money_accounts.json",
+        "transactions.json",
+        "audit_events.json",
     } <= names
     account = json.loads(archive.read("account.json"))
     assert account["email"] == "jane@example.com" and account["telegram_linked"] is False
-    [entry] = json.loads(archive.read("entries.json"))
-    assert entry["amount_cents"] == 15000 and entry["status"] == "confirmed"
-    assert len(json.loads(archive.read("entry_revisions.json"))) == 1
     [run] = json.loads(archive.read("pipeline_runs.json"))
     assert len(run["steps"]) == 4
     assert "jane wanjiku" in json.loads(archive.read("preferences.json"))
     assert json.loads(archive.read("certificate_payments.json")) == [
         {"payment_entry_id": str(entry_id), "certificate_entry_id": str(certificate_id)}
+    ]
+    [transaction] = json.loads(archive.read("transactions.json"))
+    assert transaction["id"] == str(entry_id) and transaction["status"] == "confirmed"
+    assert transaction["lines"] == [
+        {"amount_cents": 15000, "category": "personal_family_support", "purpose": "personal"}
+    ]
+    assert transaction["evidence"][0]["role"] == "payment_proof"
+    events = json.loads(archive.read("audit_events.json"))
+    assert [e["action"] for e in events] == ["proposed", "corrected"]
+    accounts = json.loads(archive.read("money_accounts.json"))
+    assert sorted((a["kind"], a["name"]) for a in accounts) == [
+        ("cash", "Cash"),
+        ("mpesa", "M-Pesa"),
     ]
 
 

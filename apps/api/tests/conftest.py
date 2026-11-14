@@ -29,6 +29,7 @@ from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.application.money_accounts import open_default_accounts
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 from jalada.services import Services
@@ -68,7 +69,13 @@ def hasher() -> FakeHasher:
 
 @pytest.fixture
 def authenticator(store: Store, hasher: FakeHasher, clock: FixedClock) -> Authenticator:
-    return Authenticator(lambda: FakeUnitOfWork(store), hasher, clock, timedelta(days=30))
+    return Authenticator(
+        lambda: FakeUnitOfWork(store),
+        hasher,
+        clock,
+        timedelta(days=30),
+        on_user_created=[open_default_accounts],
+    )
 
 
 @pytest.fixture

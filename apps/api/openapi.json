@@ -464,6 +464,7 @@
           "needs_review",
           "confirmed",
           "duplicate",
+          "not_a_transaction",
           "failed"
         ],
         "title": "EvidenceStatus",
@@ -2111,6 +2112,59 @@
         "summary": "Read Evidence File",
         "tags": [
           "evidence"
+        ]
+      }
+    },
+    "/v1/evidence/{evidence_id}/not-a-transaction": {
+      "post": {
+        "description": "For evidence that does not record money moving, such as a balance message.",
+        "operationId": "mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Not A Transaction",
+        "tags": [
+          "review"
         ]
       }
     },

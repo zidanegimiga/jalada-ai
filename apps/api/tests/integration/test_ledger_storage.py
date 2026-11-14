@@ -76,11 +76,10 @@ def make_entry(user: User, evidence: Evidence, run: PipelineRun, code: str) -> E
     )
 
 
-def test_entries_are_found_by_mpesa_code_only_for_their_owner(
+def test_an_entry_saves_beside_its_evidence_outcome(
     session_factory: sessionmaker[DbSession],
 ) -> None:
     user, evidence, run = setup_evidence(session_factory)
-    stranger, _, _ = setup_evidence(session_factory)
     with SqlUnitOfWork(session_factory) as work:
         work.entries_for(user.id).add(make_entry(user, evidence, run, "UK5AB1CD23"))
         work.evidence_for(user.id).set_outcome(
@@ -89,8 +88,6 @@ def test_entries_are_found_by_mpesa_code_only_for_their_owner(
         work.commit()
 
     with SqlUnitOfWork(session_factory) as work:
-        assert work.entries_for(user.id).has_mpesa_code("UK5AB1CD23")
-        assert not work.entries_for(stranger.id).has_mpesa_code("UK5AB1CD23")
         saved = work.evidence_for(user.id).get(evidence.id)
         assert saved is not None and saved.status == EvidenceStatus.PROPOSED
 

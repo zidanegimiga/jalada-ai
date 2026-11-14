@@ -17,7 +17,7 @@ def test_the_ledger_pages_with_a_cursor(client: TestClient, store: Store) -> Non
         entry = confirmed_entry(
             user, date(2026, 3, 1).replace(day=1 + day % 28), 1_000, "out", "personal_food"
         )
-        store.entries[entry.id] = entry
+        store.save_entries(entry)
 
     first = client.get("/v1/entries").json()
     second = client.get("/v1/entries", params={"cursor": first["next_cursor"]}).json()
@@ -34,7 +34,7 @@ def test_ledger_filters_come_from_the_query(client: TestClient, store: Store) ->
         confirmed_entry(user, date(2026, 1, 5), 4_000_000, "in", "consultancy_fees"),
         confirmed_entry(user, date(2026, 2, 3), 80_000, "out", "personal_food"),
     ]:
-        store.entries[entry.id] = entry
+        store.save_entries(entry)
 
     february = client.get("/v1/entries", params={"from": "2026-02-01", "to": "2026-02-28"}).json()
     income = client.get("/v1/entries", params={"direction": "in"}).json()
@@ -46,7 +46,7 @@ def test_ledger_filters_come_from_the_query(client: TestClient, store: Store) ->
 def test_the_monthly_summary_has_twelve_months_in_cents(client: TestClient, store: Store) -> None:
     user = signed_in_user(client, store)
     entry = confirmed_entry(user, date(2026, 1, 5), 4_000_000, "in", "consultancy_fees")
-    store.entries[entry.id] = entry
+    store.save_entries(entry)
 
     year = client.get("/v1/summary/monthly", params={"year": 2026}).json()
 

@@ -21,7 +21,10 @@ from jalada.modules.evidence.domain.evidence import (
     EvidenceSource,
     EvidenceStatus,
 )
+from jalada.modules.ledger.domain.audit import Actor, AuditAction, SubjectType, event
 from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.money_accounts import default_accounts
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.run_types import StepRecord
 from jalada.sql_unit_of_work import SqlUnitOfWork
@@ -100,6 +103,24 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         work.entries_for(user.id).add(entry)
         work.entries_for(user.id).add_revision(entry, entry, NOW)
         work.preferences_for(user.id).remember("jane wanjiku", "personal_food", Purpose.PERSONAL)
+        accounts = default_accounts(user.id, NOW)
+        for account in accounts:
+            work.money_accounts_for(user.id).add(account)
+        work.transactions_for(user.id).add(
+            from_entry(entry, accounts[0].id, EvidenceRole.PAYMENT_PROOF)
+        )
+        work.audit_for(user.id).add(
+            event(
+                user.id,
+                SubjectType.TRANSACTION,
+                entry.id,
+                Actor.USER,
+                AuditAction.CONFIRMED,
+                None,
+                entry,
+                NOW,
+            )
+        )
         work.telegram.save_code(user.id, "f" * 64, NOW)
         work.telegram.link(user.id, 777, 888, NOW)
         work.jobs.enqueue(
@@ -117,6 +138,11 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "pipeline_runs",
         "entries",
         "counterparty_preferences",
+        "money_accounts",
+        "transactions",
+        "transaction_lines",
+        "transaction_evidence",
+        "audit_events",
         "telegram_links",
         "telegram_link_codes",
     ]

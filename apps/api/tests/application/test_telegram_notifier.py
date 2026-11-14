@@ -164,4 +164,4 @@ def test_a_failing_reply_does_not_undo_the_processing(
     evidence = capture.capture_text(USER, MPESA_SENT, EvidenceSource.TELEGRAM).evidence
 
     assert processor.process(USER, evidence.id) == "needs_review"
-    assert len(store.entries) == 1
+    assert len(store.payments()) == 1

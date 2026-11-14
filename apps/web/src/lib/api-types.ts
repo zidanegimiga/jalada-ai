@@ -403,6 +403,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/evidence/{evidence_id}/not-a-transaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Not A Transaction
+         * @description For evidence that does not record money moving, such as a balance message.
+         */
+        post: operations["mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/exports/{year}.xlsx": {
         parameters: {
             query?: never;
@@ -657,7 +677,7 @@ export interface components {
          * EvidenceStatus
          * @enum {string}
          */
-        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "failed";
+        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "not_a_transaction" | "failed";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1519,6 +1539,37 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                evidence_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

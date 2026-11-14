@@ -5,7 +5,7 @@ from uuid import UUID
 from jalada.core.ports import Clock
 from jalada.modules.exports.application.ports import WorkbookWriter
 from jalada.modules.exports.domain.tax_year import TaxYearReport, build_report
-from jalada.modules.ledger.application.ports import EntryRepository
+from jalada.modules.ledger.application import records
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, summarise
 from jalada.shared.dates import kenyan_date
@@ -15,7 +15,7 @@ PAGE_SIZE = 500
 
 
 class TaxYearExport:
-    """One workbook for a tax year (1 January to 31 December), built from confirmed entries.
+    """One workbook for a tax year (1 January to 31 December), built from confirmed records.
 
     Built on request and never stored.
     """
@@ -39,11 +39,14 @@ class TaxYearExport:
     def report(self, user_id: UUID, year: int) -> TaxYearReport:
         year_filter = LedgerFilter(start=date(year, 1, 1), end=date(year, 12, 31))
         with self._unit_of_work() as work:
-            entries = work.entries_for(user_id)
-            confirmed = _all_pages(lambda after: entries.confirmed(year_filter, after, PAGE_SIZE))
-            months = summarise(entries.monthly_totals(year))
+            confirmed = _all_pages(
+                lambda after: records.confirmed(work, user_id, year_filter, after, PAGE_SIZE)
+            )
+            months = summarise(records.monthly_totals(work, user_id, year))
             links = work.certificate_payments_for(user_id).links()
-            payments = _payments_by_certificate(entries, links)
+            payments = _payments_by_certificate(
+                lambda payment_id: records.payment(work, user_id, payment_id), links
+            )
         today = kenyan_date(self._clock.now())
         return build_report(year, confirmed, months, today, self._evidence_link, payments)
 
@@ -52,12 +55,12 @@ class TaxYearExport:
 
 
 def _payments_by_certificate(
-    entries: EntryRepository, links: dict[UUID, UUID]
+    find: Callable[[UUID], Entry | None], links: dict[UUID, UUID]
 ) -> dict[UUID, list[Entry]]:
     """Linked payments grouped by certificate, wherever in time each payment falls."""
     grouped: dict[UUID, list[Entry]] = {}
     for payment_id, certificate_id in links.items():
-        payment = entries.get(payment_id)
+        payment = find(payment_id)
         if payment:
             grouped.setdefault(certificate_id, []).append(payment)
     return grouped

@@ -8,15 +8,21 @@ from uuid import UUID
 from jalada.core.jobs.ports import Job
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
 from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.transactions import Transaction
 
 
 class FakeEvidence:
     def __init__(
-        self, rows: dict[UUID, Evidence], user_id: UUID, entries: dict[UUID, Entry] | None = None
+        self,
+        rows: dict[UUID, Evidence],
+        user_id: UUID,
+        entries: dict[UUID, Entry] | None = None,
+        transactions: dict[UUID, Transaction] | None = None,
     ) -> None:
         self.rows = rows
         self._user_id = user_id
         self.entries = entries or {}
+        self.transactions = transactions or {}
 
     def add(self, evidence: Evidence) -> None:
         assert evidence.user_id == self._user_id
@@ -43,6 +49,7 @@ class FakeEvidence:
     def needing_entry(self, limit: int) -> list[Evidence]:
         unread = (EvidenceStatus.NEEDS_REVIEW, EvidenceStatus.FAILED)
         with_entry = {entry.evidence_id for entry in self.entries.values()}
+        with_entry |= {link.evidence_id for t in self.transactions.values() for link in t.evidence}
         found = [e for e in self._mine() if e.status in unread and e.id not in with_entry]
         return sorted(found, key=lambda e: e.received_at)[:limit]
 

@@ -10,7 +10,7 @@ from jalada.modules.evidence.domain.evidence import (
     EvidenceSource,
     EvidenceStatus,
 )
-from jalada.modules.ledger.adapters.tables import EntryRow
+from jalada.modules.ledger.adapters.tables import EntryRow, TransactionEvidenceRow
 
 
 class SqlEvidenceRepository:
@@ -64,13 +64,15 @@ class SqlEvidenceRepository:
         )
 
     def needing_entry(self, limit: int) -> list[Evidence]:
-        """Evidence nothing could read: it needs the user to type the entry in."""
+        """Evidence nothing could read: it needs the user to type the payment in."""
         has_entry = exists().where(EntryRow.evidence_id == EvidenceRow.id)
+        has_transaction = exists().where(TransactionEvidenceRow.evidence_id == EvidenceRow.id)
         query = (
             self._mine()
             .where(
                 EvidenceRow.status.in_([EvidenceStatus.NEEDS_REVIEW, EvidenceStatus.FAILED]),
                 ~has_entry,
+                ~has_transaction,
             )
             .order_by(EvidenceRow.received_at)
             .limit(limit)

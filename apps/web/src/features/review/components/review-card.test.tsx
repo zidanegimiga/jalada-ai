@@ -8,9 +8,8 @@ const router = { refresh: vi.fn() };
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 function respond(status: number, body: unknown) {
-  const fetch = vi
-    .fn()
-    .mockResolvedValue(new Response(JSON.stringify(body), { status }));
+  const text = status === 204 ? null : JSON.stringify(body);
+  const fetch = vi.fn().mockResolvedValue(new Response(text, { status }));
   vi.stubGlobal("fetch", fetch);
   return fetch;
 }
@@ -85,5 +84,36 @@ describe("ReviewCard", () => {
       "Add the amount before confirming.",
     );
     expect(router.refresh).not.toHaveBeenCalled();
+  });
+
+  it("asks once before marking it not a transaction", async () => {
+    const fetch = respond(204, null);
+    render(<ReviewCard item={item(entry())} categories={CATEGORIES} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Not a transaction" }));
+    expect(fetch).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/This will not be counted anywhere/),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Not a transaction" }));
+
+    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(fetch.mock.calls[0][0]).toBe(
+      "/v1/evidence/evidence-1/not-a-transaction",
+    );
+  });
+
+  it("keeps the item when the user changes their mind", () => {
+    const fetch = respond(204, null);
+    render(<ReviewCard item={item(entry())} categories={CATEGORIES} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Not a transaction" }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep it" }));
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Not a transaction" }),
+    ).toBeInTheDocument();
   });
 });

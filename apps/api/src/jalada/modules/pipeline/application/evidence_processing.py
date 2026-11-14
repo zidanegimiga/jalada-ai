@@ -8,8 +8,13 @@ from uuid import UUID
 from jalada.core.ports import Clock
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
-from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
+from jalada.modules.ledger.application import history
+from jalada.modules.ledger.application.evidence_accounts import account_for
+from jalada.modules.ledger.domain.audit import Actor, AuditAction
+from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.transactions import as_entry
 from jalada.modules.pipeline.application.ports import PipelineRun, ProcessingNotifier, TextReader
+from jalada.modules.pipeline.application.proposals import proposed_certificate, proposed_payment
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
 from jalada.modules.pipeline.domain.model import ImageInput, LanguageModel
 from jalada.modules.pipeline.domain.process import run_pipeline
@@ -97,11 +102,11 @@ class EvidenceProcessor:
 
     def _is_duplicate(self, user_id: UUID, extraction: Extraction) -> bool:
         with self._unit_of_work() as work:
-            entries = work.entries_for(user_id)
-            if extraction.mpesa_code and entries.has_mpesa_code(extraction.mpesa_code):
+            code = extraction.mpesa_code
+            if code and work.transactions_for(user_id).has_payment_code(code):
                 return True
             serial = extraction.certificate_serial
-            return bool(serial and entries.has_certificate_serial(serial))
+            return bool(serial and work.entries_for(user_id).has_certificate_serial(serial))
 
     def _save(self, evidence: Evidence, result: PipelineResult, started: datetime) -> Entry | None:
         run = PipelineRun(
@@ -116,49 +121,44 @@ class EvidenceProcessor:
             started_at=started,
             finished_at=self._clock.now(),
         )
-        entry = None
         with self._unit_of_work() as work:
             work.runs.add(run, result.steps)
-            if result.extraction and result.classification and result.outcome != "duplicate":
-                entry = self._entry(evidence, run, result, result.extraction, result.classification)
-                work.entries_for(evidence.user_id).add(entry)
             status = STATUS_FOR_OUTCOME[result.outcome]
             work.evidence_for(evidence.user_id).set_outcome(evidence.id, result.kind, status)
+            proposed = None
+            extraction, classification = result.extraction, result.classification
+            if extraction and classification and result.outcome != "duplicate":
+                ready = result.outcome == "proposed"
+                proposed = self._propose(work, evidence, run, ready, extraction, classification)
             work.commit()
-        return entry
+        return proposed
 
-    def _entry(
-        self,
+    @staticmethod
+    def _propose(
+        work: UnitOfWork,
         evidence: Evidence,
         run: PipelineRun,
-        result: PipelineResult,
+        ready: bool,
         extraction: Extraction,
         classification: Classification,
     ) -> Entry:
-        is_certificate = extraction.kind == EvidenceKind.WITHHOLDING_CERTIFICATE
-        return Entry(
-            id=uuid.uuid4(),
-            user_id=evidence.user_id,
-            evidence_id=evidence.id,
-            run_id=run.id,
-            kind=EntryKind.WITHHOLDING_CERTIFICATE if is_certificate else EntryKind.TRANSACTION,
-            status=EntryStatus.PROPOSED
-            if result.outcome == "proposed"
-            else EntryStatus.NEEDS_REVIEW,
-            occurred_on=extraction.occurred_on,
-            direction=extraction.direction,
-            amount_cents=extraction.amount_cents,
-            counterparty=extraction.counterparty,
-            reference=extraction.reference,
-            mpesa_code=extraction.mpesa_code,
-            certificate_serial=extraction.certificate_serial,
-            tax_withheld_cents=extraction.tax_withheld_cents,
-            purpose=classification.purpose,
-            category=classification.category,
-            confidence=classification.confidence,
-            created_at=self._clock.now(),
-            payer_tax_number=extraction.payer_tax_number,
+        """Saves the payment or certificate the pipeline read, with its audit event. Returns
+        it in the shape of an entry, for the message back to the user."""
+        now = run.finished_at
+        if extraction.kind == EvidenceKind.WITHHOLDING_CERTIFICATE:
+            certificate = proposed_certificate(
+                evidence, run, ready, extraction, classification, now
+            )
+            work.entries_for(evidence.user_id).add(certificate)
+            history.record_entry(work, None, certificate, Actor.PIPELINE, AuditAction.PROPOSED, now)
+            return certificate
+        account_id = account_for(work, evidence.user_id, extraction.kind)
+        payment = proposed_payment(
+            evidence, run, ready, extraction, classification, account_id, now
         )
+        work.transactions_for(evidence.user_id).add(payment)
+        history.record_transaction(work, None, payment, Actor.PIPELINE, AuditAction.PROPOSED, now)
+        return as_entry(payment)
 
 
 def _reasons(result: PipelineResult) -> list[str]:

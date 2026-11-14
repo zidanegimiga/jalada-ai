@@ -6,9 +6,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatDay, formatKsh } from "@/lib/format";
 
-import { confirmEntry, correctEntry, enterByHand } from "../api";
+import {
+  confirmEntry,
+  correctEntry,
+  enterByHand,
+  markNotATransaction,
+} from "../api";
 import type { Category, EntryValues, ReviewItem } from "../types";
 import { EntryForm } from "./entry-form";
+import { NotATransaction } from "./not-a-transaction";
 
 export function ReviewCard({
   item,
@@ -102,6 +108,9 @@ export function ReviewCard({
           {error}
         </p>
       )}
+      <NotATransaction
+        onConfirm={() => run(() => markNotATransaction(evidence.id))}
+      />
     </article>
   );
 }

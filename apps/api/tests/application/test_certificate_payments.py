@@ -7,6 +7,7 @@ from samples import certificate, deposit
 
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.shared.errors import EntryNotFound, InvalidEntry
 
 USER = uuid.uuid4()
@@ -20,7 +21,7 @@ def payments(store: Store) -> CertificatePayments:
 
 def add(store: Store, *entries: Entry) -> tuple[Entry, ...]:
     for entry in entries:
-        store.entries[entry.id] = entry
+        store.save_entries(entry)
     return entries
 
 
@@ -106,3 +107,17 @@ def test_other_users_entries_and_non_certificates_are_not_found(
     with pytest.raises(EntryNotFound):
         payments.link(USER, cert.id, theirs.id)
     assert store.certificate_payments == {}
+
+
+def test_deposits_are_suggested_and_linked_from_transactions(
+    store: Store, payments: CertificatePayments
+) -> None:
+    (cert,) = add(store, certificate(USER, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT"))
+    paid = deposit(USER, date(2026, 3, 5), 3_800_000, "CLIENT")
+    store.transactions[paid.id] = from_entry(paid, None, EvidenceRole.OTHER)
+
+    assert payments.view(USER, cert.id).suggestions == [paid]
+
+    linked = payments.link(USER, cert.id, paid.id)
+
+    assert linked.payments == [paid], "a payment with no entry beside it can be linked"

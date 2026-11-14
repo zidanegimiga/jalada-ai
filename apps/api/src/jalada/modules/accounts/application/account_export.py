@@ -8,7 +8,10 @@ from jalada.modules.accounts.domain.users import User
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.application.ports import Revision
+from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.transactions import Transaction
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -29,6 +32,9 @@ class AccountData:
     preferences: dict[str, Preference]
     # Payment entry id to the certificate entry id it was linked to.
     certificate_payments: dict[UUID, UUID] = field(default_factory=dict)
+    money_accounts: list[MoneyAccount] = field(default_factory=list)
+    transactions: list[Transaction] = field(default_factory=list)
+    audit_events: list[AuditEvent] = field(default_factory=list)
 
 
 class AccountExport:
@@ -66,6 +72,9 @@ class AccountExport:
                 runs=work.runs.for_user(user_id),
                 preferences=work.preferences_for(user_id).all(),
                 certificate_payments=work.certificate_payments_for(user_id).links(),
+                money_accounts=work.money_accounts_for(user_id).all(),
+                transactions=work.transactions_for(user_id).all(),
+                audit_events=work.audit_for(user_id).all(),
             )
 
     def write(self, user_id: UUID, out: IO[bytes]) -> None:

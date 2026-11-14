@@ -6,10 +6,15 @@ from jalada.core.jobs.tables import JobRow
 from jalada.modules.accounts.adapters.tables import SessionRow, UserRow
 from jalada.modules.evidence.adapters.tables import EvidenceRow
 from jalada.modules.ledger.adapters.tables import (
+    AuditEventRow,
     CertificatePaymentRow,
     CounterpartyPreferenceRow,
     EntryRevisionRow,
     EntryRow,
+    MoneyAccountRow,
+    TransactionEvidenceRow,
+    TransactionLineRow,
+    TransactionRow,
 )
 from jalada.modules.pipeline.adapters.tables import PipelineRunRow, PipelineStepRow
 from jalada.modules.telegram.adapters.tables import TelegramLinkCodeRow, TelegramLinkRow
@@ -25,6 +30,11 @@ ALL_TABLES: list[type[Base]] = [
     EntryRevisionRow,
     CertificatePaymentRow,
     CounterpartyPreferenceRow,
+    MoneyAccountRow,
+    TransactionRow,
+    TransactionLineRow,
+    TransactionEvidenceRow,
+    AuditEventRow,
     TelegramLinkRow,
     TelegramLinkCodeRow,
 ]

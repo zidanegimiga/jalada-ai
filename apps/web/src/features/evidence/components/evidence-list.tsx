@@ -9,6 +9,7 @@ const STATUS_LABELS: Record<string, string> = {
   needs_review: "Needs a look",
   confirmed: "Saved to ledger",
   failed: "Could not read",
+  not_a_transaction: "Not a transaction",
 };
 
 function describe(item: EvidenceItem) {

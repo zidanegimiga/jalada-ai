@@ -1,10 +1,10 @@
 import type { Entry, EntryValues } from "./types";
 
-async function send(
+async function send<T = Entry>(
   path: string,
   method: string,
   body?: unknown,
-): Promise<Entry> {
+): Promise<T> {
   const response = await fetch(path, {
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
@@ -13,7 +13,7 @@ async function send(
   const data = await response.json().catch(() => ({}));
   if (!response.ok)
     throw new Error(data.error?.message ?? "That did not save. Try again.");
-  return data as Entry;
+  return data as T;
 }
 
 export function confirmEntry(entryId: string): Promise<Entry> {
@@ -32,4 +32,8 @@ export function enterByHand(
   values: EntryValues,
 ): Promise<Entry> {
   return send(`/v1/evidence/${evidenceId}/entry`, "POST", values);
+}
+
+export async function markNotATransaction(evidenceId: string): Promise<void> {
+  await send<unknown>(`/v1/evidence/${evidenceId}/not-a-transaction`, "POST");
 }

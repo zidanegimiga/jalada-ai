@@ -39,3 +39,11 @@ def enter_by_hand(
 ) -> EntryResponse:
     entry = services.review.enter_by_hand(user.id, evidence_id, body.to_correction())
     return EntryResponse.from_entry(entry)
+
+
+@router.post("/v1/evidence/{evidence_id}/not-a-transaction", status_code=status.HTTP_204_NO_CONTENT)
+def mark_not_a_transaction(
+    evidence_id: UUID, user: CurrentUser, services: ServicesDependency
+) -> None:
+    """For evidence that does not record money moving, such as a balance message."""
+    services.review.mark_not_a_transaction(user.id, evidence_id)

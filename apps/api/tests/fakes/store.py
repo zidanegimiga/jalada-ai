@@ -8,7 +8,15 @@ from uuid import UUID
 from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.evidence.domain.evidence import Evidence
-from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.audit import AuditEvent
+from jalada.modules.ledger.domain.entries import Entry, EntryKind
+from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.transactions import (
+    EvidenceRole,
+    Transaction,
+    as_entry,
+    from_entry,
+)
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -31,3 +39,19 @@ class Store:
     sessions: dict[str, Session] = field(default_factory=dict)
     # Payment id to (user id, certificate id).
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)
+    money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)
+    transactions: dict[UUID, Transaction] = field(default_factory=dict)
+    audit_events: list[AuditEvent] = field(default_factory=list)
+
+    def save_entries(self, *entries: Entry) -> None:
+        """Saves entries with the transactions that stand beside them, as the pipeline,
+        review and migration 0011 always do."""
+        for entry in entries:
+            self.entries[entry.id] = entry
+            if entry.kind == EntryKind.TRANSACTION:
+                self.transactions[entry.id] = from_entry(entry, None, EvidenceRole.OTHER)
+
+    def payments(self) -> list[Entry]:
+        """Every payment, in the shape of an entry, oldest first."""
+        found = sorted(self.transactions.values(), key=lambda t: t.created_at)
+        return [as_entry(t) for t in found]
