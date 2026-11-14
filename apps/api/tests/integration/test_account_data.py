@@ -21,6 +21,7 @@ from jalada.modules.evidence.domain.evidence import (
     EvidenceSource,
     EvidenceStatus,
 )
+from jalada.modules.ledger.domain.audit import Actor, AuditAction, SubjectType, event
 from jalada.modules.ledger.domain.categories import Purpose
 from jalada.modules.ledger.domain.money_accounts import default_accounts
 from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
@@ -108,6 +109,18 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         work.transactions_for(user.id).add(
             from_entry(entry, accounts[0].id, EvidenceRole.PAYMENT_PROOF)
         )
+        work.audit_for(user.id).add(
+            event(
+                user.id,
+                SubjectType.TRANSACTION,
+                entry.id,
+                Actor.USER,
+                AuditAction.CONFIRMED,
+                None,
+                entry,
+                NOW,
+            )
+        )
         work.telegram.save_code(user.id, "f" * 64, NOW)
         work.telegram.link(user.id, 777, 888, NOW)
         work.jobs.enqueue(
@@ -129,6 +142,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "transactions",
         "transaction_lines",
         "transaction_evidence",
+        "audit_events",
         "telegram_links",
         "telegram_link_codes",
     ]

@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Protocol
 from uuid import UUID
 
+from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.categories import Purpose
 
 if TYPE_CHECKING:
@@ -97,3 +98,14 @@ class TransactionRepository(Protocol):
         """Saves the fields and the lines, and adds any new evidence links. Links are never
         removed here: unlinking is its own action."""
         ...
+
+
+class AuditTrail(Protocol):
+    """One user's audit trail. Events are added, never changed or removed."""
+
+    def add(self, event: AuditEvent) -> None: ...
+    def for_subject(self, subject_id: UUID) -> list[AuditEvent]:
+        """Oldest first, and in the order written when the time is the same."""
+        ...
+
+    def all(self) -> list[AuditEvent]: ...

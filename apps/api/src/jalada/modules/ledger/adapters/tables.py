@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Identity,
     Index,
     Integer,
     String,
@@ -190,3 +191,22 @@ class TransactionEvidenceRow(Base):
     role: Mapped[str] = mapped_column(String(20))
     linked_by: Mapped[str] = mapped_column(String(10))
     linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AuditEventRow(Base):
+    """Everything that happened to the records. Rows are only ever added."""
+
+    __tablename__ = "audit_events"
+    __table_args__ = (Index("ix_audit_events_user_id_subject_id", "user_id", "subject_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    # The order events were written in, for events with the same time.
+    seq: Mapped[int] = mapped_column(BigInteger, Identity(always=True))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    subject_type: Mapped[str] = mapped_column(String(20))
+    subject_id: Mapped[uuid.UUID]
+    actor: Mapped[str] = mapped_column(String(10))
+    action: Mapped[str] = mapped_column(String(20))
+    before: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    after: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

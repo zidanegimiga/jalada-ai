@@ -6,6 +6,7 @@ from datetime import date, datetime
 from uuid import UUID
 
 from jalada.modules.ledger.application.ports import Revision
+from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
@@ -242,6 +243,24 @@ class FakeTransactions:
         known = {link.evidence_id for link in transaction.evidence}
         kept = tuple(link for link in old.evidence if link.evidence_id not in known)
         self.rows[transaction.id] = replace(transaction, evidence=kept + transaction.evidence)
+
+
+class FakeAuditTrail:
+    def __init__(self, rows: list[AuditEvent], user_id: UUID) -> None:
+        self.rows = rows
+        self._user_id = user_id
+
+    def add(self, event: AuditEvent) -> None:
+        if event.user_id != self._user_id:
+            raise PermissionError("Event belongs to another user")
+        self.rows.append(event)
+
+    def for_subject(self, subject_id: UUID) -> list[AuditEvent]:
+        return [e for e in self.all() if e.subject_id == subject_id]
+
+    def all(self) -> list[AuditEvent]:
+        mine = [e for e in self.rows if e.user_id == self._user_id]
+        return sorted(mine, key=lambda e: e.at)  # stable: the order written for equal times
 
 
 class FakePreferences:

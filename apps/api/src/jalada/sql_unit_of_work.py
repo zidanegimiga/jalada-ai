@@ -13,12 +13,14 @@ from jalada.modules.accounts.adapters.repositories import SqlSessionRepository, 
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
 from jalada.modules.evidence.adapters.repository import SqlEvidenceRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
+from jalada.modules.ledger.adapters.audit_trail import SqlAuditTrail
 from jalada.modules.ledger.adapters.certificate_payments import SqlCertificatePayments
 from jalada.modules.ledger.adapters.ledger_repository import SqlEntryRepository
 from jalada.modules.ledger.adapters.money_accounts import SqlMoneyAccounts
 from jalada.modules.ledger.adapters.preference_repository import SqlPreferenceRepository
 from jalada.modules.ledger.adapters.transactions import SqlTransactions
 from jalada.modules.ledger.application.ports import (
+    AuditTrail,
     CertificatePaymentRepository,
     EntryRepository,
     MoneyAccountRepository,
@@ -66,6 +68,9 @@ class SqlUnitOfWork:
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
         return SqlTransactions(self._db, user_id)
+
+    def audit_for(self, user_id: UUID) -> AuditTrail:
+        return SqlAuditTrail(self._db, user_id)
 
     def __exit__(
         self,

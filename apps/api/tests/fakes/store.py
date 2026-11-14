@@ -8,6 +8,7 @@ from uuid import UUID
 from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.evidence.domain.evidence import Evidence
+from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.ledger.domain.transactions import EvidenceRole, Transaction, from_entry
@@ -35,6 +36,7 @@ class Store:
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)
     money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)
     transactions: dict[UUID, Transaction] = field(default_factory=dict)
+    audit_events: list[AuditEvent] = field(default_factory=list)
 
     def save_entries(self, *entries: Entry) -> None:
         """Saves entries with the transactions that stand beside them, as the pipeline,
