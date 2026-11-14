@@ -14,6 +14,7 @@ from jalada.modules.ledger.domain.transactions import (
     TransactionKind,
     TransactionLine,
     TransactionStatus,
+    as_entry,
     from_entry,
     line_problems,
     role_for,
@@ -97,3 +98,37 @@ def test_lines_must_add_up_and_have_a_category() -> None:
     ]
     uncategorised = (TransactionLine(15000, None, Purpose.UNSURE),)
     assert line_problems(replace(transaction, lines=uncategorised)) == ["a line has no category"]
+
+
+def test_a_transaction_reads_back_as_the_entry_it_came_from() -> None:
+    entry = replace(
+        confirmed_entry(USER, date(2026, 11, 4), 15000, "out", "personal_food"),
+        mpesa_code="UK5AB1CD23",
+        run_id=uuid.uuid4(),
+    )
+    for status in EntryStatus:
+        changed = replace(entry, status=status)
+        assert as_entry(from_entry(changed, MPESA, EvidenceRole.PAYMENT_PROOF)) == changed
+
+
+def test_a_split_transaction_has_no_single_category() -> None:
+    entry = confirmed_entry(USER, date(2026, 11, 4), 15000, "out", "personal_food")
+    split = (
+        TransactionLine(10000, "personal_food", Purpose.PERSONAL),
+        TransactionLine(5000, "business_stock", Purpose.BUSINESS),
+    )
+    transaction = replace(from_entry(entry, None, EvidenceRole.OTHER), lines=split)
+
+    shown = as_entry(transaction)
+
+    assert (shown.category, shown.purpose) == (None, Purpose.UNSURE)
+
+
+def test_a_candidate_has_no_entry() -> None:
+    entry = confirmed_entry(USER, date(2026, 11, 4), 15000, "out", "personal_food")
+    candidate = replace(
+        from_entry(entry, None, EvidenceRole.RECEIPT), status=TransactionStatus.CANDIDATE
+    )
+
+    with pytest.raises(ValueError):
+        as_entry(candidate)

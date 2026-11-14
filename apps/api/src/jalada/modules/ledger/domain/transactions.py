@@ -5,7 +5,7 @@ from uuid import UUID
 
 from jalada.modules.evidence.domain.evidence import EvidenceKind
 from jalada.modules.ledger.domain.categories import Direction, Purpose
-from jalada.modules.ledger.domain.entries import Entry, EntryKind
+from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 
 
 class TransactionKind(StrEnum):
@@ -139,4 +139,34 @@ def from_entry(entry: Entry, account_id: UUID | None, role: EvidenceRole) -> Tra
         confirmed_at=entry.confirmed_at,
         lines=(TransactionLine(entry.amount_cents, entry.category, entry.purpose),),
         evidence=(EvidenceLink(entry.evidence_id, role, linked_by, entry.created_at),),
+    )
+
+
+def as_entry(transaction: Transaction) -> Entry:
+    """The entry a transaction stands for, so screens built on entries can read transactions
+    while both models exist. Goes with entries."""
+    if transaction.status == TransactionStatus.CANDIDATE or not transaction.evidence:
+        raise ValueError("Only transactions with evidence and an entry status have an entry")
+    # One line until splitting exists. A split has no single category to show.
+    line = transaction.lines[0] if len(transaction.lines) == 1 else None
+    return Entry(
+        id=transaction.id,
+        user_id=transaction.user_id,
+        evidence_id=transaction.evidence[0].evidence_id,
+        run_id=transaction.run_id,
+        kind=EntryKind.TRANSACTION,
+        status=EntryStatus(transaction.status.value),
+        occurred_on=transaction.occurred_on,
+        direction=transaction.direction,
+        amount_cents=transaction.amount_cents,
+        counterparty=transaction.counterparty,
+        reference=transaction.reference,
+        mpesa_code=transaction.payment_code,
+        certificate_serial=None,
+        tax_withheld_cents=None,
+        purpose=line.purpose if line else Purpose.UNSURE,
+        category=line.category if line else None,
+        confidence=transaction.confidence,
+        created_at=transaction.created_at,
+        confirmed_at=transaction.confirmed_at,
     )
