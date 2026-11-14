@@ -137,3 +137,46 @@ def test_unreadable_evidence_waits_for_an_entry_typed_in_by_hand(
 def test_typing_in_needs_the_evidence_to_be_mine(review: EntryReview) -> None:
     with pytest.raises(EvidenceNotFound):
         review.enter_by_hand(USER, uuid.uuid4(), Correction(category="personal_food"))
+
+
+def test_not_a_transaction_rejects_the_entry_and_keeps_a_revision(
+    review: EntryReview, processed: Entry, store: Store
+) -> None:
+    review.mark_not_a_transaction(USER, processed.evidence_id)
+
+    rejected = store.entries[processed.id]
+    assert rejected.status == EntryStatus.REJECTED
+    assert store.revisions == [(processed, rejected)]
+    assert store.evidence[processed.evidence_id].status == EvidenceStatus.NOT_A_TRANSACTION
+    assert USER not in store.preferences
+    assert review.queue(USER) == []
+
+
+def test_unreadable_evidence_can_be_marked_not_a_transaction(
+    review: EntryReview, capture: EvidenceCapture, store: Store
+) -> None:
+    evidence = capture.capture_file(USER, JPEG, EvidenceSource.WEB_UPLOAD).evidence
+    store.evidence[evidence.id] = replace(
+        store.evidence[evidence.id], status=EvidenceStatus.NEEDS_REVIEW
+    )
+
+    review.mark_not_a_transaction(USER, evidence.id)
+
+    assert store.evidence[evidence.id].status == EvidenceStatus.NOT_A_TRANSACTION
+    assert review.queue(USER) == []
+
+
+def test_a_confirmed_entry_cannot_be_marked_not_a_transaction(
+    review: EntryReview, processed: Entry
+) -> None:
+    review.confirm(USER, processed.id, Correction(category="personal_food"))
+
+    with pytest.raises(InvalidEntry, match="already in your ledger"):
+        review.mark_not_a_transaction(USER, processed.evidence_id)
+
+
+def test_not_a_transaction_needs_the_evidence_to_be_mine(
+    review: EntryReview, processed: Entry
+) -> None:
+    with pytest.raises(EvidenceNotFound):
+        review.mark_not_a_transaction(OTHER, processed.evidence_id)

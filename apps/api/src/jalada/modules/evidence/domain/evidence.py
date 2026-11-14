@@ -40,6 +40,8 @@ class EvidenceStatus(StrEnum):
     NEEDS_REVIEW = "needs_review"
     CONFIRMED = "confirmed"
     DUPLICATE = "duplicate"
+    # This does not record money moving, such as a balance message.
+    NOT_A_TRANSACTION = "not_a_transaction"
     FAILED = "failed"
 
 
@@ -60,7 +62,7 @@ class Evidence:
 def detect_file_type(data: bytes) -> str | None:
     """The content type from the file's own bytes. Names and declared types are never trusted."""
     for signature, offset, content_type in SIGNATURES:
-        if data[offset : offset + len(signature)] == signature:
+        if data[offset: offset + len(signature)] == signature:
             if content_type == "image/webp" and not data.startswith(b"RIFF"):
                 continue
             return content_type

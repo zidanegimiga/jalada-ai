@@ -92,6 +92,21 @@ class EntryReview:
             work.commit()
         return entry
 
+    def mark_not_a_transaction(self, user_id: UUID, evidence_id: UUID) -> None:
+        """The evidence leaves the review queue. Its entry, if any, is kept as rejected."""
+        with self._unit_of_work() as work:
+            if work.evidence_for(user_id).get(evidence_id) is None:
+                raise EvidenceNotFound
+            entry = work.entries_for(user_id).for_evidence(evidence_id)
+            if entry and entry.status == EntryStatus.CONFIRMED:
+                raise InvalidEntry("This is already in your ledger.")
+            if entry and entry.status != EntryStatus.REJECTED:
+                rejected = replace(entry, status=EntryStatus.REJECTED)
+                work.entries_for(user_id).update(rejected)
+                work.entries_for(user_id).add_revision(entry, rejected, self._clock.now())
+            work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.NOT_A_TRANSACTION)
+            work.commit()
+
     def _confirmed(self, entry: Entry) -> Entry:
         missing = missing_fields(entry)
         if missing:

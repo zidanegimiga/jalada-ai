@@ -66,7 +66,16 @@ def test_review_routes_need_my_own_entries(client: TestClient, waiting: str) -> 
         == 404
     )
     assert client.post(f"/v1/evidence/{waiting}/entry", json=ENTRY).status_code == 404
+    assert client.post(f"/v1/evidence/{waiting}/not-a-transaction").status_code == 404
     assert client.get("/v1/review").json()["items"] == []
+
+
+def test_marking_not_a_transaction_takes_it_off_the_list(client: TestClient, waiting: str) -> None:
+    response = client.post(f"/v1/evidence/{waiting}/not-a-transaction")
+
+    assert response.status_code == 204
+    assert client.get("/v1/review").json()["items"] == []
+    assert client.get(f"/v1/evidence/{waiting}").json()["status"] == "not_a_transaction"
 
 
 def test_review_needs_a_signed_in_user(client: TestClient) -> None:
