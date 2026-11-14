@@ -22,6 +22,7 @@ from jalada.modules.evidence.domain.evidence import (
     EvidenceStatus,
 )
 from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.money_accounts import default_accounts
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.run_types import StepRecord
 from jalada.sql_unit_of_work import SqlUnitOfWork
@@ -100,6 +101,8 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         work.entries_for(user.id).add(entry)
         work.entries_for(user.id).add_revision(entry, entry, NOW)
         work.preferences_for(user.id).remember("jane wanjiku", "personal_food", Purpose.PERSONAL)
+        for account in default_accounts(user.id, NOW):
+            work.money_accounts_for(user.id).add(account)
         work.telegram.save_code(user.id, "f" * 64, NOW)
         work.telegram.link(user.id, 777, 888, NOW)
         work.jobs.enqueue(
@@ -117,6 +120,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "pipeline_runs",
         "entries",
         "counterparty_preferences",
+        "money_accounts",
         "telegram_links",
         "telegram_link_codes",
     ]

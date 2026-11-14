@@ -10,6 +10,7 @@ from jalada.modules.ledger.adapters.tables import (
     CounterpartyPreferenceRow,
     EntryRevisionRow,
     EntryRow,
+    MoneyAccountRow,
 )
 from jalada.modules.pipeline.adapters.tables import PipelineRunRow, PipelineStepRow
 from jalada.modules.telegram.adapters.tables import TelegramLinkCodeRow, TelegramLinkRow
@@ -25,6 +26,7 @@ ALL_TABLES: list[type[Base]] = [
     EntryRevisionRow,
     CertificatePaymentRow,
     CounterpartyPreferenceRow,
+    MoneyAccountRow,
     TelegramLinkRow,
     TelegramLinkCodeRow,
 ]

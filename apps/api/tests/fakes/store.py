@@ -9,6 +9,7 @@ from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -31,3 +32,4 @@ class Store:
     sessions: dict[str, Session] = field(default_factory=dict)
     # Payment id to (user id, certificate id).
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)
+    money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     pass
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.pipeline.domain.classifier import Preference
 
 
@@ -54,3 +55,10 @@ class CertificatePaymentRepository(Protocol):
 class PreferenceRepository(Protocol):
     def all(self) -> dict[str, Preference]: ...
     def remember(self, counterparty_key: str, category: str, purpose: Purpose) -> None: ...
+
+
+class MoneyAccountRepository(Protocol):
+    """Where one user's money sits."""
+
+    def all(self) -> list[MoneyAccount]: ...
+    def add(self, account: MoneyAccount) -> None: ...

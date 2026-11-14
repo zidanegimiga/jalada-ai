@@ -9,6 +9,7 @@ from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -131,6 +132,22 @@ class FakeCertificatePayments:
     def unlink(self, certificate_id: UUID, payment_id: UUID) -> None:
         if self.rows.get(payment_id) == (self._user_id, certificate_id):
             del self.rows[payment_id]
+
+
+class FakeMoneyAccounts:
+    def __init__(self, rows: dict[UUID, MoneyAccount], user_id: UUID) -> None:
+        self.rows = rows
+        self._user_id = user_id
+
+    def all(self) -> list[MoneyAccount]:
+        mine = [a for a in self.rows.values() if a.user_id == self._user_id]
+        return sorted(mine, key=lambda a: (a.created_at, a.name))
+
+    def add(self, account: MoneyAccount) -> None:
+        if account.user_id != self._user_id:
+            raise PermissionError("Account belongs to another user")
+        assert account.name not in {a.name for a in self.all()}, "the database refuses it"
+        self.rows[account.id] = account
 
 
 class FakePreferences:

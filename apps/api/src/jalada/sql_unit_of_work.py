@@ -15,10 +15,12 @@ from jalada.modules.evidence.adapters.repository import SqlEvidenceRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.adapters.certificate_payments import SqlCertificatePayments
 from jalada.modules.ledger.adapters.ledger_repository import SqlEntryRepository
+from jalada.modules.ledger.adapters.money_accounts import SqlMoneyAccounts
 from jalada.modules.ledger.adapters.preference_repository import SqlPreferenceRepository
 from jalada.modules.ledger.application.ports import (
     CertificatePaymentRepository,
     EntryRepository,
+    MoneyAccountRepository,
     PreferenceRepository,
 )
 from jalada.modules.pipeline.adapters.run_repository import SqlRunRepository
@@ -56,6 +58,9 @@ class SqlUnitOfWork:
 
     def certificate_payments_for(self, user_id: UUID) -> CertificatePaymentRepository:
         return SqlCertificatePayments(self._db, user_id)
+
+    def money_accounts_for(self, user_id: UUID) -> MoneyAccountRepository:
+        return SqlMoneyAccounts(self._db, user_id)
 
     def __exit__(
         self,

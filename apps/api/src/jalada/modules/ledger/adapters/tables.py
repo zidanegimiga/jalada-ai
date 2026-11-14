@@ -4,6 +4,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Date,
     DateTime,
     Float,
@@ -106,3 +107,17 @@ class CounterpartyPreferenceRow(Base):
     category: Mapped[str] = mapped_column(String(40))
     purpose: Mapped[str] = mapped_column(String(10))
     times_used: Mapped[int] = mapped_column(Integer)
+
+
+class MoneyAccountRow(Base):
+    """Somewhere the user's money sits: M-Pesa, a bank, cash, a card or a loan."""
+
+    __tablename__ = "money_accounts"
+    __table_args__ = (Index("uq_money_accounts_user_id_name", "user_id", "name", unique=True),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(10))
+    name: Mapped[str] = mapped_column(String(80))
+    tracked: Mapped[bool] = mapped_column(Boolean)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
