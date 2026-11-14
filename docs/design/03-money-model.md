@@ -1,6 +1,6 @@
 # 03. The money model
 
-Status: Draft
+Status: Approved
 
 [02. The user journey today](02-user-journey-today.md) ends with the problem this document solves: every piece of evidence becomes a transaction of its own. A payment message and the receipt for the same purchase are counted twice, a payment message cannot say what the money was for, moving money between your own accounts looks like spending, and money that is owed has no place at all.
 
