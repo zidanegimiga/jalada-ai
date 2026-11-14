@@ -108,10 +108,10 @@ For Gemini, in `.env`:
 
 ```bash
 JALADA_MODEL_CHAIN=gemini-3.5-flash-lite,gemini-3.1-flash-lite
-JALADA_MODEL_PROVIDERS={"gemini": {"api_key": "your-key"}}
+JALADA_MODEL_PROVIDERS='{"gemini": {"api_key": "your-key"}}'
 ```
 
-To use a local model with Ollama instead (about 3 GB to download), run `make up-ollama` and `make ollama-model`, then set `JALADA_MODEL_CHAIN=ollama-qwen2.5vl` and run `make up-ollama` again.
+To use a local model, install [Ollama](https://ollama.com) on your computer and run `ollama pull qwen2.5vl:3b` (about 3 GB). It runs outside Docker because on a Mac only the native app can use the graphics chip. Add `ollama-qwen2.5vl` to `JALADA_MODEL_CHAIN` and an `ollama` entry to `JALADA_MODEL_PROVIDERS`: `{"ollama": {"base_url": "http://host.docker.internal:11434"}}` when the API runs in compose (`make up`), or `http://localhost:11434` when it runs with `uv run`. Local models never run in production.
 
 Free tiers and local models are only for invented data. In production the app refuses to start with a model until `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true`, which should only be set when every model in the chain is on terms that exclude training on what it is sent.
 

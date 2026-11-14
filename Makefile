@@ -1,26 +1,17 @@
 COMPOSE := docker compose -f infra/docker-compose.yml $(if $(wildcard .env),--env-file .env)
 
-.PHONY: up up-ollama up-telegram ollama-model down logs db migrate migration check test-integration e2e openapi web-types format
+.PHONY: up up-telegram down logs db migrate migration check test-integration e2e openapi web-types format
 
 # Build and start the whole stack in the background.
 up:
 	$(COMPOSE) up --build --detach --wait
 
-# The same stack plus a local language model server on localhost:11434.
-up-ollama:
-	$(COMPOSE) --profile ollama up --build --detach --wait
-
 # The stack plus the Telegram bot, reading messages by polling.
 up-telegram:
 	$(COMPOSE) --profile telegram up --build --detach --wait
 
-# Download the default local vision model (about 3 GB) into the ollama container.
-OLLAMA_MODEL ?= qwen2.5vl:3b
-ollama-model:
-	$(COMPOSE) --profile ollama exec ollama ollama pull $(OLLAMA_MODEL)
-
 down:
-	$(COMPOSE) --profile ollama --profile telegram down
+	$(COMPOSE) --profile telegram down
 
 logs:
 	$(COMPOSE) logs --follow
