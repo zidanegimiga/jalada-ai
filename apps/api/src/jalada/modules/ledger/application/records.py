@@ -31,3 +31,9 @@ def monthly_totals(work: UnitOfWork, user_id: UUID, year: int) -> list[Total]:
     """Confirmed money in and out per month, direction and purpose."""
     payments = work.transactions_for(user_id).monthly_totals(year)
     return payments + work.entries_for(user_id).monthly_totals(year, CERTIFICATE)
+
+
+def payment(work: UnitOfWork, user_id: UUID, payment_id: UUID) -> Entry | None:
+    """One payment, such as one linked to a certificate."""
+    found = work.transactions_for(user_id).get(payment_id)
+    return as_entry(found) if found else None

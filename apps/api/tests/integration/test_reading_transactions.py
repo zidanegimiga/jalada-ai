@@ -7,12 +7,16 @@ from dataclasses import replace
 from datetime import UTC, date, datetime
 
 import pytest
+from fakes import FixedClock
 from samples import certificate, confirmed_entry, deposit
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 from test_ledger_storage import setup_evidence
+from test_tax_year_export import RecordingWriter
 
 from jalada.modules.accounts.domain.users import User
+from jalada.modules.exports.application.tax_year_export import TaxYearExport
+from jalada.modules.exports.domain.tax_year import build_report
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
@@ -91,3 +95,27 @@ def test_the_month_view_has_the_same_totals(session_factory: sessionmaker[DbSess
         assert ledger.year(user.id, year) == before
     march = ledger.year(user.id, 2026)[2]
     assert march.money_in == {Purpose.BUSINESS: 4_000_000}, "the linked deposit counts once"
+
+
+def test_the_workbook_has_the_same_sections_totals_and_certificates(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user, entries = save(session_factory)
+    certificate, linked_deposit = entries[5], entries[6]
+
+    for year in (2025, 2026):
+        report = TaxYearExport(
+            lambda: SqlUnitOfWork(session_factory), RecordingWriter(), FixedClock(), "{id}"
+        ).report(user.id, year)
+        with SqlUnitOfWork(session_factory) as work:
+            old = work.entries_for(user.id)
+            year_filter = LedgerFilter(start=date(year, 1, 1), end=date(year, 12, 31))
+            before = build_report(
+                year,
+                old.confirmed(year_filter, None, 1000),
+                summarise(old.monthly_totals(year)),
+                report.generated_on,
+                "{id}",
+                {certificate.id: [linked_deposit]},
+            )
+        assert report == before

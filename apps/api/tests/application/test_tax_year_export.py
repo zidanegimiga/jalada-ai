@@ -7,6 +7,7 @@ from samples import certificate, confirmed_entry, deposit
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.exports.domain.tax_year import TaxYearReport
 from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.shared.dates import kenyan_date
 
 USER = uuid.uuid4()
@@ -59,3 +60,14 @@ def test_linked_payments_reach_the_report_even_from_another_year(store: Store) -
 
     assert report.certificate_payments == {cert.id: [december]}
     assert report.paid_in_cents(cert) == 3_800_000
+
+
+def test_payments_are_read_from_transactions(store: Store) -> None:
+    entry = confirmed_entry(USER, date(2026, 4, 1), 7_000, "out", "business_stock")
+    store.transactions[entry.id] = from_entry(entry, None, EvidenceRole.OTHER)
+    export = TaxYearExport(lambda: FakeUnitOfWork(store), RecordingWriter(), FixedClock(), "{id}")
+
+    report = export.report(USER, 2026)
+
+    assert report.expenses[0].entries == [entry], "a payment with no entry is still counted"
+    assert report.months[3].money_out == {Purpose.BUSINESS: 7_000}
