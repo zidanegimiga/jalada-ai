@@ -8,6 +8,7 @@ from uuid import UUID
 from jalada.core.ports import Clock
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, EvidenceStatus
+from jalada.modules.ledger.application.transaction_mirror import mirror_entry
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.pipeline.application.ports import PipelineRun, ProcessingNotifier, TextReader
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
@@ -124,6 +125,9 @@ class EvidenceProcessor:
                 work.entries_for(evidence.user_id).add(entry)
             status = STATUS_FOR_OUTCOME[result.outcome]
             work.evidence_for(evidence.user_id).set_outcome(evidence.id, result.kind, status)
+            if entry:
+                # After the outcome, so the transaction sees what kind of evidence this was.
+                mirror_entry(work, entry)
             work.commit()
         return entry
 

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from jalada.core.ports import Clock
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceStatus
+from jalada.modules.ledger.application.transaction_mirror import mirror_entry
 from jalada.modules.ledger.domain.categories import CATEGORIES, Purpose
 from jalada.modules.ledger.domain.entries import (
     Correction,
@@ -52,6 +53,7 @@ class EntryReview:
                 return entry
             confirmed = self._confirmed(_corrected(entry, correction or Correction()))
             work.entries_for(user_id).update(confirmed)
+            mirror_entry(work, confirmed)
             work.entries_for(user_id).add_revision(entry, confirmed, self._clock.now())
             self._learn(work, user_id, confirmed)
             work.evidence_for(user_id).set_status(entry.evidence_id, EvidenceStatus.CONFIRMED)
@@ -87,6 +89,7 @@ class EntryReview:
             )
             entry = self._confirmed(_corrected(blank, values))
             work.entries_for(user_id).add(entry)
+            mirror_entry(work, entry)
             self._learn(work, user_id, entry)
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.CONFIRMED)
             work.commit()
@@ -103,6 +106,7 @@ class EntryReview:
             if entry and entry.status != EntryStatus.REJECTED:
                 rejected = replace(entry, status=EntryStatus.REJECTED)
                 work.entries_for(user_id).update(rejected)
+                mirror_entry(work, rejected)
                 work.entries_for(user_id).add_revision(entry, rejected, self._clock.now())
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.NOT_A_TRANSACTION)
             work.commit()
