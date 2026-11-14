@@ -100,11 +100,11 @@ class EvidenceProcessor:
 
     def _is_duplicate(self, user_id: UUID, extraction: Extraction) -> bool:
         with self._unit_of_work() as work:
-            entries = work.entries_for(user_id)
-            if extraction.mpesa_code and entries.has_mpesa_code(extraction.mpesa_code):
+            code = extraction.mpesa_code
+            if code and work.transactions_for(user_id).has_payment_code(code):
                 return True
             serial = extraction.certificate_serial
-            return bool(serial and entries.has_certificate_serial(serial))
+            return bool(serial and work.entries_for(user_id).has_certificate_serial(serial))
 
     def _save(self, evidence: Evidence, result: PipelineResult, started: datetime) -> Entry | None:
         run = PipelineRun(

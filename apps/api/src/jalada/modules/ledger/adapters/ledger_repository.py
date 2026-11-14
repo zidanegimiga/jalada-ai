@@ -127,9 +127,6 @@ class SqlEntryRepository:
             for row in self._db.scalars(query)
         ]
 
-    def has_mpesa_code(self, code: str) -> bool:
-        return self._exists(EntryRow.mpesa_code == code)
-
     def has_certificate_serial(self, serial: str) -> bool:
         return self._exists(EntryRow.certificate_serial == serial)
 

@@ -85,9 +85,6 @@ class FakeEntries:
                 sums[key] = sums.get(key, 0) + (e.amount_cents or 0)
         return [Total(m, d, p, cents) for (m, d, p), cents in sums.items()]
 
-    def has_mpesa_code(self, code: str) -> bool:
-        return any(e.mpesa_code == code for e in self._mine())
-
     def has_certificate_serial(self, serial: str) -> bool:
         return any(e.certificate_serial == serial for e in self._mine())
 
@@ -215,6 +212,9 @@ class FakeTransactions:
     def all(self) -> list[Transaction]:
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         return sorted(mine, key=lambda t: (t.created_at, t.id))
+
+    def has_payment_code(self, code: str) -> bool:
+        return any(t.payment_code == code for t in self.rows.values() if t.user_id == self._user_id)
 
     def incoming(self, start: date, end: date) -> list[Transaction]:
         found = [

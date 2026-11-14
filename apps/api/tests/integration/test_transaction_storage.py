@@ -133,3 +133,14 @@ def test_all_lists_every_transaction_of_one_user(
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.transactions_for(first.user_id).all() == [first, later]
+
+
+def test_a_payment_code_is_found_only_for_its_owner(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    transaction = saved(session_factory, "UK5AB1CD55")
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.transactions_for(transaction.user_id).has_payment_code("UK5AB1CD55")
+        assert not work.transactions_for(transaction.user_id).has_payment_code("UK5AB1CD56")
+        assert not work.transactions_for(uuid.uuid4()).has_payment_code("UK5AB1CD55")
