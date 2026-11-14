@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.transactions import Transaction
 from jalada.modules.pipeline.domain.classifier import Preference
 
 
@@ -62,3 +63,14 @@ class MoneyAccountRepository(Protocol):
 
     def all(self) -> list[MoneyAccount]: ...
     def add(self, account: MoneyAccount) -> None: ...
+
+
+class TransactionRepository(Protocol):
+    """One user's transactions, with their lines and evidence."""
+
+    def add(self, transaction: Transaction) -> None: ...
+    def get(self, transaction_id: UUID) -> Transaction | None: ...
+    def update(self, transaction: Transaction) -> None:
+        """Saves the fields and the lines, and adds any new evidence links. Links are never
+        removed here: unlinking is its own action."""
+        ...

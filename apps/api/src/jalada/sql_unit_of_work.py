@@ -17,11 +17,13 @@ from jalada.modules.ledger.adapters.certificate_payments import SqlCertificatePa
 from jalada.modules.ledger.adapters.ledger_repository import SqlEntryRepository
 from jalada.modules.ledger.adapters.money_accounts import SqlMoneyAccounts
 from jalada.modules.ledger.adapters.preference_repository import SqlPreferenceRepository
+from jalada.modules.ledger.adapters.transactions import SqlTransactions
 from jalada.modules.ledger.application.ports import (
     CertificatePaymentRepository,
     EntryRepository,
     MoneyAccountRepository,
     PreferenceRepository,
+    TransactionRepository,
 )
 from jalada.modules.pipeline.adapters.run_repository import SqlRunRepository
 from jalada.modules.pipeline.application.ports import RunRepository
@@ -61,6 +63,9 @@ class SqlUnitOfWork:
 
     def money_accounts_for(self, user_id: UUID) -> MoneyAccountRepository:
         return SqlMoneyAccounts(self._db, user_id)
+
+    def transactions_for(self, user_id: UUID) -> TransactionRepository:
+        return SqlTransactions(self._db, user_id)
 
     def __exit__(
         self,

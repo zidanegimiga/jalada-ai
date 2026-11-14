@@ -121,3 +121,72 @@ class MoneyAccountRow(Base):
     name: Mapped[str] = mapped_column(String(80))
     tracked: Mapped[bool] = mapped_column(Boolean)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class TransactionRow(Base):
+    """Money that moved, in or out of one of the user's accounts."""
+
+    __tablename__ = "transactions"
+    __table_args__ = (
+        # One transaction per payment system code, per user: the duplicate guard.
+        Index(
+            "uq_transactions_user_id_payment_code",
+            "user_id",
+            "payment_code",
+            unique=True,
+            postgresql_where="payment_code IS NOT NULL",
+        ),
+        Index("ix_transactions_user_id_occurred_on", "user_id", "occurred_on"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    account_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("money_accounts.id"))
+    kind: Mapped[str] = mapped_column(String(10))
+    status: Mapped[str] = mapped_column(String(20))
+    occurred_on: Mapped[Any] = mapped_column(Date, nullable=True)
+    direction: Mapped[str | None] = mapped_column(String(3))
+    amount_cents: Mapped[int | None] = mapped_column(BigInteger)
+    counterparty: Mapped[str | None] = mapped_column(String(200))
+    reference: Mapped[str | None] = mapped_column(String(200))
+    payment_code: Mapped[str | None] = mapped_column(String(40))
+    confidence: Mapped[float] = mapped_column(Float)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("pipeline_runs.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class TransactionLineRow(Base):
+    """What part of a transaction was for, in order."""
+
+    __tablename__ = "transaction_lines"
+
+    transaction_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    amount_cents: Mapped[int | None] = mapped_column(BigInteger)
+    category: Mapped[str | None] = mapped_column(String(40))
+    purpose: Mapped[str] = mapped_column(String(10))
+
+
+class TransactionEvidenceRow(Base):
+    """Evidence about a transaction, and what it does for it."""
+
+    __tablename__ = "transaction_evidence"
+
+    transaction_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
+    )
+    evidence_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("evidence.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    role: Mapped[str] = mapped_column(String(20))
+    linked_by: Mapped[str] = mapped_column(String(10))
+    linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

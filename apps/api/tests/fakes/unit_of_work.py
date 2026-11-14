@@ -12,6 +12,7 @@ from fakes.ledger import (
     FakeMoneyAccounts,
     FakePreferences,
     FakeRuns,
+    FakeTransactions,
 )
 from fakes.store import Store
 from jalada.core.jobs.ports import JobQueue
@@ -22,6 +23,7 @@ from jalada.modules.ledger.application.ports import (
     EntryRepository,
     MoneyAccountRepository,
     PreferenceRepository,
+    TransactionRepository,
 )
 from jalada.modules.pipeline.application.ports import RunRepository
 from jalada.modules.telegram.application.ports import TelegramLinks
@@ -48,6 +50,7 @@ class FakeUnitOfWork:
         self._preferences = {user: dict(p) for user, p in self._store.preferences.items()}
         self._certificate_payments = dict(self._store.certificate_payments)
         self._money_accounts = dict(self._store.money_accounts)
+        self._transactions = dict(self._store.transactions)
         self._runs = FakeRuns(list(self._store.runs))
         self.runs: RunRepository = self._runs
         self._telegram = FakeTelegramLinks(
@@ -70,6 +73,9 @@ class FakeUnitOfWork:
 
     def money_accounts_for(self, user_id: UUID) -> MoneyAccountRepository:
         return FakeMoneyAccounts(self._money_accounts, user_id)
+
+    def transactions_for(self, user_id: UUID) -> TransactionRepository:
+        return FakeTransactions(self._transactions, user_id)
 
     def __exit__(
         self,
@@ -94,6 +100,7 @@ class FakeUnitOfWork:
         self._store.sessions = self._sessions.rows
         self._store.certificate_payments = self._certificate_payments
         self._store.money_accounts = self._money_accounts
+        self._store.transactions = self._transactions
         for user_id in self._users.deleted:
             self._cascade(user_id)
 
@@ -112,6 +119,7 @@ class FakeUnitOfWork:
         store.money_accounts = {
             k: a for k, a in store.money_accounts.items() if a.user_id != user_id
         }
+        store.transactions = {k: t for k, t in store.transactions.items() if t.user_id != user_id}
         store.telegram_links.pop(user_id, None)
         store.telegram_codes = {k: c for k, c in store.telegram_codes.items() if c[0] != user_id}
         store.google_subjects = {k: u for k, u in store.google_subjects.items() if u != user_id}

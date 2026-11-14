@@ -163,9 +163,9 @@ New tables, with the same rules as today: a `user_id` on every row, every query 
 | Table | Key columns | Notes |
 | --- | --- | --- |
 | `money_accounts` | `kind` (mpesa, bank, cash, card, loan), `name`, `tracked`, `identifiers` (jsonb: paybill, account number ending) | Every user starts with M-Pesa and Cash. |
-| `transactions` | `account_id`, `kind` (payment, transfer, reversal, refund), `direction`, `to_account_id`, `occurred_on`, `amount_cents`, `counterparty`, `reference`, `status` (candidate, proposed, confirmed, rejected), `run_id`, `confirmed_at` | Unique on (`user_id`, `reference`) for payment system codes, which is the duplicate guard. |
-| `transaction_lines` | `transaction_id`, `amount_cents`, `category`, `purpose` | Lines add up to the transaction amount. |
-| `transaction_evidence` | `transaction_id`, `evidence_id`, `role`, `matched_by` (exact, suggested, user), `matched_at` | Many to many. |
+| `transactions` | `account_id` (empty while unknown), `kind` (payment, transfer, reversal, refund), `direction`, `to_account_id` (added with transfers), `occurred_on`, `amount_cents`, `counterparty`, `reference`, `payment_code`, `status` (candidate, proposed, needs_review, confirmed, rejected), `confidence`, `run_id`, `confirmed_at` | Unique on (`user_id`, `payment_code`), the code issued by the payment system, which is the duplicate guard. A transaction copied from an entry keeps the entry's id. |
+| `transaction_lines` | `transaction_id`, `position`, `amount_cents`, `category`, `purpose` | Lines add up to the transaction amount once it is confirmed. |
+| `transaction_evidence` | `transaction_id`, `evidence_id`, `role`, `linked_by` (pipeline, exact, suggested, user), `linked_at` | Many to many. Links are added, never silently removed. |
 | `related_transactions` | `transaction_id`, `related_id`, `kind` (reverses, refunds) | |
 | `match_suggestions` | `kind`, the two sides, `score`, `reasons`, `status` (open, accepted, declined) | Declined suggestions are kept so they are not offered again. |
 | `obligations` | `kind` (receivable, payable), `counterparty`, `number`, `issued_on`, `due_on`, `amount_cents`, `status` (open, part paid, paid, cancelled) | |
