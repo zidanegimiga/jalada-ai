@@ -1,25 +1,17 @@
 from dataclasses import asdict
 from uuid import UUID
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import Select, delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session as DbSession
 
+from jalada.modules.ledger.adapters import transaction_rows
 from jalada.modules.ledger.adapters.tables import (
     TransactionEvidenceRow,
     TransactionLineRow,
     TransactionRow,
 )
-from jalada.modules.ledger.domain.categories import Direction, Purpose
-from jalada.modules.ledger.domain.transactions import (
-    EvidenceLink,
-    EvidenceRole,
-    LinkedBy,
-    Transaction,
-    TransactionKind,
-    TransactionLine,
-    TransactionStatus,
-)
+from jalada.modules.ledger.domain.transactions import Transaction, TransactionStatus
 
 PARTS = ("lines", "evidence")
 
@@ -39,22 +31,13 @@ class SqlTransactions:
         self._add_links(transaction)
 
     def get(self, transaction_id: UUID) -> Transaction | None:
-        row = self._db.scalar(
-            select(TransactionRow).where(
-                TransactionRow.user_id == self._user_id, TransactionRow.id == transaction_id
-            )
-        )
-        return self._to_transaction(row) if row else None
+        found = self._load(self._mine().where(TransactionRow.id == transaction_id))
+        return found[0] if found else None
 
     def pending(self, limit: int) -> list[Transaction]:
         waiting = [TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW]
-        rows = self._db.scalars(
-            select(TransactionRow)
-            .where(TransactionRow.user_id == self._user_id, TransactionRow.status.in_(waiting))
-            .order_by(TransactionRow.created_at)
-            .limit(limit)
-        )
-        return [self._to_transaction(row) for row in rows]
+        query = self._mine().where(TransactionRow.status.in_(waiting))
+        return self._load(query.order_by(TransactionRow.created_at).limit(limit))
 
     def update(self, transaction: Transaction) -> None:
         self._check_owner(transaction)
@@ -97,47 +80,11 @@ class SqlTransactions:
                 .on_conflict_do_nothing()
             )
 
-    def _to_transaction(self, row: TransactionRow) -> Transaction:
-        lines = self._db.scalars(
-            select(TransactionLineRow)
-            .where(TransactionLineRow.transaction_id == row.id)
-            .order_by(TransactionLineRow.position)
-        )
-        links = self._db.scalars(
-            select(TransactionEvidenceRow)
-            .where(TransactionEvidenceRow.transaction_id == row.id)
-            .order_by(TransactionEvidenceRow.linked_at)
-        )
-        return Transaction(
-            id=row.id,
-            user_id=row.user_id,
-            account_id=row.account_id,
-            kind=TransactionKind(row.kind),
-            status=TransactionStatus(row.status),
-            occurred_on=row.occurred_on,
-            direction=Direction(row.direction) if row.direction else None,
-            amount_cents=row.amount_cents,
-            counterparty=row.counterparty,
-            reference=row.reference,
-            payment_code=row.payment_code,
-            confidence=row.confidence,
-            run_id=row.run_id,
-            created_at=row.created_at,
-            confirmed_at=row.confirmed_at,
-            lines=tuple(
-                TransactionLine(line.amount_cents, line.category, Purpose(line.purpose))
-                for line in lines
-            ),
-            evidence=tuple(
-                EvidenceLink(
-                    link.evidence_id,
-                    EvidenceRole(link.role),
-                    LinkedBy(link.linked_by),
-                    link.linked_at,
-                )
-                for link in links
-            ),
-        )
+    def _mine(self) -> Select[TransactionRow]:
+        return select(TransactionRow).where(TransactionRow.user_id == self._user_id)
+
+    def _load(self, query: Select[TransactionRow]) -> list[Transaction]:
+        return transaction_rows.load(self._db, list(self._db.scalars(query)))
 
     def _check_owner(self, transaction: Transaction) -> None:
         if transaction.user_id != self._user_id:
