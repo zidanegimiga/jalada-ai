@@ -141,6 +141,7 @@ def test_a_payment_code_is_found_only_for_its_owner(
     transaction = saved(session_factory, "UK5AB1CD55")
 
     with SqlUnitOfWork(session_factory) as work:
-        assert work.transactions_for(transaction.user_id).has_payment_code("UK5AB1CD55")
-        assert not work.transactions_for(transaction.user_id).has_payment_code("UK5AB1CD56")
-        assert not work.transactions_for(uuid.uuid4()).has_payment_code("UK5AB1CD55")
+        mine = work.transactions_for(transaction.user_id)
+        assert mine.with_payment_code("UK5AB1CD55") == transaction
+        assert mine.with_payment_code("UK5AB1CD56") is None
+        assert work.transactions_for(uuid.uuid4()).with_payment_code("UK5AB1CD55") is None

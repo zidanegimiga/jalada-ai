@@ -95,8 +95,9 @@ class TransactionRepository(Protocol):
         """Confirmed payments in between two dates, oldest first."""
         ...
 
-    def has_payment_code(self, code: str) -> bool:
-        """Whether a transaction already carries this payment system code."""
+    def with_payment_code(self, code: str) -> Transaction | None:
+        """The transaction carrying this payment system code, if any. Codes are unique per
+        user."""
         ...
 
     def monthly_totals(self, year: int) -> list[Total]:

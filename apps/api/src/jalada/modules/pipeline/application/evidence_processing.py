@@ -103,7 +103,7 @@ class EvidenceProcessor:
     def _is_duplicate(self, user_id: UUID, extraction: Extraction) -> bool:
         with self._unit_of_work() as work:
             code = extraction.mpesa_code
-            if code and work.transactions_for(user_id).has_payment_code(code):
+            if code and work.transactions_for(user_id).with_payment_code(code):
                 return True
             serial = extraction.certificate_serial
             return bool(serial and work.entries_for(user_id).has_certificate_serial(serial))

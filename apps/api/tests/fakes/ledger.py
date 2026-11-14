@@ -221,8 +221,9 @@ class FakeTransactions:
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         return sorted(mine, key=lambda t: (t.created_at, t.id))
 
-    def has_payment_code(self, code: str) -> bool:
-        return any(t.payment_code == code for t in self.rows.values() if t.user_id == self._user_id)
+    def with_payment_code(self, code: str) -> Transaction | None:
+        mine = (t for t in self.rows.values() if t.user_id == self._user_id)
+        return next((t for t in mine if t.payment_code == code), None)
 
     def incoming(self, start: date, end: date) -> list[Transaction]:
         found = [

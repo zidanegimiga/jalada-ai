@@ -87,13 +87,9 @@ class SqlTransactions:
         )
         return self._load(query.order_by(TransactionRow.occurred_on, TransactionRow.id))
 
-    def has_payment_code(self, code: str) -> bool:
-        query = select(
-            exists().where(
-                TransactionRow.user_id == self._user_id, TransactionRow.payment_code == code
-            )
-        )
-        return bool(self._db.scalar(query))
+    def with_payment_code(self, code: str) -> Transaction | None:
+        found = self._load(self._mine().where(TransactionRow.payment_code == code))
+        return found[0] if found else None
 
     def monthly_totals(self, year: int) -> list[Total]:
         month = extract("month", TransactionRow.occurred_on)
