@@ -52,6 +52,20 @@ describe("EvidenceList", () => {
     expect(screen.getByText("Saved to ledger")).toBeInTheDocument();
   });
 
+  it("says when a copy was linked to a payment already recorded", () => {
+    render(
+      <EvidenceList
+        items={[
+          item({ id: "a", status: "linked" }),
+          item({ id: "b", status: "duplicate" }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Linked to a payment")).toBeInTheDocument();
+    expect(screen.getByText("Already recorded")).toBeInTheDocument();
+  });
+
   it("links to the original through the API", () => {
     render(<EvidenceList items={[item({ id: "abc" })]} />);
 

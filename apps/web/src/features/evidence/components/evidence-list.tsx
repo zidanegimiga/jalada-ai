@@ -2,12 +2,15 @@ import { FileText, Image as ImageIcon, MessageSquareText } from "lucide-react";
 
 import type { EvidenceItem } from "../api";
 
-const STATUS_LABELS: Record<string, string> = {
+// Every status the API can send has a label: a new one fails the type check until it does.
+const STATUS_LABELS: Record<EvidenceItem["status"], string> = {
   received: "Waiting to be read",
   processing: "Reading",
   proposed: "Ready to check",
   needs_review: "Needs a look",
   confirmed: "Saved to ledger",
+  duplicate: "Already recorded",
+  linked: "Linked to a payment",
   failed: "Could not read",
   not_a_transaction: "Not a transaction",
 };
@@ -49,7 +52,7 @@ export function EvidenceList({ items }: { items: EvidenceItem[] }) {
               </span>
             </div>
             <div className="flex flex-col items-end gap-1 text-sm">
-              <span>{STATUS_LABELS[item.status] ?? item.status}</span>
+              <span>{STATUS_LABELS[item.status]}</span>
               <a
                 href={`/v1/evidence/${item.id}/file`}
                 target="_blank"
