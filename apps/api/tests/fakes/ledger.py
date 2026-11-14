@@ -10,7 +10,7 @@ from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
-from jalada.modules.ledger.domain.transactions import Transaction
+from jalada.modules.ledger.domain.transactions import Transaction, TransactionStatus
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -46,9 +46,10 @@ class FakeEntries:
     def add_revision(self, before: Entry, after: Entry, changed_at: datetime) -> None:
         self._revisions.append((before, after))
 
-    def pending(self, limit: int) -> list[Entry]:
+    def pending(self, limit: int, kind: EntryKind | None = None) -> list[Entry]:
         waiting = (EntryStatus.PROPOSED, EntryStatus.NEEDS_REVIEW)
-        return [e for e in self._mine() if e.status in waiting][:limit]
+        found = [e for e in self._mine() if e.status in waiting and kind in (None, e.kind)]
+        return found[:limit]
 
     def confirmed(
         self, filters: LedgerFilter, after: LedgerPosition | None, limit: int
@@ -167,6 +168,12 @@ class FakeTransactions:
     def get(self, transaction_id: UUID) -> Transaction | None:
         found = self.rows.get(transaction_id)
         return found if found and found.user_id == self._user_id else None
+
+    def pending(self, limit: int) -> list[Transaction]:
+        waiting = (TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW)
+        mine = [t for t in self.rows.values() if t.user_id == self._user_id]
+        found = sorted((t for t in mine if t.status in waiting), key=lambda t: t.created_at)
+        return found[:limit]
 
     def update(self, transaction: Transaction) -> None:
         old = self.get(transaction.id)

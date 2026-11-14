@@ -15,6 +15,7 @@ from jalada.modules.ledger.domain.entries import (
     counterparty_key,
     missing_fields,
 )
+from jalada.modules.ledger.domain.transactions import as_entry
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
 from jalada.unit_of_work import UnitOfWork
 
@@ -37,7 +38,12 @@ class EntryReview:
     def queue(self, user_id: UUID, limit: int = 100) -> list[ReviewItem]:
         with self._unit_of_work() as work:
             evidence = work.evidence_for(user_id)
-            entries = work.entries_for(user_id).pending(limit)
+            # Payments come from transactions. Certificates are not transactions yet.
+            payments = [as_entry(t) for t in work.transactions_for(user_id).pending(limit)]
+            certificates = work.entries_for(user_id).pending(
+                limit, EntryKind.WITHHOLDING_CERTIFICATE
+            )
+            entries = payments + certificates
             items = [
                 ReviewItem(e, entry) for entry in entries if (e := evidence.get(entry.evidence_id))
             ]

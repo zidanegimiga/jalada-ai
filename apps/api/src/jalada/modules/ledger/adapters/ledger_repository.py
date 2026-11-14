@@ -63,8 +63,11 @@ class SqlEntryRepository:
             )
         )
 
-    def pending(self, limit: int) -> list[Entry]:
-        query = self._mine().where(EntryRow.status.in_(PENDING)).limit(limit)
+    def pending(self, limit: int, kind: EntryKind | None = None) -> list[Entry]:
+        query = self._mine().where(EntryRow.status.in_(PENDING))
+        if kind:
+            query = query.where(EntryRow.kind == kind)
+        query = query.limit(limit)
         return [_to_entry(row) for row in self._db.scalars(query)]
 
     def confirmed(

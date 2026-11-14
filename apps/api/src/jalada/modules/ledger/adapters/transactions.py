@@ -46,6 +46,16 @@ class SqlTransactions:
         )
         return self._to_transaction(row) if row else None
 
+    def pending(self, limit: int) -> list[Transaction]:
+        waiting = [TransactionStatus.PROPOSED, TransactionStatus.NEEDS_REVIEW]
+        rows = self._db.scalars(
+            select(TransactionRow)
+            .where(TransactionRow.user_id == self._user_id, TransactionRow.status.in_(waiting))
+            .order_by(TransactionRow.created_at)
+            .limit(limit)
+        )
+        return [self._to_transaction(row) for row in rows]
+
     def update(self, transaction: Transaction) -> None:
         self._check_owner(transaction)
         values = {k: v for k, v in _fields(transaction).items() if k not in ("id", "user_id")}

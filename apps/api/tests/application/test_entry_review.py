@@ -4,13 +4,14 @@ from datetime import date
 
 import pytest
 from fakes import FakeEvidenceStore, FakeTextReader, FakeUnitOfWork, FixedClock, Store
-from samples import JPEG, MPESA_SENT
+from samples import JPEG, MPESA_SENT, PDF, certificate, confirmed_entry
 
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceSource, EvidenceStatus
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Correction, Entry, EntryStatus
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.domain.run_types import Budget
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
@@ -180,3 +181,26 @@ def test_not_a_transaction_needs_the_evidence_to_be_mine(
 ) -> None:
     with pytest.raises(EvidenceNotFound):
         review.mark_not_a_transaction(OTHER, processed.evidence_id)
+
+
+def test_the_queue_reads_payments_from_transactions_and_certificates_from_entries(
+    review: EntryReview, capture: EvidenceCapture, store: Store
+) -> None:
+    message = capture.capture_text(USER, MPESA_SENT, EvidenceSource.WEB_PASTE).evidence
+    payment = replace(
+        confirmed_entry(USER, date(2026, 11, 4), 15000, "out", "personal_food"),
+        evidence_id=message.id,
+        status=EntryStatus.PROPOSED,
+    )
+    store.transactions[payment.id] = from_entry(payment, None, EvidenceRole.PAYMENT_PROOF)
+    pdf = capture.capture_file(USER, PDF, EvidenceSource.WEB_UPLOAD).evidence
+    waiting_certificate = replace(
+        certificate(USER, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT"),
+        evidence_id=pdf.id,
+        status=EntryStatus.NEEDS_REVIEW,
+    )
+    store.entries[waiting_certificate.id] = waiting_certificate
+
+    shown = {item.entry.id: item.entry for item in review.queue(USER) if item.entry}
+
+    assert shown == {payment.id: payment, waiting_certificate.id: waiting_certificate}

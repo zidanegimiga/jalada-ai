@@ -99,3 +99,23 @@ def test_nobody_else_can_change_a_transaction(session_factory: sessionmaker[DbSe
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.transactions_for(transaction.user_id).get(transaction.id) == transaction
+
+
+def test_only_proposed_and_doubtful_transactions_are_pending(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    waiting = saved(session_factory)
+    confirmed = replace(
+        waiting,
+        id=uuid.uuid4(),
+        payment_code=None,
+        status=TransactionStatus.CONFIRMED,
+        evidence=(),
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.transactions_for(waiting.user_id).add(confirmed)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.transactions_for(waiting.user_id).pending(10) == [waiting]
+        assert work.transactions_for(uuid.uuid4()).pending(10) == []
