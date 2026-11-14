@@ -5,7 +5,7 @@ screens and the workbook read them as before."""
 from uuid import UUID
 
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition
+from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.transactions import as_entry
 from jalada.unit_of_work import UnitOfWork
 
@@ -25,3 +25,9 @@ def confirmed(
     merged = [as_entry(t) for t in payments] + certificates
     merged.sort(key=lambda e: (e.occurred_on, e.id), reverse=True)
     return merged[:limit]
+
+
+def monthly_totals(work: UnitOfWork, user_id: UUID, year: int) -> list[Total]:
+    """Confirmed money in and out per month, direction and purpose."""
+    payments = work.transactions_for(user_id).monthly_totals(year)
+    return payments + work.entries_for(user_id).monthly_totals(year, CERTIFICATE)

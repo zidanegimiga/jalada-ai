@@ -16,7 +16,7 @@ from jalada.modules.accounts.domain.users import User
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition
+from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, summarise
 from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.sql_unit_of_work import SqlUnitOfWork
 
@@ -79,3 +79,15 @@ def test_the_ledger_lists_the_same_records_page_by_page(
         with SqlUnitOfWork(session_factory) as work:
             before = work.entries_for(user.id).confirmed(filters, None, 100)
         assert every_page(ledger, user.id, filters) == before, filters
+
+
+def test_the_month_view_has_the_same_totals(session_factory: sessionmaker[DbSession]) -> None:
+    user, _ = save(session_factory)
+    ledger = Ledger(lambda: SqlUnitOfWork(session_factory))
+
+    for year in (2025, 2026):
+        with SqlUnitOfWork(session_factory) as work:
+            before = summarise(work.entries_for(user.id).monthly_totals(year))
+        assert ledger.year(user.id, year) == before
+    march = ledger.year(user.id, 2026)[2]
+    assert march.money_in == {Purpose.BUSINESS: 4_000_000}, "the linked deposit counts once"

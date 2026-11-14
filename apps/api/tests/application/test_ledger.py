@@ -10,7 +10,7 @@ from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter
-from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
+from jalada.modules.ledger.domain.transactions import EvidenceRole, TransactionLine, from_entry
 
 USER = uuid.uuid4()
 
@@ -90,3 +90,16 @@ def test_payments_are_read_from_transactions(ledger: Ledger, store: Store) -> No
     listed = ledger.page(USER, LedgerFilter(start=date(2026, 4, 1))).entries
 
     assert listed == [entry], "a payment with no entry beside it is still listed"
+
+
+def test_the_month_view_counts_transaction_lines(ledger: Ledger, store: Store) -> None:
+    entry = confirmed_entry(USER, date(2026, 4, 1), 15_000, "out", "personal_food")
+    split = (
+        TransactionLine(10_000, "personal_food", Purpose.PERSONAL),
+        TransactionLine(5_000, "business_stock", Purpose.BUSINESS),
+    )
+    store.transactions[entry.id] = replace(from_entry(entry, None, EvidenceRole.OTHER), lines=split)
+
+    april = ledger.year(USER, 2026)[3]
+
+    assert april.money_out == {Purpose.PERSONAL: 10_000, Purpose.BUSINESS: 5_000}

@@ -48,4 +48,4 @@ class Ledger:
 
     def year(self, user_id: UUID, year: int) -> list[MonthSummary]:
         with self._unit_of_work() as work:
-            return summarise(work.entries_for(user_id).monthly_totals(year))
+            return summarise(records.monthly_totals(work, user_id, year))

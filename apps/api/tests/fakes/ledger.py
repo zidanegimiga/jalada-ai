@@ -70,10 +70,10 @@ class FakeEntries:
             ]
         return found[:limit]
 
-    def monthly_totals(self, year: int) -> list[Total]:
+    def monthly_totals(self, year: int, kind: EntryKind | None = None) -> list[Total]:
         sums: dict[tuple[int, Direction, Purpose], int] = {}
         for e in self._mine():
-            if e.id in self._linked_payments:
+            if e.id in self._linked_payments or kind not in (None, e.kind):
                 continue
             if e.status == EntryStatus.CONFIRMED and e.occurred_on and e.occurred_on.year == year:
                 key = (e.occurred_on.month, e.direction or Direction.OUT, e.purpose)
@@ -174,9 +174,15 @@ class FakeMoneyAccounts:
 
 
 class FakeTransactions:
-    def __init__(self, rows: dict[UUID, Transaction], user_id: UUID) -> None:
+    def __init__(
+        self,
+        rows: dict[UUID, Transaction],
+        user_id: UUID,
+        linked_payments: Collection[UUID] = (),
+    ) -> None:
         self.rows = rows
         self._user_id = user_id
+        self._linked_payments = linked_payments
 
     def add(self, transaction: Transaction) -> None:
         if transaction.user_id != self._user_id:
@@ -212,6 +218,18 @@ class FakeTransactions:
                 t for t in found if (t.occurred_on, t.id) < (after.occurred_on, after.entry_id)
             ]
         return found[:limit]
+
+    def monthly_totals(self, year: int) -> list[Total]:
+        sums: dict[tuple[int, Direction, Purpose], int] = {}
+        for t in self.rows.values():
+            day = t.occurred_on
+            mine = t.user_id == self._user_id and t.id not in self._linked_payments
+            if not mine or t.status != TransactionStatus.CONFIRMED or not day or day.year != year:
+                continue
+            for line in t.lines:
+                key = (day.month, t.direction or Direction.OUT, line.purpose)
+                sums[key] = sums.get(key, 0) + (line.amount_cents or 0)
+        return [Total(m, d, p, cents) for (m, d, p), cents in sums.items()]
 
     def update(self, transaction: Transaction) -> None:
         old = self.get(transaction.id)

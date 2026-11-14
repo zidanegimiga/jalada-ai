@@ -75,7 +75,7 @@ class FakeUnitOfWork:
         return FakeMoneyAccounts(self._money_accounts, user_id)
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
-        return FakeTransactions(self._transactions, user_id)
+        return FakeTransactions(self._transactions, user_id, self._certificate_payments)
 
     def __exit__(
         self,

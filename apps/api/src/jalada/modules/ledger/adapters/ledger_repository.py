@@ -92,7 +92,7 @@ class SqlEntryRepository:
         query = query.order_by(EntryRow.occurred_on.desc(), EntryRow.id.desc()).limit(limit)
         return [_to_entry(row) for row in self._db.scalars(query)]
 
-    def monthly_totals(self, year: int) -> list[Total]:
+    def monthly_totals(self, year: int, kind: EntryKind | None = None) -> list[Total]:
         month = extract("month", EntryRow.occurred_on)
         query = (
             select(month, EntryRow.direction, EntryRow.purpose, func.sum(EntryRow.amount_cents))
@@ -102,6 +102,7 @@ class SqlEntryRepository:
                 extract("year", EntryRow.occurred_on) == year,
                 # A payment linked to a certificate is already counted in its gross amount.
                 ~exists().where(CertificatePaymentRow.payment_id == EntryRow.id),
+                *([EntryRow.kind == kind] if kind else []),
             )
             .group_by(month, EntryRow.direction, EntryRow.purpose)
         )
