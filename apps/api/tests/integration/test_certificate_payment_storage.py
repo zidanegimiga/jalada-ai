@@ -11,8 +11,9 @@ from sqlalchemy.orm import sessionmaker
 from test_ledger_storage import setup_evidence
 
 from jalada.modules.ledger.domain.categories import Direction, Purpose
-from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.ledger import Total
+from jalada.modules.ledger.domain.transactions import EvidenceRole, from_entry
 from jalada.sql_unit_of_work import SqlUnitOfWork
 
 pytestmark = pytest.mark.integration
@@ -25,9 +26,10 @@ def save(session_factory: sessionmaker[DbSession], *entries: Entry) -> uuid.UUID
     user, evidence, _ = setup_evidence(session_factory)
     with SqlUnitOfWork(session_factory) as work:
         for entry in entries:
-            work.entries_for(user.id).add(
-                replace(entry, user_id=user.id, evidence_id=evidence.id, run_id=None)
-            )
+            saved = replace(entry, user_id=user.id, evidence_id=evidence.id, run_id=None)
+            work.entries_for(user.id).add(saved)
+            if saved.kind == EntryKind.TRANSACTION:
+                work.transactions_for(user.id).add(from_entry(saved, None, EvidenceRole.OTHER))
         work.commit()
     return user.id
 
@@ -71,8 +73,8 @@ def test_incoming_money_and_monthly_totals_count_linked_payments_once(
     user = save(session_factory, cert, paid, spent)
 
     with SqlUnitOfWork(session_factory) as work:
-        incoming = work.entries_for(user).incoming(date(2026, 3, 1), date(2026, 3, 31))
-        assert [e.id for e in incoming] == [paid.id]
+        incoming = work.transactions_for(user).incoming(date(2026, 3, 1), date(2026, 3, 31))
+        assert [t.id for t in incoming] == [paid.id]
         work.certificate_payments_for(user).link(cert.id, paid.id, NOW)
         work.commit()
 
@@ -102,3 +104,19 @@ def test_deleting_the_user_deletes_their_links(session_factory: sessionmaker[DbS
         )
 
     assert left == 0
+
+
+def test_a_payment_with_no_entry_can_be_linked(session_factory: sessionmaker[DbSession]) -> None:
+    anyone = uuid.uuid4()
+    cert = certificate(anyone, date(2026, 3, 3), 4_000_000, 200_000, "CLIENT")
+    user = save(session_factory, cert)
+    paid = from_entry(
+        deposit(user, date(2026, 3, 5), 3_800_000, "CLIENT"), None, EvidenceRole.OTHER
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.transactions_for(user).add(replace(paid, evidence=()))
+        work.certificate_payments_for(user).link(cert.id, paid.id, NOW)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.certificate_payments_for(user).links() == {paid.id: cert.id}

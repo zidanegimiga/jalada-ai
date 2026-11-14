@@ -2,6 +2,7 @@
 certificates, which are still entries. Both are given in the shape of entries, so the
 screens and the workbook read them as before."""
 
+from datetime import date
 from uuid import UUID
 
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
@@ -37,3 +38,9 @@ def payment(work: UnitOfWork, user_id: UUID, payment_id: UUID) -> Entry | None:
     """One payment, such as one linked to a certificate."""
     found = work.transactions_for(user_id).get(payment_id)
     return as_entry(found) if found else None
+
+
+def incoming(work: UnitOfWork, user_id: UUID, start: date, end: date) -> list[Entry]:
+    """Confirmed money in between two dates, oldest first: deposits that could have paid a
+    certificate."""
+    return [as_entry(t) for t in work.transactions_for(user_id).incoming(start, end)]

@@ -4,6 +4,7 @@ from datetime import date
 from uuid import UUID
 
 from jalada.core.ports import Clock
+from jalada.modules.ledger.application import records
 from jalada.modules.ledger.domain.certificates import link_problem, search_window, suggest_payments
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.shared.errors import EntryNotFound, InvalidEntry
@@ -39,7 +40,7 @@ class CertificatePayments:
                 return view
             if already is not None:
                 raise InvalidEntry("That payment is already linked to another certificate.")
-            payment = work.entries_for(user_id).get(payment_id)
+            payment = records.payment(work, user_id, payment_id)
             if payment is None:
                 raise EntryNotFound
             linked_cents = sum(p.amount_cents or 0 for p in view.payments)
@@ -59,11 +60,11 @@ class CertificatePayments:
 
     def _view(self, work: UnitOfWork, user_id: UUID, certificate_id: UUID) -> CertificateView:
         certificate = self._certificate(work, user_id, certificate_id)
-        entries = work.entries_for(user_id)
         links = work.certificate_payments_for(user_id).links()
-        paid = [entries.get(p) for p, c in links.items() if c == certificate_id]
+        paid = [records.payment(work, user_id, p) for p, c in links.items() if c == certificate_id]
         payments = sorted((p for p in paid if p), key=lambda p: p.occurred_on or date.min)
-        deposits = [d for d in entries.incoming(*search_window(certificate)) if d.id not in links]
+        window = search_window(certificate)
+        deposits = [d for d in records.incoming(work, user_id, *window) if d.id not in links]
         linked_cents = sum(p.amount_cents or 0 for p in payments)
         suggestions = suggest_payments(certificate, deposits, linked_cents)
         return CertificateView(certificate, payments, suggestions)

@@ -11,7 +11,11 @@ from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
-from jalada.modules.ledger.domain.transactions import Transaction, TransactionStatus
+from jalada.modules.ledger.domain.transactions import (
+    Transaction,
+    TransactionKind,
+    TransactionStatus,
+)
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
@@ -89,18 +93,6 @@ class FakeEntries:
 
     def all(self) -> list[Entry]:
         return sorted(self._mine(), key=lambda e: e.created_at)
-
-    def incoming(self, start: date, end: date) -> list[Entry]:
-        found = [
-            e
-            for e in self._mine()
-            if e.status == EntryStatus.CONFIRMED
-            and e.kind == EntryKind.TRANSACTION
-            and e.direction == Direction.IN
-            and e.occurred_on
-            and start <= e.occurred_on <= end
-        ]
-        return sorted(found, key=lambda e: e.occurred_on or start)
 
     def revisions(self) -> list[Revision]:
         mine = {e.id for e in self._mine()}
@@ -223,6 +215,19 @@ class FakeTransactions:
     def all(self) -> list[Transaction]:
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         return sorted(mine, key=lambda t: (t.created_at, t.id))
+
+    def incoming(self, start: date, end: date) -> list[Transaction]:
+        found = [
+            t
+            for t in self.rows.values()
+            if t.user_id == self._user_id
+            and t.status == TransactionStatus.CONFIRMED
+            and t.kind == TransactionKind.PAYMENT
+            and t.direction == Direction.IN
+            and t.occurred_on
+            and start <= t.occurred_on <= end
+        ]
+        return sorted(found, key=lambda t: (t.occurred_on or start, t.id))
 
     def monthly_totals(self, year: int) -> list[Total]:
         sums: dict[tuple[int, Direction, Purpose], int] = {}

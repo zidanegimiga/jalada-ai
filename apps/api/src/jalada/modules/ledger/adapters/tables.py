@@ -83,7 +83,7 @@ class CertificatePaymentRow(Base):
     __tablename__ = "certificate_payments"
 
     payment_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("entries.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
     )
     certificate_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("entries.id", ondelete="CASCADE"), index=True

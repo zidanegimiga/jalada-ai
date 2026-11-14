@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import Select, and_, delete, exists, extract, func, or_, select, update
@@ -14,7 +15,11 @@ from jalada.modules.ledger.adapters.tables import (
 )
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
-from jalada.modules.ledger.domain.transactions import Transaction, TransactionStatus
+from jalada.modules.ledger.domain.transactions import (
+    Transaction,
+    TransactionKind,
+    TransactionStatus,
+)
 
 PARTS = ("lines", "evidence")
 
@@ -63,6 +68,15 @@ class SqlTransactions:
 
     def all(self) -> list[Transaction]:
         return self._load(self._mine().order_by(TransactionRow.created_at, TransactionRow.id))
+
+    def incoming(self, start: date, end: date) -> list[Transaction]:
+        query = self._mine().where(
+            TransactionRow.status == TransactionStatus.CONFIRMED,
+            TransactionRow.kind == TransactionKind.PAYMENT,
+            TransactionRow.direction == Direction.IN,
+            TransactionRow.occurred_on.between(start, end),
+        )
+        return self._load(query.order_by(TransactionRow.occurred_on, TransactionRow.id))
 
     def monthly_totals(self, year: int) -> list[Total]:
         month = extract("month", TransactionRow.occurred_on)
