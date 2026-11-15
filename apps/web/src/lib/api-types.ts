@@ -869,6 +869,11 @@ export interface components {
             evidence: components["schemas"]["EvidenceResponse"];
             linked_receipt?: components["schemas"]["SuggestedMatchResponse"] | null;
             match?: components["schemas"]["SuggestedMatchResponse"] | null;
+            /**
+             * Ready
+             * @default false
+             */
+            ready: boolean;
         };
         /** ReviewQueue */
         ReviewQueue: {

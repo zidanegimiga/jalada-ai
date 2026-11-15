@@ -9,6 +9,7 @@ from uuid import UUID
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.how_paid import DEFAULT_ASKING, time_to_ask
+from jalada.modules.ledger.domain.ready import ready_to_confirm
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
@@ -42,6 +43,8 @@ class ReviewItem:
     ask_how_paid: bool = False
     # A receipt the user said belongs to this payment, which they can still take back.
     linked_receipt: SuggestedMatch | None = None
+    # True when the payment can be confirmed as it is, so it can go in Confirm all.
+    ready: bool = False
 
 
 def review_queue(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
@@ -69,7 +72,10 @@ def _payment_item(
         return None
     suggested = any(line.suggested for line in payment.lines)
     linked = None if match else _linked_receipt(work, payment)
-    return ReviewItem(evidence, as_entry(payment), suggested, match, linked_receipt=linked)
+    ready = ready_to_confirm(payment, open_question=match is not None)
+    return ReviewItem(
+        evidence, as_entry(payment), suggested, match, linked_receipt=linked, ready=ready
+    )
 
 
 def _linked_receipt(work: UnitOfWork, payment: Transaction) -> SuggestedMatch | None:

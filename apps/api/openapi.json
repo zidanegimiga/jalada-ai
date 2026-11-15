@@ -732,6 +732,11 @@
                 "type": "null"
               }
             ]
+          },
+          "ready": {
+            "default": false,
+            "title": "Ready",
+            "type": "boolean"
           }
         },
         "required": [

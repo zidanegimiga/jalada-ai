@@ -122,6 +122,8 @@ class ReviewItemResponse(BaseModel):
     ask_how_paid: bool = False
     # A receipt the user said belongs to this payment, which they can still take back.
     linked_receipt: SuggestedMatchResponse | None = None
+    # True when the payment can be confirmed as it is, so it can go in Confirm all.
+    ready: bool = False
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -140,6 +142,7 @@ class ReviewItemResponse(BaseModel):
                 if item.linked_receipt
                 else None
             ),
+            ready=item.ready,
         )
 
 
