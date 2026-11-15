@@ -17,6 +17,8 @@ class SuggestionStatus(StrEnum):
     ACCEPTED = "accepted"
     # Kept, so the same pair is never offered again.
     DECLINED = "declined"
+    # No longer possible: one side was matched to something else.
+    CLOSED = "closed"
 
 
 @dataclass(frozen=True)

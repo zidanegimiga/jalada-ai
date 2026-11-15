@@ -1,6 +1,6 @@
 """The pipeline end to end against Postgres, where foreign keys and unique codes are real:
 a message is proposed as a payment, a second copy is linked to it, and a receipt is offered
-as the same purchase."""
+as the same purchase and joined into it."""
 
 import uuid
 from datetime import UTC, datetime
@@ -14,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from jalada.modules.accounts.domain.users import User
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceSource, EvidenceStatus
+from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.domain.audit import AuditAction
 from jalada.modules.ledger.domain.money_accounts import default_accounts
 from jalada.modules.ledger.domain.transactions import LinkedBy, TransactionStatus
@@ -92,3 +93,13 @@ def test_a_receipt_waits_and_is_offered_with_its_payment(
         candidate = work.transactions_for(user.id).get(suggestion.candidate_id)
         assert candidate is not None and candidate.status == TransactionStatus.CANDIDATE
         assert work.transactions_for(user.id).pending(10)[0].id == suggestion.payment_id
+
+    MatchReview(lambda: SqlUnitOfWork(session_factory), clock).accept(user.id, suggestion.id)
+
+    with SqlUnitOfWork(session_factory) as work:
+        payment = work.transactions_for(user.id).get(suggestion.payment_id)
+        assert payment is not None
+        assert [link.evidence_id for link in payment.evidence] == [message.id, photo.id]
+        merged = work.transactions_for(user.id).get(suggestion.candidate_id)
+        assert merged is not None and merged.status == TransactionStatus.MERGED
+        assert work.suggestions_for(user.id).open() == []

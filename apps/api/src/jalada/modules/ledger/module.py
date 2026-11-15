@@ -2,6 +2,11 @@
 
 from fastapi import APIRouter
 
-from jalada.modules.ledger.api.routes import certificates, ledger, review
+from jalada.modules.ledger.api.routes import certificates, ledger, review, suggestions
 
-ROUTERS: list[APIRouter] = [review.router, ledger.router, certificates.router]
+ROUTERS: list[APIRouter] = [
+    review.router,
+    suggestions.router,
+    ledger.router,
+    certificates.router,
+]

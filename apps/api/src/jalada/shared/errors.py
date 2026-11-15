@@ -42,6 +42,10 @@ class EntryNotFound(ApplicationError):
     pass
 
 
+class SuggestionNotFound(ApplicationError):
+    pass
+
+
 class ConfirmationMismatch(ApplicationError):
     pass
 

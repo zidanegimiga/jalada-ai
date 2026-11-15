@@ -22,6 +22,9 @@ class TransactionStatus(StrEnum):
     NEEDS_REVIEW = "needs_review"
     CONFIRMED = "confirmed"
     REJECTED = "rejected"
+    # A candidate the user said is the same purchase as a payment. Its evidence now belongs
+    # to that payment. Never counted.
+    MERGED = "merged"
 
 
 class EvidenceRole(StrEnum):

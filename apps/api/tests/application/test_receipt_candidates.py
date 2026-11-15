@@ -1,65 +1,14 @@
 """A receipt waits as a candidate, and is offered to the user as the same purchase as a
 payment that fits it, whichever arrives first (design 03, "Candidates")."""
 
-import uuid
-from collections.abc import Callable
-
 import pytest
-from fakes import (
-    FakeEvidenceStore,
-    FakeTextReader,
-    FakeUnitOfWork,
-    FixedClock,
-    ScriptedModel,
-    Store,
-)
-from samples import JPEG, MPESA_PAYBILL
+from fakes import Store
+from receipts import RECEIPT, USER, Send
 
-from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
-from jalada.modules.evidence.domain.evidence import EvidenceSource, EvidenceStatus
+from jalada.modules.evidence.domain.evidence import EvidenceStatus
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.domain.suggestions import SuggestionKind, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import TransactionStatus
-from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
-from jalada.modules.pipeline.domain.run_types import Budget
-
-USER = uuid.uuid4()
-# The receipt for the paybill payment in MPESA_PAYBILL: the same amount on the same day.
-RECEIPT = {
-    "kind": "receipt",
-    "occurred_on": "2026-11-05",
-    "direction": "out",
-    "amount_ksh": "419.00",
-    "counterparty": "SAMPLE MUSIC SHOP",
-    "confidence": 0.95,
-}
-LEISURE = {"purpose": "personal", "category": "personal_other", "confidence": 0.95}
-Send = Callable[..., tuple[uuid.UUID, str]]
-
-
-@pytest.fixture
-def send(
-    store: Store, capture: EvidenceCapture, evidence_store: FakeEvidenceStore, clock: FixedClock
-) -> Send:
-    """Sends a receipt photo ("receipt") or the paybill message ("message") and reads it."""
-
-    def sent(what: str, receipt: dict[str, object] = RECEIPT) -> tuple[uuid.UUID, str]:
-        if what == "receipt":
-            photo = JPEG + uuid.uuid4().bytes
-            evidence = capture.capture_file(USER, photo, EvidenceSource.WEB_UPLOAD).evidence
-        else:
-            evidence = capture.capture_text(USER, MPESA_PAYBILL, EvidenceSource.WEB_PASTE).evidence
-        processor = EvidenceProcessor(
-            lambda: FakeUnitOfWork(store),
-            evidence_store,
-            FakeTextReader(),
-            clock,
-            Budget(),
-            model=ScriptedModel(receipt, LEISURE),
-        )
-        return evidence.id, processor.process(USER, evidence.id)
-
-    return sent
 
 
 def test_a_receipt_waits_as_a_candidate_and_is_not_on_to_check(

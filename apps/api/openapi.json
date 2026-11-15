@@ -687,6 +687,16 @@
           },
           "evidence": {
             "$ref": "#/components/schemas/EvidenceResponse"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuggestedMatchResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -770,6 +780,70 @@
           "display_name"
         ],
         "title": "SignUpRequest",
+        "type": "object"
+      },
+      "SuggestedMatchResponse": {
+        "description": "A receipt that may belong to the payment in the same item.",
+        "properties": {
+          "amount_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Cents"
+          },
+          "counterparty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty"
+          },
+          "occurred_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred On"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/EvidenceResponse"
+          },
+          "suggestion_id": {
+            "format": "uuid",
+            "title": "Suggestion Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "suggestion_id",
+          "receipt",
+          "occurred_on",
+          "amount_cents",
+          "counterparty",
+          "reasons"
+        ],
+        "title": "SuggestedMatchResponse",
         "type": "object"
       },
       "TelegramStatus": {
@@ -2327,6 +2401,119 @@
           }
         },
         "summary": "Read Review Queue",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/suggestions/{suggestion_id}/accept": {
+      "post": {
+        "description": "Yes, the receipt and the payment are the same purchase. Returns the payment, which\nstill needs confirming.",
+        "operationId": "accept_suggestion_v1_suggestions__suggestion_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Suggestion",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/suggestions/{suggestion_id}/decline": {
+      "post": {
+        "description": "No, they are not the same. The pair is never offered again.",
+        "operationId": "decline_suggestion_v1_suggestions__suggestion_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decline Suggestion",
         "tags": [
           "review"
         ]

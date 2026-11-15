@@ -23,6 +23,8 @@ class AuditAction(StrEnum):
     REJECTED = "rejected"
     # More evidence linked to a record that already exists.
     LINKED = "linked"
+    # A candidate joined into the payment it belongs to.
+    MERGED = "merged"
 
 
 class SubjectType(StrEnum):
