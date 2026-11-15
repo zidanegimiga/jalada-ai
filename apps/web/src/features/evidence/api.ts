@@ -35,3 +35,15 @@ export async function getEvidence(id: string): Promise<EvidenceItem | null> {
 export function isStillReading(item: EvidenceItem): boolean {
   return item.status === "received" || item.status === "processing";
 }
+
+/** Takes back "Not a transaction", so the evidence is waiting on To check again. */
+export async function putBack(id: string): Promise<void> {
+  const response = await fetch(
+    `/v1/evidence/${encodeURIComponent(id)}/not-a-transaction`,
+    { method: "DELETE" },
+  );
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error?.message ?? "That did not save. Try again.");
+  }
+}
