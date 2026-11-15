@@ -96,6 +96,11 @@ class TransactionRepository(Protocol):
         """Confirmed payments in between two dates, oldest first."""
         ...
 
+    def with_amount(self, amount_cents: int) -> list[Transaction]:
+        """Every transaction of exactly this amount, apart from rejected ones, oldest first.
+        For finding what a new receipt or payment may match."""
+        ...
+
     def with_payment_code(self, code: str) -> Transaction | None:
         """The transaction carrying this payment system code, if any. Codes are unique per
         user."""

@@ -222,6 +222,13 @@ class FakeTransactions:
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         return sorted(mine, key=lambda t: (t.created_at, t.id))
 
+    def with_amount(self, amount_cents: int) -> list[Transaction]:
+        return [
+            t
+            for t in self.all()
+            if t.amount_cents == amount_cents and t.status != TransactionStatus.REJECTED
+        ]
+
     def with_payment_code(self, code: str) -> Transaction | None:
         mine = (t for t in self.rows.values() if t.user_id == self._user_id)
         return next((t for t in mine if t.payment_code == code), None)

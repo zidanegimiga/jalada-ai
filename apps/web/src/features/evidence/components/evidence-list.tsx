@@ -11,6 +11,7 @@ const STATUS_LABELS: Record<EvidenceItem["status"], string> = {
   confirmed: "Saved to ledger",
   duplicate: "Already recorded",
   linked: "Linked to a payment",
+  candidate: "Waiting for its payment",
   failed: "Could not read",
   not_a_transaction: "Not a transaction",
 };

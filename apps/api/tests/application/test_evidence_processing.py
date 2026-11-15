@@ -190,7 +190,7 @@ def test_a_photo_read_by_the_model_records_what_it_cost(
     )
     evidence = capture.capture_file(USER, JPEG, EvidenceSource.WEB_UPLOAD).evidence
 
-    assert processor.process(USER, evidence.id) == "needs_review"
+    assert processor.process(USER, evidence.id) == "candidate"
 
     [(run, _)] = store.runs
     assert (run.input_tokens, run.output_tokens) == (200, 100)

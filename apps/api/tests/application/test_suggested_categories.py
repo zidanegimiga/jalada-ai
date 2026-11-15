@@ -21,8 +21,9 @@ from jalada.modules.pipeline.application.evidence_processing import EvidenceProc
 from jalada.modules.pipeline.domain.run_types import Budget
 
 USER = uuid.uuid4()
-RECEIPT = {
-    "kind": "receipt",
+# A screenshot of an M-Pesa message. A receipt would wait for its payment instead.
+SCREENSHOT = {
+    "kind": "mpesa_message",
     "occurred_on": "2026-11-04",
     "direction": "out",
     "amount_ksh": "250.00",
@@ -36,8 +37,8 @@ STOCK = {"purpose": "business", "category": "business_stock", "confidence": 0.95
 def suggested(
     store: Store, capture: EvidenceCapture, evidence_store: FakeEvidenceStore, clock: FixedClock
 ) -> uuid.UUID:
-    """A receipt photo read and classified by a model, sure of itself."""
-    model = ScriptedModel(RECEIPT, STOCK)
+    """A payment screenshot read and classified by a model, sure of itself."""
+    model = ScriptedModel(SCREENSHOT, STOCK)
     evidence = capture.capture_file(USER, JPEG, EvidenceSource.WEB_UPLOAD).evidence
     processor = EvidenceProcessor(
         lambda: FakeUnitOfWork(store),
@@ -88,7 +89,7 @@ def test_a_category_from_a_past_choice_is_not_a_suggestion(
     clock: FixedClock,
 ) -> None:
     review.confirm(USER, suggested)  # teaches SAMPLE SHOP -> business_stock
-    model = ScriptedModel(RECEIPT)
+    model = ScriptedModel(SCREENSHOT)
     photo = capture.capture_file(USER, JPEG + b"2", EvidenceSource.WEB_UPLOAD).evidence
     EvidenceProcessor(
         lambda: FakeUnitOfWork(store),

@@ -11,6 +11,7 @@ from jalada.modules.evidence.domain.evidence import EvidenceKind, EvidenceSource
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import EntryStatus
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.application.proposing import MAY_MATCH
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
 from jalada.modules.pipeline.domain.run_types import Budget
 from jalada.modules.pipeline.domain.verifier import verify
@@ -111,6 +112,7 @@ def test_every_reason_the_verifier_gives_has_words_for_the_user() -> None:
         for found in (verdict, too_old, no_date, no_tax, mismatch, guessed)
         for reason in found.problems + found.review_reasons
     }
+    reasons.add(MAY_MATCH)  # added when processing offers a suggested match
     assert reasons <= REASONS.keys()
     assert len(reasons) == len(REASONS)
 
@@ -198,4 +200,36 @@ def test_a_guessed_category_is_offered_as_a_maybe() -> None:
     assert notifier.message("needs_review", entry, ["category suggested"]) == (
         "KSh 250.00 to SAMPLE SHOP on 4 Nov 2026, maybe Stock and supplies. "
         f"That category is my guess, so please check it. Check it here: {REVIEW}"
+    )
+
+
+def test_a_receipt_waiting_for_its_payment_says_so() -> None:
+    notifier = TelegramNotifier(lambda: FakeUnitOfWork(Store()), FakeChat(), REVIEW)
+    entry = replace(
+        confirmed_entry(USER, date(2026, 11, 5), 41_900, "out", "personal_other"),
+        counterparty="SAMPLE MUSIC SHOP",
+        status=EntryStatus.NEEDS_REVIEW,
+    )
+
+    assert notifier.message("candidate", entry) == (
+        "Receipt for KSh 419.00 to SAMPLE MUSIC SHOP on 5 Nov 2026. I will keep it until its "
+        "payment arrives, then ask you if they match."
+    )
+    assert notifier.message("candidate", entry, ["may be the same purchase"]) == (
+        "Receipt for KSh 419.00 to SAMPLE MUSIC SHOP on 5 Nov 2026. It may be the same "
+        f"purchase as a payment you sent. Check it here: {REVIEW}"
+    )
+
+
+def test_a_payment_that_may_have_its_receipt_asks_for_a_check() -> None:
+    notifier = TelegramNotifier(lambda: FakeUnitOfWork(Store()), FakeChat(), REVIEW)
+    entry = replace(
+        confirmed_entry(USER, date(2026, 11, 5), 41_900, "out", "personal_other"),
+        counterparty="M-PESA CARD",
+        status=EntryStatus.PROPOSED,
+    )
+
+    assert notifier.message("proposed", entry, ["may be the same purchase"]) == (
+        "KSh 419.00 to M-PESA CARD on 5 Nov 2026: Other personal cost. It may be the same "
+        f"purchase as something you sent before. Check it here: {REVIEW}"
     )

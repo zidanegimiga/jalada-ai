@@ -58,12 +58,14 @@ describe("EvidenceList", () => {
         items={[
           item({ id: "a", status: "linked" }),
           item({ id: "b", status: "duplicate" }),
+          item({ id: "c", status: "candidate" }),
         ]}
       />,
     );
 
     expect(screen.getByText("Linked to a payment")).toBeInTheDocument();
     expect(screen.getByText("Already recorded")).toBeInTheDocument();
+    expect(screen.getByText("Waiting for its payment")).toBeInTheDocument();
   });
 
   it("links to the original through the API", () => {

@@ -87,6 +87,13 @@ class SqlTransactions:
         )
         return self._load(query.order_by(TransactionRow.occurred_on, TransactionRow.id))
 
+    def with_amount(self, amount_cents: int) -> list[Transaction]:
+        query = self._mine().where(
+            TransactionRow.amount_cents == amount_cents,
+            TransactionRow.status != TransactionStatus.REJECTED,
+        )
+        return self._load(query.order_by(TransactionRow.created_at, TransactionRow.id))
+
     def with_payment_code(self, code: str) -> Transaction | None:
         found = self._load(self._mine().where(TransactionRow.payment_code == code))
         return found[0] if found else None
