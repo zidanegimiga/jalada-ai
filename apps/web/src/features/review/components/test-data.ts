@@ -55,3 +55,29 @@ export function item(entryValue: Entry | null): ReviewItem {
     },
   };
 }
+
+/** A paybill payment, and a receipt that may be the same purchase. */
+export function matchItem(): ReviewItem {
+  const payment = entry({
+    amount_cents: 41900,
+    counterparty: "M-PESA CARD",
+    occurred_on: "2026-11-05",
+  });
+  return {
+    ...item(payment),
+    match: {
+      suggestion_id: "suggestion-1",
+      receipt: {
+        ...item(null).evidence,
+        id: "receipt-1",
+        kind: "receipt",
+        status: "candidate",
+        content_type: "image/jpeg",
+      },
+      occurred_on: "2026-11-05",
+      amount_cents: 41900,
+      counterparty: "SAMPLE MUSIC SHOP",
+      reasons: ["same amount", "same day"],
+    },
+  };
+}
