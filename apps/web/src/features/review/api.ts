@@ -45,3 +45,10 @@ export function acceptMatch(suggestionId: string): Promise<Entry> {
 export async function declineMatch(suggestionId: string): Promise<void> {
   await send<unknown>(`/v1/suggestions/${suggestionId}/decline`, "POST");
 }
+
+export function sayHowPaid(
+  entryId: string,
+  paidWith: "cash" | "card",
+): Promise<Entry> {
+  return send(`/v1/receipts/${entryId}/paid`, "POST", { paid_with: paidWith });
+}

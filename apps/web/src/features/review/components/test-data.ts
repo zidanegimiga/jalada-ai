@@ -82,3 +82,28 @@ export function matchItem(): ReviewItem {
     },
   };
 }
+
+/** A receipt whose payment never arrived, asked about on To check. */
+export function receiptItem(): ReviewItem {
+  const receipt = item(
+    entry({
+      id: "candidate-1",
+      evidence_id: "receipt-1",
+      status: "needs_review",
+      amount_cents: 41900,
+      counterparty: "SAMPLE MUSIC SHOP",
+      occurred_on: "2026-11-05",
+    }),
+  );
+  return {
+    ...receipt,
+    ask_how_paid: true,
+    evidence: {
+      ...receipt.evidence,
+      id: "receipt-1",
+      kind: "receipt",
+      status: "candidate",
+      content_type: "image/jpeg",
+    },
+  };
+}
