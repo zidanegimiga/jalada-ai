@@ -6,6 +6,7 @@ from fakes import FixedClock, Store
 from fastapi.testclient import TestClient
 from receipts import Send
 from samples import JPEG
+from transfers import TO_BANK, Paste
 
 from jalada.modules.ledger.domain.categories import Purpose
 from jalada.modules.ledger.domain.transactions import TransactionLine, TransactionStatus
@@ -198,3 +199,19 @@ def test_confirm_all_confirms_only_ready_payments(
     assert response.status_code == 200
     assert [entry["id"] for entry in response.json()["confirmed"]] == [str(ready.id)]
     assert client.post("/v1/review/confirm-all", json={"entry_ids": []}).status_code == 422
+
+
+def test_saying_a_paybill_account_is_mine(client: TestClient, store: Store, paste: Paste) -> None:
+    sign_up(client)
+    [user_id] = store.users
+    paste(TO_BANK, user=user_id)
+    [item] = client.get("/v1/review").json()["items"]
+    assert item["ask_own_account"] is True
+
+    response = client.post(f"/v1/payments/{item['entry']['id']}/own-account")
+
+    assert response.status_code == 200
+    assert response.json()["category_name"] == "Transfer to own account"
+    client.cookies.clear()
+    sign_up(client, "other@example.com")
+    assert client.post(f"/v1/payments/{item['entry']['id']}/own-account").status_code == 404

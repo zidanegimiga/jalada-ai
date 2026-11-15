@@ -73,6 +73,7 @@ def _transaction(
         confirmed_at=row.confirmed_at,
         lines=tuple(lines),
         evidence=tuple(links),
+        to_account_id=row.to_account_id,
     )
 
 

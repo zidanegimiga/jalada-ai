@@ -33,6 +33,7 @@ class SqlMoneyAccounts:
                 name=account.name,
                 tracked=account.tracked,
                 created_at=account.created_at,
+                identifiers=account.identifiers,
             )
         )
         self._db.flush()
@@ -40,5 +41,11 @@ class SqlMoneyAccounts:
 
 def _to_account(row: MoneyAccountRow) -> MoneyAccount:
     return MoneyAccount(
-        row.id, row.user_id, MoneyAccountKind(row.kind), row.name, row.tracked, row.created_at
+        row.id,
+        row.user_id,
+        MoneyAccountKind(row.kind),
+        row.name,
+        row.tracked,
+        row.created_at,
+        dict(row.identifiers),
     )

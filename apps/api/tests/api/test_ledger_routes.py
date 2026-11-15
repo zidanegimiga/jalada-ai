@@ -75,4 +75,4 @@ def test_categories_are_listed(client: TestClient) -> None:
         "direction": "in",
         "purpose": "personal",
     } in categories
-    assert len(categories) == 23
+    assert len(categories) == 24

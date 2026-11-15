@@ -735,6 +735,11 @@
             "title": "Ask How Paid",
             "type": "boolean"
           },
+          "ask_own_account": {
+            "default": false,
+            "title": "Ask Own Account",
+            "type": "boolean"
+          },
           "entry": {
             "anyOf": [
               {
@@ -2480,6 +2485,66 @@
         "summary": "Read Me",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/payments/{entry_id}/own-account": {
+      "post": {
+        "description": "The paybill account this payment went to is the user's own. Returns the payment as\na transfer, which still needs confirming.",
+        "operationId": "say_the_account_is_mine_v1_payments__entry_id__own_account_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say The Account Is Mine",
+        "tags": [
+          "review"
         ]
       }
     },

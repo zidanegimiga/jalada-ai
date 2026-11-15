@@ -38,5 +38,5 @@ class Classification:
     purpose: Purpose
     category: str | None
     confidence: float
-    # Where the answer came from: "preference", "rule" or "none".
+    # Where the answer came from: "own_account", "preference", "rule" or "none".
     source: str

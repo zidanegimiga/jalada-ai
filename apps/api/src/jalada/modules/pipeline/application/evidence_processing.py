@@ -70,6 +70,7 @@ class EvidenceProcessor:
         with self._unit_of_work() as work:
             evidence = work.evidence_for(user_id).get(evidence_id)
             preferences = work.preferences_for(user_id).all()
+            accounts = work.money_accounts_for(user_id).all()
         if evidence is None:
             return "missing"
         data = self._store.get(evidence.id, user_id, evidence.encryption_key_id)
@@ -86,6 +87,7 @@ class EvidenceProcessor:
             today=kenyan_date(started),
             budget=self._budget,
             model=self._model,
+            own_accounts=[a.identifiers for a in accounts if a.identifiers],
         )
         outcome, entry, may_match = self._save(evidence, result, started)
         reasons = _reasons(result) + ([MAY_MATCH] if may_match else [])

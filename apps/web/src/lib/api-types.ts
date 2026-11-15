@@ -464,6 +464,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/payments/{entry_id}/own-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Say The Account Is Mine
+         * @description The paybill account this payment went to is the user's own. Returns the payment as
+         *     a transfer, which still needs confirming.
+         */
+        post: operations["say_the_account_is_mine_v1_payments__entry_id__own_account_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/{entry_id}/paid": {
         parameters: {
             query?: never;
@@ -895,6 +916,11 @@ export interface components {
              * @default false
              */
             ask_how_paid: boolean;
+            /**
+             * Ask Own Account
+             * @default false
+             */
+            ask_own_account: boolean;
             entry: components["schemas"]["EntryResponse"] | null;
             evidence: components["schemas"]["EvidenceResponse"];
             linked_receipt?: components["schemas"]["SuggestedMatchResponse"] | null;
@@ -1827,6 +1853,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    say_the_account_is_mine_v1_payments__entry_id__own_account_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
                 };
             };
             /** @description Validation Error */

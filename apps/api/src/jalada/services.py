@@ -12,6 +12,7 @@ from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.application.match_review import MatchReview
+from jalada.modules.ledger.application.own_accounts import OwnAccounts
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 from jalada.shared.http.rate_limit import RateLimiter
@@ -28,6 +29,7 @@ class Services:
     review: EntryReview
     matches: MatchReview
     how_paid: HowPaid
+    own_accounts: OwnAccounts
     ledger: Ledger
     certificate_payments: CertificatePayments
     tax_year_export: TaxYearExport

@@ -1,5 +1,5 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
@@ -25,6 +25,9 @@ class MoneyAccount:
     # statements for. Transfers to it are still transfers.
     tracked: bool
     created_at: datetime
+    # How messages name this account, such as the paybill name and account number a
+    # transfer to it is sent with.
+    identifiers: dict[str, str] = field(default_factory=dict)
 
 
 DEFAULT_ACCOUNTS = ((MoneyAccountKind.MPESA, "M-Pesa"), (MoneyAccountKind.CASH, "Cash"))
