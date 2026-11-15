@@ -1,4 +1,5 @@
-"""Joining a receipt waiting as a candidate into the payment the user said it belongs to."""
+"""Joining a receipt waiting as a candidate into the payment the user said it belongs to,
+and separating them again when the user takes that back."""
 
 from dataclasses import replace
 from datetime import datetime
@@ -43,3 +44,22 @@ def _lines(
     if read.category is None or (line.category is not None and not line.suggested):
         return paid
     return (replace(line, category=read.category, purpose=read.purpose, suggested=read.suggested),)
+
+
+def separated(
+    payment: Transaction,
+    candidate: Transaction,
+    lines_before: tuple[TransactionLine, ...] | None,
+) -> tuple[Transaction, Transaction]:
+    """The payment without the receipt's evidence, and the receipt waiting again.
+    `lines_before` are the payment's lines from before the join, given only when nobody has
+    changed them since: a category the user chose afterwards stays."""
+    if candidate.status != TransactionStatus.MERGED:
+        raise ValueError("Only a merged candidate can be separated")
+    receipt = {link.evidence_id for link in candidate.evidence}
+    evidence = tuple(link for link in payment.evidence if link.evidence_id not in receipt)
+    lines = payment.lines if lines_before is None else lines_before
+    return (
+        replace(payment, evidence=evidence, lines=lines),
+        replace(candidate, status=TransactionStatus.CANDIDATE),
+    )

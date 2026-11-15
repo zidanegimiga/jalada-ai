@@ -147,6 +147,15 @@ class SqlTransactions:
         self._save_lines(transaction)
         self._add_links(transaction)
 
+    def unlink(self, transaction_id: UUID, evidence_id: UUID) -> None:
+        self._db.execute(
+            delete(TransactionEvidenceRow).where(
+                TransactionEvidenceRow.user_id == self._user_id,
+                TransactionEvidenceRow.transaction_id == transaction_id,
+                TransactionEvidenceRow.evidence_id == evidence_id,
+            )
+        )
+
     def _save_lines(self, transaction: Transaction) -> None:
         for position, line in enumerate(transaction.lines):
             self._db.add(

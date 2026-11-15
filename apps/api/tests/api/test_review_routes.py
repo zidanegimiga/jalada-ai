@@ -155,3 +155,13 @@ def test_not_a_transaction_can_be_taken_back(client: TestClient, waiting: str) -
     assert item["evidence"]["id"] == waiting
     again = client.delete(f"/v1/evidence/{waiting}/not-a-transaction")
     assert again.status_code == 422
+
+
+def test_a_yes_can_be_taken_back(client: TestClient, asked: str) -> None:
+    client.post(f"/v1/suggestions/{asked}/accept")
+
+    response = client.post(f"/v1/suggestions/{asked}/undo")
+
+    assert response.status_code == 200
+    assert response.json()["amount_cents"] == 41900
+    assert client.post(f"/v1/suggestions/{asked}/undo").status_code == 404

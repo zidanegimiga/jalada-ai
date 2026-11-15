@@ -543,6 +543,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/suggestions/{suggestion_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo Suggestion
+         * @description Takes back a yes: the receipt waits for its payment again, and the pair is not
+         *     offered again. Returns the payment.
+         */
+        post: operations["undo_suggestion_v1_suggestions__suggestion_id__undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/summary/monthly": {
         parameters: {
             query?: never;
@@ -1903,6 +1924,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_suggestion_v1_suggestions__suggestion_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

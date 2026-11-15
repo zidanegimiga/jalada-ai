@@ -9,6 +9,7 @@ from uuid import UUID
 from jalada.core.ports import Clock
 from jalada.modules.evidence.domain.evidence import EvidenceStatus
 from jalada.modules.ledger.application import history
+from jalada.modules.ledger.application.match_undo import undo_match
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.joining import joined
@@ -42,6 +43,13 @@ class MatchReview:
                 work.evidence_for(user_id).set_status(link.evidence_id, EvidenceStatus.LINKED)
             _decide(work, suggestion, SuggestionStatus.ACCEPTED, now)
             _close_the_rest(work, suggestion, now)
+            work.commit()
+        return as_entry(paid)
+
+    def undo(self, user_id: UUID, suggestion_id: UUID) -> Entry:
+        """Takes back a yes. Returns the payment without the receipt."""
+        with self._unit_of_work() as work:
+            paid = undo_match(work, user_id, suggestion_id, self._clock.now())
             work.commit()
         return as_entry(paid)
 

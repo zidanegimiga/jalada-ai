@@ -2665,6 +2665,66 @@
         ]
       }
     },
+    "/v1/suggestions/{suggestion_id}/undo": {
+      "post": {
+        "description": "Takes back a yes: the receipt waits for its payment again, and the pair is not\noffered again. Returns the payment.",
+        "operationId": "undo_suggestion_v1_suggestions__suggestion_id__undo_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Undo Suggestion",
+        "tags": [
+          "review"
+        ]
+      }
+    },
     "/v1/summary/monthly": {
       "get": {
         "operationId": "read_monthly_summary_v1_summary_monthly_get",

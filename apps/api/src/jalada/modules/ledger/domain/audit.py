@@ -29,6 +29,8 @@ class AuditAction(StrEnum):
     ANSWERED = "answered"
     # The user took back "Not a transaction", so the record is waiting again.
     RESTORED = "restored"
+    # The user took back a match: evidence linked by it is no longer about this record.
+    UNLINKED = "unlinked"
 
 
 class SubjectType(StrEnum):
