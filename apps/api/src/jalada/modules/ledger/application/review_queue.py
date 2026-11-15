@@ -1,13 +1,20 @@
 """What is waiting for the user on To check, oldest first: questions about suggested
-matches, payments and certificates to confirm, and evidence nothing could read."""
+matches and receipts with no payment, payments and certificates to confirm, and evidence
+nothing could read."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
+from jalada.modules.ledger.domain.how_paid import DEFAULT_ASKING, time_to_ask
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion
-from jalada.modules.ledger.domain.transactions import Transaction, as_entry
+from jalada.modules.ledger.domain.transactions import (
+    Transaction,
+    as_entry,
+    candidate_as_entry,
+)
 from jalada.unit_of_work import UnitOfWork
 
 
@@ -31,16 +38,20 @@ class ReviewItem:
     category_suggested: bool = False
     # Set when the question is whether a receipt belongs to this payment.
     match: SuggestedMatch | None = None
+    # True when the entry is a receipt whose payment never arrived: was it cash or card?
+    ask_how_paid: bool = False
 
 
-def review_queue(work: UnitOfWork, user_id: UUID, limit: int) -> list[ReviewItem]:
+def review_queue(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
     questions = _questions(work, user_id)
+    waiting = _how_paid(work, user_id, limit, now)
     asked = {item.entry.id for item in questions if item.entry}
     # A payment with an open question is shown as the question, and comes back once answered.
     payments = [p for p in work.transactions_for(user_id).pending(limit) if p.id not in asked]
     certificates = work.entries_for(user_id).pending(limit, EntryKind.WITHHOLDING_CERTIFICATE)
     evidence = work.evidence_for(user_id)
-    items = [*questions, *(item for p in payments if (item := _payment_item(work, p)))]
+    items = [*questions, *waiting]
+    items += [item for p in payments if (item := _payment_item(work, p))]
     items += [
         ReviewItem(e, entry) for entry in certificates if (e := evidence.get(entry.evidence_id))
     ]
@@ -71,3 +82,16 @@ def _questions(work: UnitOfWork, user_id: UUID) -> list[ReviewItem]:
         if item := _payment_item(work, payment, match):
             items.append(item)
     return items
+
+
+def _how_paid(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
+    """Receipts that waited long enough for a payment, with nothing offered for them."""
+    asked = {s.candidate_id for s in work.suggestions_for(user_id).open()}
+    evidence = work.evidence_for(user_id)
+    oldest = now - DEFAULT_ASKING.wait
+    return [
+        ReviewItem(receipt, candidate_as_entry(candidate), ask_how_paid=True)
+        for candidate in work.transactions_for(user_id).candidates(oldest, limit)
+        if time_to_ask(candidate, now, candidate.id in asked)
+        and (receipt := evidence.get(candidate.evidence[0].evidence_id))
+    ]

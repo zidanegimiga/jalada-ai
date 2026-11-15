@@ -8,6 +8,7 @@ from jalada.modules.evidence.api.schemas.evidence import EvidenceResponse
 from jalada.modules.ledger.application.review_queue import ReviewItem, SuggestedMatch
 from jalada.modules.ledger.domain.categories import CATEGORIES, Direction, Purpose
 from jalada.modules.ledger.domain.entries import Correction, Entry, EntryKind, EntryStatus
+from jalada.modules.ledger.domain.how_paid import PaidWith
 from jalada.shared.money import to_cents
 
 
@@ -117,6 +118,8 @@ class ReviewItemResponse(BaseModel):
     entry: EntryResponse | None
     # Set when the question is whether a receipt belongs to this payment.
     match: SuggestedMatchResponse | None = None
+    # True when the entry is a receipt whose payment never arrived: was it cash or card?
+    ask_how_paid: bool = False
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -125,7 +128,16 @@ class ReviewItemResponse(BaseModel):
             entry = EntryResponse.from_entry(item.entry)
             entry.category_suggested = item.category_suggested
         match = SuggestedMatchResponse.from_match(item.match) if item.match else None
-        return cls(evidence=EvidenceResponse.from_evidence(item.evidence), entry=entry, match=match)
+        return cls(
+            evidence=EvidenceResponse.from_evidence(item.evidence),
+            entry=entry,
+            match=match,
+            ask_how_paid=item.ask_how_paid,
+        )
+
+
+class HowPaidRequest(BaseModel):
+    paid_with: PaidWith
 
 
 class ReviewQueue(BaseModel):

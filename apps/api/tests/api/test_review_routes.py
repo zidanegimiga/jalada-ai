@@ -1,5 +1,5 @@
 import pytest
-from fakes import Store
+from fakes import FixedClock, Store
 from fastapi.testclient import TestClient
 from receipts import Send
 from samples import JPEG
@@ -129,3 +129,19 @@ def test_a_question_belongs_to_its_user(client: TestClient, asked: str) -> None:
 
     assert client.post(f"/v1/suggestions/{asked}/accept").status_code == 404
     assert client.post(f"/v1/suggestions/{asked}/decline").status_code == 404
+
+
+def test_saying_how_a_receipt_was_paid(
+    client: TestClient, store: Store, send: Send, clock: FixedClock
+) -> None:
+    sign_up(client)
+    [user_id] = store.users
+    send("receipt", user=user_id)
+    [candidate] = store.transactions.values()
+
+    response = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "cash"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "needs_review"
+    wrong = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "bitcoin"})
+    assert wrong.status_code == 422

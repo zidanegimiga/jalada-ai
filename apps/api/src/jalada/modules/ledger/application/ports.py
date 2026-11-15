@@ -96,6 +96,11 @@ class TransactionRepository(Protocol):
         """Confirmed payments in between two dates, oldest first."""
         ...
 
+    def candidates(self, created_before: datetime, limit: int) -> list[Transaction]:
+        """Receipts still waiting for their payment that arrived before then, oldest
+        first."""
+        ...
+
     def with_amount(self, amount_cents: int) -> list[Transaction]:
         """Every transaction of exactly this amount, apart from rejected ones, oldest first.
         For finding what a new receipt or payment may match."""

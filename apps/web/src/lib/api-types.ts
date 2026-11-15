@@ -460,6 +460,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/receipts/{entry_id}/paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Say How A Receipt Was Paid
+         * @description For a receipt whose payment never arrived. Returns the payment, which still needs
+         *     confirming.
+         */
+        post: operations["say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/review": {
         parameters: {
             query?: never;
@@ -739,6 +760,10 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** HowPaidRequest */
+        HowPaidRequest: {
+            paid_with: components["schemas"]["PaidWith"];
+        };
         /** LedgerResponse */
         LedgerResponse: {
             /** Items */
@@ -779,6 +804,11 @@ export interface components {
             /** Out Personal Cents */
             out_personal_cents: number;
         };
+        /**
+         * PaidWith
+         * @enum {string}
+         */
+        PaidWith: "cash" | "card";
         /** PasteRequest */
         PasteRequest: {
             /** Text */
@@ -805,6 +835,11 @@ export interface components {
         };
         /** ReviewItemResponse */
         ReviewItemResponse: {
+            /**
+             * Ask How Paid
+             * @default false
+             */
+            ask_how_paid: boolean;
             entry: components["schemas"]["EntryResponse"] | null;
             evidence: components["schemas"]["EvidenceResponse"];
             match?: components["schemas"]["SuggestedMatchResponse"] | null;
@@ -1700,6 +1735,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HowPaidRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
                 };
             };
             /** @description Validation Error */

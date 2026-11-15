@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
@@ -175,3 +175,11 @@ def as_entry(transaction: Transaction) -> Entry:
         created_at=transaction.created_at,
         confirmed_at=transaction.confirmed_at,
     )
+
+
+def candidate_as_entry(candidate: Transaction) -> Entry:
+    """A receipt waiting as a candidate, in the shape of an entry that needs a look, since
+    entries have no candidate status. Goes with entries."""
+    if candidate.status != TransactionStatus.CANDIDATE:
+        raise ValueError("Only a candidate is shown this way")
+    return as_entry(replace(candidate, status=TransactionStatus.NEEDS_REVIEW))

@@ -29,7 +29,7 @@ class EntryReview:
 
     def queue(self, user_id: UUID, limit: int = 100) -> list[ReviewItem]:
         with self._unit_of_work() as work:
-            return review_queue(work, user_id, limit)
+            return review_queue(work, user_id, limit, self._clock.now())
 
     def confirm(self, user_id: UUID, entry_id: UUID, correction: Correction | None = None) -> Entry:
         with self._unit_of_work() as work:

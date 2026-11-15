@@ -15,6 +15,7 @@ from jalada.modules.ledger.domain.transactions import (
     TransactionLine,
     TransactionStatus,
     as_entry,
+    candidate_as_entry,
     from_entry,
     line_problems,
     role_for,
@@ -132,3 +133,20 @@ def test_a_candidate_has_no_entry() -> None:
 
     with pytest.raises(ValueError):
         as_entry(candidate)
+
+
+def test_a_candidate_is_shown_as_an_entry_that_needs_a_look() -> None:
+    entry = replace(
+        confirmed_entry(uuid.uuid4(), date(2026, 11, 5), 41900, "out", "personal_other"),
+        status=EntryStatus.PROPOSED,
+    )
+    candidate = replace(
+        from_entry(entry, None, EvidenceRole.RECEIPT), status=TransactionStatus.CANDIDATE
+    )
+
+    shown = candidate_as_entry(candidate)
+
+    assert shown.status == EntryStatus.NEEDS_REVIEW
+    assert (shown.amount_cents, shown.id) == (41900, candidate.id)
+    with pytest.raises(ValueError):
+        candidate_as_entry(replace(candidate, status=TransactionStatus.PROPOSED))

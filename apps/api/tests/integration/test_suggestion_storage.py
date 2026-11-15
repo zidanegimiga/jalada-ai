@@ -105,3 +105,14 @@ def test_a_suggestion_for_another_user_is_refused(
     stranger = replace(suggestion(payment, candidate), user_id=uuid.uuid4())
     with SqlUnitOfWork(session_factory) as work, pytest.raises(PermissionError):
         work.suggestions_for(payment.user_id).add(stranger)
+
+
+def test_receipts_still_waiting_come_back_once_they_are_old_enough(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    payment, candidate = pair(session_factory)
+    with SqlUnitOfWork(session_factory) as work:
+        transactions = work.transactions_for(payment.user_id)
+        assert transactions.candidates(candidate.created_at, 10) == [candidate]
+        assert transactions.candidates(candidate.created_at - timedelta(seconds=1), 10) == []
+        assert work.transactions_for(uuid.uuid4()).candidates(NOW, 10) == []

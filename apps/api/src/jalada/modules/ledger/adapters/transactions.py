@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from sqlalchemy import Select, and_, delete, exists, extract, func, or_, select, update
@@ -86,6 +86,14 @@ class SqlTransactions:
             TransactionRow.occurred_on.between(start, end),
         )
         return self._load(query.order_by(TransactionRow.occurred_on, TransactionRow.id))
+
+    def candidates(self, created_before: datetime, limit: int) -> list[Transaction]:
+        query = self._mine().where(
+            TransactionRow.status == TransactionStatus.CANDIDATE,
+            TransactionRow.created_at <= created_before,
+        )
+        order = (TransactionRow.created_at, TransactionRow.id)
+        return self._load(query.order_by(*order).limit(limit))
 
     def with_amount(self, amount_cents: int) -> list[Transaction]:
         query = self._mine().where(

@@ -34,6 +34,7 @@ from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
@@ -150,6 +151,7 @@ def make_app(
             upload_limiter=RateLimiter(upload_rule),
             review=review,
             matches=MatchReview(lambda: FakeUnitOfWork(store), FixedClock()),
+            how_paid=HowPaid(lambda: FakeUnitOfWork(store), FixedClock()),
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
             certificate_payments=CertificatePayments(lambda: FakeUnitOfWork(store), FixedClock()),
             tax_year_export=TaxYearExport(

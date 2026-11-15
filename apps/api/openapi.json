@@ -509,6 +509,18 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HowPaidRequest": {
+        "properties": {
+          "paid_with": {
+            "$ref": "#/components/schemas/PaidWith"
+          }
+        },
+        "required": [
+          "paid_with"
+        ],
+        "title": "HowPaidRequest",
+        "type": "object"
+      },
       "LedgerResponse": {
         "properties": {
           "items": {
@@ -615,6 +627,14 @@
         "title": "MonthResponse",
         "type": "object"
       },
+      "PaidWith": {
+        "enum": [
+          "cash",
+          "card"
+        ],
+        "title": "PaidWith",
+        "type": "string"
+      },
       "PasteRequest": {
         "properties": {
           "text": {
@@ -675,6 +695,11 @@
       },
       "ReviewItemResponse": {
         "properties": {
+          "ask_how_paid": {
+            "default": false,
+            "title": "Ask How Paid",
+            "type": "boolean"
+          },
           "entry": {
             "anyOf": [
               {
@@ -2354,6 +2379,76 @@
         "summary": "Read Me",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/receipts/{entry_id}/paid": {
+      "post": {
+        "description": "For a receipt whose payment never arrived. Returns the payment, which still needs\nconfirming.",
+        "operationId": "say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HowPaidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say How A Receipt Was Paid",
+        "tags": [
+          "review"
         ]
       }
     },

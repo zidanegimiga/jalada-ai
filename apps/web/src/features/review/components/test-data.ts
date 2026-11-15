@@ -43,6 +43,7 @@ export function entry(overrides: Partial<Entry> = {}): Entry {
 export function item(entryValue: Entry | null): ReviewItem {
   return {
     entry: entryValue,
+    ask_how_paid: false,
     evidence: {
       id: "evidence-1",
       source: "web_paste",
