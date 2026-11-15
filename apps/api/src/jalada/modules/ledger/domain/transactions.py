@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
@@ -22,6 +22,9 @@ class TransactionStatus(StrEnum):
     NEEDS_REVIEW = "needs_review"
     CONFIRMED = "confirmed"
     REJECTED = "rejected"
+    # A candidate the user said is the same purchase as a payment. Its evidence now belongs
+    # to that payment. Never counted.
+    MERGED = "merged"
 
 
 class EvidenceRole(StrEnum):
@@ -66,6 +69,8 @@ class TransactionLine:
     amount_cents: int | None
     category: str | None
     purpose: Purpose
+    # True while the category is a model's suggestion that the user has not accepted.
+    suggested: bool = False
 
 
 @dataclass(frozen=True)
@@ -170,3 +175,11 @@ def as_entry(transaction: Transaction) -> Entry:
         created_at=transaction.created_at,
         confirmed_at=transaction.confirmed_at,
     )
+
+
+def candidate_as_entry(candidate: Transaction) -> Entry:
+    """A receipt waiting as a candidate, in the shape of an entry that needs a look, since
+    entries have no candidate status. Goes with entries."""
+    if candidate.status != TransactionStatus.CANDIDATE:
+        raise ValueError("Only a candidate is shown this way")
+    return as_entry(replace(candidate, status=TransactionStatus.NEEDS_REVIEW))

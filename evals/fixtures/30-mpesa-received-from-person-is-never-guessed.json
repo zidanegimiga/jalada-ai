@@ -1,0 +1,27 @@
+{
+  "name": "mpesa-received-from-person-is-never-guessed",
+  "content_type": "text/plain",
+  "text": "UK5AA00030 Confirmed.You have received Ksh20,000.00 from SAMPLE PERSON 0700000030 on 14/11/26 at 4:46 PM New M-PESA balance is Ksh34,530.00.  See all your balances now https://example.com/a",
+  "preferences": {},
+  "duplicate": false,
+  "model_replies": [
+    {
+      "purpose": "business",
+      "category": "consultancy_fees",
+      "confidence": 0.9
+    }
+  ],
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "mpesa_code": "UK5AA00030",
+      "amount_cents": 2000000,
+      "direction": "in",
+      "occurred_on": "2026-11-14"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

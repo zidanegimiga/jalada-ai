@@ -10,6 +10,7 @@ from fakes.ledger import (
     FakeAuditTrail,
     FakeCertificatePayments,
     FakeEntries,
+    FakeMatchSuggestions,
     FakeMoneyAccounts,
     FakePreferences,
     FakeRuns,
@@ -23,6 +24,7 @@ from jalada.modules.ledger.application.ports import (
     AuditTrail,
     CertificatePaymentRepository,
     EntryRepository,
+    MatchSuggestionRepository,
     MoneyAccountRepository,
     PreferenceRepository,
     TransactionRepository,
@@ -54,6 +56,7 @@ class FakeUnitOfWork:
         self._money_accounts = dict(self._store.money_accounts)
         self._transactions = dict(self._store.transactions)
         self._audit_events = list(self._store.audit_events)
+        self._suggestions = dict(self._store.suggestions)
         self._runs = FakeRuns(list(self._store.runs))
         self.runs: RunRepository = self._runs
         self._telegram = FakeTelegramLinks(
@@ -79,6 +82,9 @@ class FakeUnitOfWork:
 
     def audit_for(self, user_id: UUID) -> AuditTrail:
         return FakeAuditTrail(self._audit_events, user_id)
+
+    def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository:
+        return FakeMatchSuggestions(self._suggestions, user_id)
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
         return FakeTransactions(self._transactions, user_id, self._certificate_payments)
@@ -108,6 +114,7 @@ class FakeUnitOfWork:
         self._store.money_accounts = self._money_accounts
         self._store.transactions = self._transactions
         self._store.audit_events = self._audit_events
+        self._store.suggestions = self._suggestions
         for user_id in self._users.deleted:
             self._cascade(user_id)
 
@@ -128,6 +135,7 @@ class FakeUnitOfWork:
         }
         store.transactions = {k: t for k, t in store.transactions.items() if t.user_id != user_id}
         store.audit_events = [e for e in store.audit_events if e.user_id != user_id]
+        store.suggestions = {k: s for k, s in store.suggestions.items() if s.user_id != user_id}
         store.telegram_links.pop(user_id, None)
         store.telegram_codes = {k: c for k, c in store.telegram_codes.items() if c[0] != user_id}
         store.google_subjects = {k: u for k, u in store.google_subjects.items() if u != user_id}

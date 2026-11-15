@@ -25,7 +25,7 @@
   ],
   "expected": {
     "kind": "mpesa_message",
-    "outcome": "proposed",
+    "outcome": "needs_review",
     "fields": {
       "amount_cents": 8000,
       "mpesa_code": "UK5AA00023",

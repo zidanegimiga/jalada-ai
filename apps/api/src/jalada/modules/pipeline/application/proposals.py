@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
-from jalada.modules.evidence.domain.evidence import Evidence
+from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.transactions import (
     EvidenceLink,
@@ -20,6 +20,19 @@ from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
 
 
+def waits_as_candidate(extraction: Extraction) -> bool:
+    """A receipt with an amount waits for its payment instead of becoming one: it does not
+    say if or how it was paid. Without an amount it could never be matched, so it goes
+    straight to the user."""
+    return extraction.kind == EvidenceKind.RECEIPT and extraction.amount_cents is not None
+
+
+def _status(ready: bool, extraction: Extraction) -> TransactionStatus:
+    if waits_as_candidate(extraction):
+        return TransactionStatus.CANDIDATE
+    return TransactionStatus.PROPOSED if ready else TransactionStatus.NEEDS_REVIEW
+
+
 def proposed_payment(
     evidence: Evidence,
     run: PipelineRun,
@@ -29,13 +42,14 @@ def proposed_payment(
     account_id: UUID | None,
     now: datetime,
 ) -> Transaction:
-    """`ready` when nothing needs a look, so the user can confirm it as it is."""
+    """`ready` when nothing needs a look, so the user can confirm it as it is. A receipt
+    becomes a candidate instead."""
     return Transaction(
         id=uuid.uuid4(),
         user_id=evidence.user_id,
         account_id=account_id,
         kind=TransactionKind.PAYMENT,
-        status=TransactionStatus.PROPOSED if ready else TransactionStatus.NEEDS_REVIEW,
+        status=_status(ready, extraction),
         occurred_on=extraction.occurred_on,
         direction=extraction.direction,
         amount_cents=extraction.amount_cents,
@@ -48,7 +62,10 @@ def proposed_payment(
         confirmed_at=None,
         lines=(
             TransactionLine(
-                extraction.amount_cents, classification.category, classification.purpose
+                extraction.amount_cents,
+                classification.category,
+                classification.purpose,
+                suggested=classification.source == "model" and classification.category is not None,
             ),
         ),
         evidence=(EvidenceLink(evidence.id, role_for(extraction.kind), LinkedBy.PIPELINE, now),),

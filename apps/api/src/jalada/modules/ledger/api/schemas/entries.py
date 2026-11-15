@@ -5,9 +5,10 @@ from uuid import UUID
 from pydantic import BaseModel, BeforeValidator, Field
 
 from jalada.modules.evidence.api.schemas.evidence import EvidenceResponse
-from jalada.modules.ledger.application.entry_review import ReviewItem
+from jalada.modules.ledger.application.review_queue import ReviewItem, SuggestedMatch
 from jalada.modules.ledger.domain.categories import CATEGORIES, Direction, Purpose
 from jalada.modules.ledger.domain.entries import Correction, Entry, EntryKind, EntryStatus
+from jalada.modules.ledger.domain.how_paid import PaidWith
 from jalada.shared.money import to_cents
 
 
@@ -56,6 +57,8 @@ class EntryResponse(BaseModel):
     category: str | None
     category_name: str | None
     confidence: float
+    # True when the category is only a suggestion: the user should check it, not just confirm.
+    category_suggested: bool = False
     # Set on a payment linked to a withholding certificate.
     linked_certificate_id: UUID | None = None
     # Set on a certificate: the payments linked to it.
@@ -85,15 +88,56 @@ class EntryResponse(BaseModel):
         )
 
 
+class SuggestedMatchResponse(BaseModel):
+    """A receipt that may belong to the payment in the same item."""
+
+    suggestion_id: UUID
+    receipt: EvidenceResponse
+    occurred_on: date | None
+    amount_cents: int | None
+    counterparty: str | None
+    # What the two have in common, such as "same amount" and "same day".
+    reasons: list[str]
+
+    @classmethod
+    def from_match(cls, match: SuggestedMatch) -> "SuggestedMatchResponse":
+        candidate = match.candidate
+        return cls(
+            suggestion_id=match.suggestion.id,
+            receipt=EvidenceResponse.from_evidence(match.receipt),
+            occurred_on=candidate.occurred_on,
+            amount_cents=candidate.amount_cents,
+            counterparty=candidate.counterparty,
+            reasons=list(match.suggestion.reasons),
+        )
+
+
 class ReviewItemResponse(BaseModel):
     evidence: EvidenceResponse
     # None when nothing could read the evidence and the user needs to type the entry in.
     entry: EntryResponse | None
+    # Set when the question is whether a receipt belongs to this payment.
+    match: SuggestedMatchResponse | None = None
+    # True when the entry is a receipt whose payment never arrived: was it cash or card?
+    ask_how_paid: bool = False
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
-        entry = EntryResponse.from_entry(item.entry) if item.entry else None
-        return cls(evidence=EvidenceResponse.from_evidence(item.evidence), entry=entry)
+        entry = None
+        if item.entry:
+            entry = EntryResponse.from_entry(item.entry)
+            entry.category_suggested = item.category_suggested
+        match = SuggestedMatchResponse.from_match(item.match) if item.match else None
+        return cls(
+            evidence=EvidenceResponse.from_evidence(item.evidence),
+            entry=entry,
+            match=match,
+            ask_how_paid=item.ask_how_paid,
+        )
+
+
+class HowPaidRequest(BaseModel):
+    paid_with: PaidWith
 
 
 class ReviewQueue(BaseModel):

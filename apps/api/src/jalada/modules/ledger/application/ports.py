@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.suggestions import MatchSuggestion
 from jalada.modules.ledger.domain.transactions import Transaction
 from jalada.modules.pipeline.domain.classifier import Preference
 
@@ -95,8 +96,19 @@ class TransactionRepository(Protocol):
         """Confirmed payments in between two dates, oldest first."""
         ...
 
-    def has_payment_code(self, code: str) -> bool:
-        """Whether a transaction already carries this payment system code."""
+    def candidates(self, created_before: datetime, limit: int) -> list[Transaction]:
+        """Receipts still waiting for their payment that arrived before then, oldest
+        first."""
+        ...
+
+    def with_amount(self, amount_cents: int) -> list[Transaction]:
+        """Every transaction of exactly this amount, apart from rejected ones, oldest first.
+        For finding what a new receipt or payment may match."""
+        ...
+
+    def with_payment_code(self, code: str) -> Transaction | None:
+        """The transaction carrying this payment system code, if any. Codes are unique per
+        user."""
         ...
 
     def monthly_totals(self, year: int) -> list[Total]:
@@ -119,3 +131,19 @@ class AuditTrail(Protocol):
         ...
 
     def all(self) -> list[AuditEvent]: ...
+
+
+class MatchSuggestionRepository(Protocol):
+    """One user's suggested matches, oldest first."""
+
+    def add(self, suggestion: MatchSuggestion) -> None: ...
+    def get(self, suggestion_id: UUID) -> MatchSuggestion | None: ...
+    def involving(self, transaction_id: UUID) -> list[MatchSuggestion]:
+        """Every suggestion with this transaction on either side, whatever its status."""
+        ...
+
+    def open(self) -> list[MatchSuggestion]: ...
+    def all(self) -> list[MatchSuggestion]: ...
+    def decide(self, suggestion: MatchSuggestion) -> None:
+        """Saves the status and when it was decided."""
+        ...

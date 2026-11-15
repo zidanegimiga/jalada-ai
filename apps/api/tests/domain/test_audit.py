@@ -29,7 +29,12 @@ def test_a_snapshot_is_plain_values_with_lines_and_evidence() -> None:
     assert kept["occurred_on"] == "2026-11-04"
     assert kept["status"] == "confirmed"
     assert kept["lines"] == [
-        {"amount_cents": 15000, "category": "personal_food", "purpose": "personal"}
+        {
+            "amount_cents": 15000,
+            "category": "personal_food",
+            "purpose": "personal",
+            "suggested": False,
+        }
     ]
     assert kept["evidence"][0]["role"] == "receipt"
 

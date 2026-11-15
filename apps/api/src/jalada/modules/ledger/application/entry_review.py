@@ -1,16 +1,16 @@
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from uuid import UUID
 
 from jalada.core.ports import Clock
-from jalada.modules.evidence.domain.evidence import Evidence, EvidenceStatus
+from jalada.modules.evidence.domain.evidence import EvidenceStatus
 from jalada.modules.ledger.application import history, payment_review
+from jalada.modules.ledger.application.review_queue import ReviewItem, review_queue
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.categories import CATEGORIES
 from jalada.modules.ledger.domain.entries import (
     Correction,
     Entry,
-    EntryKind,
     EntryStatus,
     counterparty_key,
     missing_fields,
@@ -18,14 +18,6 @@ from jalada.modules.ledger.domain.entries import (
 from jalada.modules.ledger.domain.transactions import TransactionStatus, as_entry
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
 from jalada.unit_of_work import UnitOfWork
-
-
-@dataclass(frozen=True)
-class ReviewItem:
-    """One thing waiting for the user: an entry to check, or evidence with no entry yet."""
-
-    evidence: Evidence
-    entry: Entry | None
 
 
 class EntryReview:
@@ -37,18 +29,7 @@ class EntryReview:
 
     def queue(self, user_id: UUID, limit: int = 100) -> list[ReviewItem]:
         with self._unit_of_work() as work:
-            evidence = work.evidence_for(user_id)
-            # Payments come from transactions. Certificates are not transactions yet.
-            payments = [as_entry(t) for t in work.transactions_for(user_id).pending(limit)]
-            certificates = work.entries_for(user_id).pending(
-                limit, EntryKind.WITHHOLDING_CERTIFICATE
-            )
-            entries = payments + certificates
-            items = [
-                ReviewItem(e, entry) for entry in entries if (e := evidence.get(entry.evidence_id))
-            ]
-            items += [ReviewItem(e, None) for e in evidence.needing_entry(limit)]
-        return sorted(items, key=lambda item: item.evidence.received_at)
+            return review_queue(work, user_id, limit, self._clock.now())
 
     def confirm(self, user_id: UUID, entry_id: UUID, correction: Correction | None = None) -> Entry:
         with self._unit_of_work() as work:

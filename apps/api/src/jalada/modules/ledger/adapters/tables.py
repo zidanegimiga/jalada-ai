@@ -13,6 +13,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    false,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -172,6 +173,7 @@ class TransactionLineRow(Base):
     amount_cents: Mapped[int | None] = mapped_column(BigInteger)
     category: Mapped[str | None] = mapped_column(String(40))
     purpose: Mapped[str] = mapped_column(String(10))
+    suggested: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
 
 class TransactionEvidenceRow(Base):
@@ -188,6 +190,8 @@ class TransactionEvidenceRow(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
+    # The order links were added in. The first is the evidence the transaction came from.
+    seq: Mapped[int] = mapped_column(BigInteger, Identity(always=True))
     role: Mapped[str] = mapped_column(String(20))
     linked_by: Mapped[str] = mapped_column(String(10))
     linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

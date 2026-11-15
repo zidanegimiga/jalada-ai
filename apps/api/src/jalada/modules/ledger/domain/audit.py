@@ -21,6 +21,12 @@ class AuditAction(StrEnum):
     CORRECTED = "corrected"
     ENTERED = "entered"
     REJECTED = "rejected"
+    # More evidence linked to a record that already exists.
+    LINKED = "linked"
+    # A candidate joined into the payment it belongs to.
+    MERGED = "merged"
+    # The user answered a question about the record, such as how a receipt was paid.
+    ANSWERED = "answered"
 
 
 class SubjectType(StrEnum):

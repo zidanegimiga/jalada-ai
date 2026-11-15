@@ -143,6 +143,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "transaction_lines",
         "transaction_evidence",
         "audit_events",
+        "match_suggestions",
         "telegram_links",
         "telegram_link_codes",
     ]

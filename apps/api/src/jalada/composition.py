@@ -36,7 +36,9 @@ from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
 from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
 from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
@@ -74,6 +76,8 @@ def build_services(settings: Settings) -> Services:
         evidence=evidence,
         upload_limiter=upload_limiter,
         review=EntryReview(unit_of_work, clock),
+        matches=MatchReview(unit_of_work, clock),
+        how_paid=HowPaid(unit_of_work, clock),
         ledger=Ledger(unit_of_work),
         certificate_payments=CertificatePayments(unit_of_work, clock),
         tax_year_export=TaxYearExport(

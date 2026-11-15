@@ -207,6 +207,11 @@
             ],
             "title": "Category Name"
           },
+          "category_suggested": {
+            "default": false,
+            "title": "Category Suggested",
+            "type": "boolean"
+          },
           "certificate_serial": {
             "anyOf": [
               {
@@ -464,6 +469,8 @@
           "needs_review",
           "confirmed",
           "duplicate",
+          "linked",
+          "candidate",
           "not_a_transaction",
           "failed"
         ],
@@ -500,6 +507,18 @@
           "version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "HowPaidRequest": {
+        "properties": {
+          "paid_with": {
+            "$ref": "#/components/schemas/PaidWith"
+          }
+        },
+        "required": [
+          "paid_with"
+        ],
+        "title": "HowPaidRequest",
         "type": "object"
       },
       "LedgerResponse": {
@@ -608,6 +627,14 @@
         "title": "MonthResponse",
         "type": "object"
       },
+      "PaidWith": {
+        "enum": [
+          "cash",
+          "card"
+        ],
+        "title": "PaidWith",
+        "type": "string"
+      },
       "PasteRequest": {
         "properties": {
           "text": {
@@ -668,6 +695,11 @@
       },
       "ReviewItemResponse": {
         "properties": {
+          "ask_how_paid": {
+            "default": false,
+            "title": "Ask How Paid",
+            "type": "boolean"
+          },
           "entry": {
             "anyOf": [
               {
@@ -680,6 +712,16 @@
           },
           "evidence": {
             "$ref": "#/components/schemas/EvidenceResponse"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuggestedMatchResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -763,6 +805,70 @@
           "display_name"
         ],
         "title": "SignUpRequest",
+        "type": "object"
+      },
+      "SuggestedMatchResponse": {
+        "description": "A receipt that may belong to the payment in the same item.",
+        "properties": {
+          "amount_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Cents"
+          },
+          "counterparty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty"
+          },
+          "occurred_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred On"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/EvidenceResponse"
+          },
+          "suggestion_id": {
+            "format": "uuid",
+            "title": "Suggestion Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "suggestion_id",
+          "receipt",
+          "occurred_on",
+          "amount_cents",
+          "counterparty",
+          "reasons"
+        ],
+        "title": "SuggestedMatchResponse",
         "type": "object"
       },
       "TelegramStatus": {
@@ -2276,6 +2382,76 @@
         ]
       }
     },
+    "/v1/receipts/{entry_id}/paid": {
+      "post": {
+        "description": "For a receipt whose payment never arrived. Returns the payment, which still needs\nconfirming.",
+        "operationId": "say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HowPaidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say How A Receipt Was Paid",
+        "tags": [
+          "review"
+        ]
+      }
+    },
     "/v1/review": {
       "get": {
         "operationId": "read_review_queue_v1_review_get",
@@ -2320,6 +2496,119 @@
           }
         },
         "summary": "Read Review Queue",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/suggestions/{suggestion_id}/accept": {
+      "post": {
+        "description": "Yes, the receipt and the payment are the same purchase. Returns the payment, which\nstill needs confirming.",
+        "operationId": "accept_suggestion_v1_suggestions__suggestion_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Suggestion",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/suggestions/{suggestion_id}/decline": {
+      "post": {
+        "description": "No, they are not the same. The pair is never offered again.",
+        "operationId": "decline_suggestion_v1_suggestions__suggestion_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decline Suggestion",
         "tags": [
           "review"
         ]

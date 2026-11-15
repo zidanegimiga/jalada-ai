@@ -18,11 +18,13 @@ from jalada.modules.ledger.adapters.certificate_payments import SqlCertificatePa
 from jalada.modules.ledger.adapters.ledger_repository import SqlEntryRepository
 from jalada.modules.ledger.adapters.money_accounts import SqlMoneyAccounts
 from jalada.modules.ledger.adapters.preference_repository import SqlPreferenceRepository
+from jalada.modules.ledger.adapters.suggestions import SqlMatchSuggestions
 from jalada.modules.ledger.adapters.transactions import SqlTransactions
 from jalada.modules.ledger.application.ports import (
     AuditTrail,
     CertificatePaymentRepository,
     EntryRepository,
+    MatchSuggestionRepository,
     MoneyAccountRepository,
     PreferenceRepository,
     TransactionRepository,
@@ -71,6 +73,9 @@ class SqlUnitOfWork:
 
     def audit_for(self, user_id: UUID) -> AuditTrail:
         return SqlAuditTrail(self._db, user_id)
+
+    def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository:
+        return SqlMatchSuggestions(self._db, user_id)
 
     def __exit__(
         self,

@@ -11,6 +11,7 @@ from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.suggestions import MatchSuggestion
 from jalada.modules.ledger.domain.transactions import (
     EvidenceRole,
     Transaction,
@@ -42,6 +43,7 @@ class Store:
     money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)
     transactions: dict[UUID, Transaction] = field(default_factory=dict)
     audit_events: list[AuditEvent] = field(default_factory=list)
+    suggestions: dict[UUID, MatchSuggestion] = field(default_factory=dict)
 
     def save_entries(self, *entries: Entry) -> None:
         """Saves entries with the transactions that stand beside them, as the pipeline,

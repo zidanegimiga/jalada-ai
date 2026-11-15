@@ -3,6 +3,7 @@ from collections.abc import Callable, Sequence
 from jalada.modules.evidence.domain.evidence import Evidence, EvidenceSource
 from jalada.modules.ledger.domain.categories import CATEGORIES, Direction
 from jalada.modules.ledger.domain.entries import Entry
+from jalada.modules.pipeline.application.proposing import MAY_MATCH
 from jalada.modules.telegram.application.ports import ChatChannel
 from jalada.shared.money import format_ksh
 from jalada.unit_of_work import UnitOfWork
@@ -10,6 +11,8 @@ from jalada.unit_of_work import UnitOfWork
 # The verifier's reasons for holding an entry back, in words for the user.
 REASONS = {
     "purpose not certain": "I was not sure what it was for.",
+    "category suggested": "That category is my guess, so please check it.",
+    MAY_MATCH: "It may be the same purchase as something you sent before.",
     "amount or date not certain": "I was not sure I read the amount and date right.",
     "no amount": "I could not find the amount.",
     "no date": "I could not find the date.",
@@ -50,15 +53,34 @@ class TelegramNotifier:
     def message(self, outcome: str, entry: Entry | None, reasons: Sequence[str] = ()) -> str:
         if outcome == "duplicate":
             return "That transaction is already in your records."
+        if outcome == "linked" and entry is not None:
+            return f"That is the same payment as {_summary(entry)}, so I added it there as proof."
         if entry is None or entry.amount_cents is None:
             return f"I could not read that one. You can type it in here: {self._review_url}"
         summary = _summary(entry)
+        if outcome == "candidate":
+            return self._kept(summary, reasons)
         category = CATEGORIES.get(entry.category or "")
         if category:
-            summary = f"{summary}: {category.name}"
-        if outcome == "proposed":
+            guessed = "category suggested" in reasons
+            summary = (
+                f"{summary}, maybe {category.name}" if guessed else f"{summary}: {category.name}"
+            )
+        if outcome == "proposed" and not reasons:
             return f"{summary}. Confirm it here: {self._review_url}"
         return f"{summary}. {_explain(reasons)} Check it here: {self._review_url}"
+
+    def _kept(self, summary: str, reasons: Sequence[str]) -> str:
+        """For a receipt waiting for its payment."""
+        if MAY_MATCH in reasons:
+            return (
+                f"Receipt for {summary}. It may be the same purchase as a payment you sent. "
+                f"Check it here: {self._review_url}"
+            )
+        return (
+            f"Receipt for {summary}. I will keep it until its payment arrives, "
+            "then ask you if they match."
+        )
 
 
 def _summary(entry: Entry) -> str:

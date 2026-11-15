@@ -24,6 +24,8 @@ RECEIVED = re.compile(
     rf"from (?P<name>.+?) {WHEN}"
 )
 FEE = re.compile(rf"Transaction cost, (?P<fee>{AMOUNT})")
+# A Kenyan mobile number, as it ends a person's name in sent and received messages.
+PHONE_AT_END = re.compile(r"(?:\+?254|0)\d{9}$")
 
 
 def parse_mpesa(text: str) -> Extraction | None:
@@ -52,6 +54,7 @@ def _to_extraction(match: re.Match[str], direction: Direction, text: str) -> Ext
         reference=fields.get("account"),
         mpesa_code=fields["code"],
         fee_cents=to_cents(fee.group("fee")) if fee else None,
+        to_person=bool(fields.get("phone") or PHONE_AT_END.search(fields["name"].strip())),
     )
 
 

@@ -460,6 +460,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/receipts/{entry_id}/paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Say How A Receipt Was Paid
+         * @description For a receipt whose payment never arrived. Returns the payment, which still needs
+         *     confirming.
+         */
+        post: operations["say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/review": {
         parameters: {
             query?: never;
@@ -471,6 +492,47 @@ export interface paths {
         get: operations["read_review_queue_v1_review_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/suggestions/{suggestion_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Suggestion
+         * @description Yes, the receipt and the payment are the same purchase. Returns the payment, which
+         *     still needs confirming.
+         */
+        post: operations["accept_suggestion_v1_suggestions__suggestion_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/suggestions/{suggestion_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Suggestion
+         * @description No, they are not the same. The pair is never offered again.
+         */
+        post: operations["decline_suggestion_v1_suggestions__suggestion_id__decline_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -593,6 +655,11 @@ export interface components {
             category: string | null;
             /** Category Name */
             category_name: string | null;
+            /**
+             * Category Suggested
+             * @default false
+             */
+            category_suggested: boolean;
             /** Certificate Serial */
             certificate_serial: string | null;
             /** Confidence */
@@ -677,7 +744,7 @@ export interface components {
          * EvidenceStatus
          * @enum {string}
          */
-        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "not_a_transaction" | "failed";
+        EvidenceStatus: "received" | "processing" | "proposed" | "needs_review" | "confirmed" | "duplicate" | "linked" | "candidate" | "not_a_transaction" | "failed";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -692,6 +759,10 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** HowPaidRequest */
+        HowPaidRequest: {
+            paid_with: components["schemas"]["PaidWith"];
         };
         /** LedgerResponse */
         LedgerResponse: {
@@ -733,6 +804,11 @@ export interface components {
             /** Out Personal Cents */
             out_personal_cents: number;
         };
+        /**
+         * PaidWith
+         * @enum {string}
+         */
+        PaidWith: "cash" | "card";
         /** PasteRequest */
         PasteRequest: {
             /** Text */
@@ -759,8 +835,14 @@ export interface components {
         };
         /** ReviewItemResponse */
         ReviewItemResponse: {
+            /**
+             * Ask How Paid
+             * @default false
+             */
+            ask_how_paid: boolean;
             entry: components["schemas"]["EntryResponse"] | null;
             evidence: components["schemas"]["EvidenceResponse"];
+            match?: components["schemas"]["SuggestedMatchResponse"] | null;
         };
         /** ReviewQueue */
         ReviewQueue: {
@@ -793,6 +875,26 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /**
+         * SuggestedMatchResponse
+         * @description A receipt that may belong to the payment in the same item.
+         */
+        SuggestedMatchResponse: {
+            /** Amount Cents */
+            amount_cents: number | null;
+            /** Counterparty */
+            counterparty: string | null;
+            /** Occurred On */
+            occurred_on: string | null;
+            /** Reasons */
+            reasons: string[];
+            receipt: components["schemas"]["EvidenceResponse"];
+            /**
+             * Suggestion Id
+             * Format: uuid
+             */
+            suggestion_id: string;
         };
         /** TelegramStatus */
         TelegramStatus: {
@@ -1646,6 +1748,43 @@ export interface operations {
             };
         };
     };
+    say_how_a_receipt_was_paid_v1_receipts__entry_id__paid_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HowPaidRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_review_queue_v1_review_get: {
         parameters: {
             query?: never;
@@ -1665,6 +1804,70 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReviewQueue"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_suggestion_v1_suggestions__suggestion_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_suggestion_v1_suggestions__suggestion_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

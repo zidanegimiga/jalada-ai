@@ -14,6 +14,7 @@ from jalada.shared.errors import (
     InvalidCredentials,
     InvalidEntry,
     NotSignedIn,
+    SuggestionNotFound,
     UnsupportedFile,
     WeakPassword,
 )
@@ -34,6 +35,7 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     EmptyEvidence: (422, "empty", "There is nothing to save."),
     EvidenceNotFound: (404, "not_found", "That evidence does not exist."),
     EntryNotFound: (404, "not_found", "That entry does not exist."),
+    SuggestionNotFound: (404, "not_found", "That question has no answer to give any more."),
     ConfirmationMismatch: (
         422,
         "confirmation_mismatch",

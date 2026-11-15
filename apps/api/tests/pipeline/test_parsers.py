@@ -68,6 +68,21 @@ def test_money_received() -> None:
     assert extraction.occurred_on == date(2026, 11, 4)
 
 
+def to_person(text: str) -> bool:
+    extraction = parse_mpesa(text)
+    assert extraction is not None
+    return extraction.to_person
+
+
+def test_money_to_or_from_a_person_is_marked() -> None:
+    from_person = MPESA.replace("EXAMPLE BANK 1 500000", "JANE WANJIKU 0712345678")
+
+    assert to_person(MPESA_SENT)
+    assert to_person(from_person)
+    assert not to_person(MPESA_PAYBILL)
+    assert not to_person(MPESA), "a bank is not a person"
+
+
 def test_unknown_mpesa_wording_is_left_for_the_model() -> None:
     assert parse_mpesa("UK5AB1CD26 Confirmed. Ksh50.00 paid to SOME SHOP. on 5/11/26") is None
 

@@ -9,7 +9,9 @@ from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 from jalada.shared.http.rate_limit import RateLimiter
@@ -24,6 +26,8 @@ class Services:
     evidence: EvidenceCapture
     upload_limiter: RateLimiter
     review: EntryReview
+    matches: MatchReview
+    how_paid: HowPaid
     ledger: Ledger
     certificate_payments: CertificatePayments
     tax_year_export: TaxYearExport

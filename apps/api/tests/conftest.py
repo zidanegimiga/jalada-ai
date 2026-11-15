@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Callable
 from datetime import timedelta
 
@@ -7,13 +8,17 @@ from fakes import (
     FakeEvidenceStore,
     FakeGoogle,
     FakeHasher,
+    FakeTextReader,
     FakeUnitOfWork,
     FixedClock,
+    ScriptedModel,
     Store,
 )
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
+from receipts import LEISURE, RECEIPT, USER, Send
+from samples import JPEG, MPESA_PAYBILL
 
 from jalada.app import create_app
 from jalada.core.ports import HealthCheck
@@ -24,12 +29,17 @@ from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
+from jalada.modules.evidence.domain.evidence import EvidenceSource
 from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
 from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
+from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
+from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.pipeline.domain.run_types import Budget
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 from jalada.services import Services
@@ -140,6 +150,8 @@ def make_app(
             evidence=capture,
             upload_limiter=RateLimiter(upload_rule),
             review=review,
+            matches=MatchReview(lambda: FakeUnitOfWork(store), FixedClock()),
+            how_paid=HowPaid(lambda: FakeUnitOfWork(store), FixedClock()),
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
             certificate_payments=CertificatePayments(lambda: FakeUnitOfWork(store), FixedClock()),
             tax_year_export=TaxYearExport(
@@ -165,3 +177,28 @@ def make_app(
 @pytest.fixture
 def client(make_app: Callable[..., FastAPI]) -> TestClient:
     return TestClient(make_app())
+
+
+@pytest.fixture
+def send(  # see receipts.Send
+    store: Store, capture: EvidenceCapture, evidence_store: FakeEvidenceStore, clock: FixedClock
+) -> Send:
+    def sent(
+        what: str, receipt: dict[str, object] = RECEIPT, user: uuid.UUID = USER
+    ) -> tuple[uuid.UUID, str]:
+        if what == "receipt":
+            photo = JPEG + uuid.uuid4().bytes
+            evidence = capture.capture_file(user, photo, EvidenceSource.WEB_UPLOAD).evidence
+        else:
+            evidence = capture.capture_text(user, MPESA_PAYBILL, EvidenceSource.WEB_PASTE).evidence
+        processor = EvidenceProcessor(
+            lambda: FakeUnitOfWork(store),
+            evidence_store,
+            FakeTextReader(),
+            clock,
+            Budget(),
+            model=ScriptedModel(receipt, LEISURE),
+        )
+        return evidence.id, processor.process(user, evidence.id)
+
+    return sent

@@ -42,7 +42,7 @@
   ],
   "expected": {
     "kind": "receipt",
-    "outcome": "proposed",
+    "outcome": "needs_review",
     "fields": {
       "occurred_on": "2026-11-04"
     },

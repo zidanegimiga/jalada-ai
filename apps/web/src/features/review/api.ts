@@ -37,3 +37,18 @@ export function enterByHand(
 export async function markNotATransaction(evidenceId: string): Promise<void> {
   await send<unknown>(`/v1/evidence/${evidenceId}/not-a-transaction`, "POST");
 }
+
+export function acceptMatch(suggestionId: string): Promise<Entry> {
+  return send(`/v1/suggestions/${suggestionId}/accept`, "POST");
+}
+
+export async function declineMatch(suggestionId: string): Promise<void> {
+  await send<unknown>(`/v1/suggestions/${suggestionId}/decline`, "POST");
+}
+
+export function sayHowPaid(
+  entryId: string,
+  paidWith: "cash" | "card",
+): Promise<Entry> {
+  return send(`/v1/receipts/${entryId}/paid`, "POST", { paid_with: paidWith });
+}

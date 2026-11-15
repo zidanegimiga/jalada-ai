@@ -40,6 +40,10 @@ class EvidenceStatus(StrEnum):
     NEEDS_REVIEW = "needs_review"
     CONFIRMED = "confirmed"
     DUPLICATE = "duplicate"
+    # Another copy of a payment already recorded, linked to it as more evidence.
+    LINKED = "linked"
+    # A receipt waiting for the payment it belongs to. It is not counted.
+    CANDIDATE = "candidate"
     # This does not record money moving, such as a balance message.
     NOT_A_TRANSACTION = "not_a_transaction"
     FAILED = "failed"

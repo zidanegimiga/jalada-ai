@@ -5,6 +5,7 @@ from jalada.core.database.base import Base
 from jalada.core.jobs.tables import JobRow
 from jalada.modules.accounts.adapters.tables import SessionRow, UserRow
 from jalada.modules.evidence.adapters.tables import EvidenceRow
+from jalada.modules.ledger.adapters.suggestion_tables import MatchSuggestionRow
 from jalada.modules.ledger.adapters.tables import (
     AuditEventRow,
     CertificatePaymentRow,
@@ -35,6 +36,7 @@ ALL_TABLES: list[type[Base]] = [
     TransactionLineRow,
     TransactionEvidenceRow,
     AuditEventRow,
+    MatchSuggestionRow,
     TelegramLinkRow,
     TelegramLinkCodeRow,
 ]

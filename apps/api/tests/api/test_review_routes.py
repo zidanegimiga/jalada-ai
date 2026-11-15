@@ -1,5 +1,7 @@
 import pytest
+from fakes import FixedClock, Store
 from fastapi.testclient import TestClient
+from receipts import Send
 from samples import JPEG
 
 
@@ -80,3 +82,66 @@ def test_marking_not_a_transaction_takes_it_off_the_list(client: TestClient, wai
 
 def test_review_needs_a_signed_in_user(client: TestClient) -> None:
     assert client.get("/v1/review").status_code == 401
+
+
+@pytest.fixture
+def asked(client: TestClient, store: Store, send: Send) -> str:
+    """A receipt and its payment message for a signed-in user: one open question."""
+    sign_up(client)
+    [user_id] = store.users
+    send("receipt", user=user_id)
+    send("message", user=user_id)
+    [suggestion] = store.suggestions.values()
+    return str(suggestion.id)
+
+
+def test_to_check_asks_if_a_receipt_belongs_to_the_payment(client: TestClient, asked: str) -> None:
+    [item] = client.get("/v1/review").json()["items"]
+
+    assert item["entry"]["amount_cents"] == 41900
+    match = item["match"]
+    assert match["suggestion_id"] == asked
+    assert (match["counterparty"], match["amount_cents"]) == ("SAMPLE MUSIC SHOP", 41900)
+    assert match["reasons"] == ["same amount", "same day"]
+    assert match["receipt"]["content_type"] == "image/jpeg"
+
+
+def test_yes_returns_the_payment_with_its_receipt(client: TestClient, asked: str) -> None:
+    response = client.post(f"/v1/suggestions/{asked}/accept")
+
+    assert response.status_code == 200
+    assert response.json()["amount_cents"] == 41900
+    [item] = client.get("/v1/review").json()["items"]
+    assert item["match"] is None
+
+
+def test_no_is_answered_once(client: TestClient, asked: str) -> None:
+    assert client.post(f"/v1/suggestions/{asked}/decline").status_code == 204
+    again = client.post(f"/v1/suggestions/{asked}/accept")
+
+    assert again.status_code == 404
+    assert again.json()["error"]["code"] == "not_found"
+
+
+def test_a_question_belongs_to_its_user(client: TestClient, asked: str) -> None:
+    client.cookies.clear()
+    sign_up(client, "other@example.com")
+
+    assert client.post(f"/v1/suggestions/{asked}/accept").status_code == 404
+    assert client.post(f"/v1/suggestions/{asked}/decline").status_code == 404
+
+
+def test_saying_how_a_receipt_was_paid(
+    client: TestClient, store: Store, send: Send, clock: FixedClock
+) -> None:
+    sign_up(client)
+    [user_id] = store.users
+    send("receipt", user=user_id)
+    [candidate] = store.transactions.values()
+
+    response = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "cash"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "needs_review"
+    wrong = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "bitcoin"})
+    assert wrong.status_code == 422
