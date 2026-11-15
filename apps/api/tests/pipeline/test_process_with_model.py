@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from fakes import ScriptedModel
-from samples import CERTIFICATE, MPESA_SENT
+from samples import CERTIFICATE, MPESA_PAYBILL, MPESA_SENT
 
 from jalada.core.resilience.failures import FailureKind, ProviderFailure
 from jalada.core.resilience.retry import RetryPolicy
@@ -47,10 +47,23 @@ def test_a_photo_the_rules_cannot_read_goes_to_the_model() -> None:
 def test_rules_come_first_and_the_model_only_classifies() -> None:
     model = ScriptedModel(STOCK)
 
-    result = run(EvidenceInput(MPESA_SENT, "text/plain"), model)
+    result = run(EvidenceInput(MPESA_PAYBILL, "text/plain"), model)
 
     assert len(model.calls) == 1, "rules extracted the message; only classification used the model"
-    assert result.extraction is not None and result.extraction.mpesa_code == "UK5AB1CD23"
+    assert result.extraction is not None and result.extraction.mpesa_code == "UK5AB1CD24"
+
+
+def test_money_sent_to_a_person_never_reaches_the_model() -> None:
+    rent = {"purpose": "business", "category": "workspace_rent", "confidence": 0.9}
+    model = ScriptedModel(rent)
+
+    result = run(EvidenceInput(MPESA_SENT, "text/plain"), model)
+
+    assert model.calls == [], "a name and an amount say nothing about what it was for"
+    assert result.classification is not None and result.classification.category is None
+    assert result.outcome == "needs_review"
+    [classify] = [s for s in result.steps if s.step == "classify"]
+    assert classify.input["model"] == "not asked: money to or from a person"
 
 
 def test_a_certificate_never_reaches_the_model() -> None:

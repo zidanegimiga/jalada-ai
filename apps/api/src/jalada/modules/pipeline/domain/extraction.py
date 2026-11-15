@@ -23,6 +23,9 @@ class Extraction:
     tax_rate_percent: str | None = None
     payer_tax_number: str | None = None
     nature: str | None = None
+    # Money sent to or received from a person, by name and phone number. Nothing in such a
+    # message says what the money was for, so only the user can tell.
+    to_person: bool = False
 
     def to_record(self) -> dict[str, Any]:
         record = asdict(self)

@@ -1,0 +1,28 @@
+{
+  "name": "mpesa-sent-to-person-is-never-guessed",
+  "content_type": "text/plain",
+  "text": "UK5AA00029 Confirmed. Ksh83,330.00 sent to SAMPLE  PERSON 0700000029 on 14/11/26 at 5:46 PM. New M-PESA balance is Ksh0.00. Transaction cost, Ksh0.00.  Amount you can transact within the day is 499,860.00. See all your balances now https://example.com/a",
+  "preferences": {},
+  "duplicate": false,
+  "model_replies": [
+    {
+      "purpose": "business",
+      "category": "workspace_rent",
+      "confidence": 0.9
+    }
+  ],
+  "expected": {
+    "kind": "mpesa_message",
+    "outcome": "needs_review",
+    "fields": {
+      "mpesa_code": "UK5AA00029",
+      "amount_cents": 8333000,
+      "direction": "out",
+      "counterparty": "SAMPLE PERSON",
+      "occurred_on": "2026-11-14"
+    },
+    "category": null,
+    "purpose": "unsure",
+    "verifier_should_reject": false
+  }
+}

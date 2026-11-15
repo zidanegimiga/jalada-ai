@@ -133,7 +133,11 @@ class _Run:
     ) -> Classification:
         classification = classify(extraction, preferences)
         call: dict[str, Any] = {}
-        if classification.purpose == Purpose.UNSURE and classification.category is None:
+        unsure = classification.purpose == Purpose.UNSURE and classification.category is None
+        if unsure and extraction.to_person:
+            # A name and an amount say nothing about what the money was for: the user decides.
+            call = {"model": "not asked: money to or from a person"}
+        elif unsure:
             classification, call = self._classify_with_model(extraction, classification)
         self.record(
             "classify",
