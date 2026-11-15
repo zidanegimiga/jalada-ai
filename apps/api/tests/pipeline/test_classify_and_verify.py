@@ -3,6 +3,7 @@ from datetime import date
 
 import pytest
 from samples import CERTIFICATE, MPESA_SENT
+from transfers import TO_BANK
 
 from jalada.modules.ledger.domain.categories import Purpose
 from jalada.modules.pipeline.domain.certificates import parse_certificate
@@ -97,3 +98,14 @@ def test_certificate_tax_must_equal_gross_times_rate() -> None:
 
     assert verdict.problems == ["tax withheld does not match gross amount times rate"]
     assert verify(certificate, SURE, TODAY, is_duplicate=False).passed
+
+
+def test_a_payment_to_an_own_account_is_a_transfer() -> None:
+    extraction = parse_mpesa(TO_BANK)
+    assert extraction is not None
+    mine = {"paybill": "sample bank paybill", "account": "0123456789"}
+
+    classification = classify(extraction, {}, [mine])
+
+    assert (classification.category, classification.source) == ("own_transfer_out", "own_account")
+    assert classify(extraction, {}, []).category is None

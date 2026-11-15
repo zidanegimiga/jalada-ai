@@ -96,3 +96,31 @@ def test_only_a_waiting_paybill_payment_can_be_answered(
         own.say_mine(USER, payment_id)
     with pytest.raises(EntryNotFound):
         own.say_mine(uuid.uuid4(), payment_id)
+
+
+def test_later_payments_to_the_account_arrive_as_ready_transfers(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    first = paste(TO_BANK)
+    own.say_mine(USER, first)
+    review.confirm(USER, first)
+
+    later = paste(AGAIN)
+
+    transfer = store.transactions[later]
+    assert transfer.kind == TransactionKind.TRANSFER
+    assert transfer.to_account_id == store.transactions[first].to_account_id
+    [item] = review.queue(USER)
+    assert item.ready and not item.ask_own_account
+    assert item.entry is not None and item.entry.category == "own_transfer_out"
+
+
+def test_another_account_at_the_same_paybill_is_still_asked_about(
+    paste: Paste, own: OwnAccounts, review: EntryReview
+) -> None:
+    own.say_mine(USER, paste(TO_BANK))
+
+    paste(OTHER_ACCOUNT)
+
+    asked = [item.ask_own_account for item in review.queue(USER)]
+    assert asked == [False, True]

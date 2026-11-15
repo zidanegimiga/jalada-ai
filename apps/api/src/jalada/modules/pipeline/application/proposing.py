@@ -9,10 +9,12 @@ from jalada.modules.ledger.application.suggesting import suggest_same_purchase
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.transactions import (
+    Transaction,
     TransactionStatus,
     as_entry,
     candidate_as_entry,
 )
+from jalada.modules.ledger.domain.transfers import as_transfer, own_account_for
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.application.proposals import proposed_certificate, proposed_payment
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
@@ -47,9 +49,17 @@ def save_proposal(
         return Proposal(certificate)
     account_id = account_for(work, evidence.user_id, extraction.kind)
     payment = proposed_payment(evidence, run, ready, extraction, classification, account_id, now)
+    if classification.source == "own_account":
+        payment = _as_transfer(work, payment)
     work.transactions_for(evidence.user_id).add(payment)
     history.record_transaction(work, None, payment, Actor.PIPELINE, AuditAction.PROPOSED, now)
     offered = suggest_same_purchase(work, payment, now)
     waiting = payment.status == TransactionStatus.CANDIDATE
     shown = candidate_as_entry(payment) if waiting else as_entry(payment)
     return Proposal(shown, bool(offered))
+
+
+def _as_transfer(work: UnitOfWork, payment: Transaction) -> Transaction:
+    """A payment to an account the user said is theirs, proposed as a transfer to it."""
+    account = own_account_for(payment, work.money_accounts_for(payment.user_id).all())
+    return as_transfer(payment, account) if account else payment

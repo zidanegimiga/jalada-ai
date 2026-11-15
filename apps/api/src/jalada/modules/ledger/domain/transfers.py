@@ -51,12 +51,19 @@ DEFAULT_SIGNS = OwnAccountSigns()
 def paybill_identifiers(payment: Transaction) -> dict[str, str] | None:
     """The paybill name and account number a payment was sent to, or None when it was not
     sent to a paybill account."""
-    if payment.kind != TransactionKind.PAYMENT or payment.direction != Direction.OUT:
+    if payment.kind != TransactionKind.PAYMENT:
         return None
-    if not payment.counterparty or not payment.reference:
+    return paybill(payment.direction, payment.counterparty, payment.reference)
+
+
+def paybill(
+    direction: Direction | None, counterparty: str | None, reference: str | None
+) -> dict[str, str] | None:
+    """The same, from what was read from a message."""
+    if direction != Direction.OUT or not counterparty or not reference:
         return None
-    account = "".join(payment.reference.split()).upper()
-    return {"paybill": counterparty_key(payment.counterparty), "account": account}
+    account = "".join(reference.split()).upper()
+    return {"paybill": counterparty_key(counterparty), "account": account}
 
 
 def may_be_own_account(payment: Transaction, signs: OwnAccountSigns = DEFAULT_SIGNS) -> bool:

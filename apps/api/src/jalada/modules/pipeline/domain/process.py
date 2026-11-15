@@ -1,5 +1,5 @@
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date
 from typing import Any
 
@@ -32,6 +32,7 @@ def run_pipeline(
     today: date,
     budget: Budget,
     model: LanguageModel | None = None,
+    own_accounts: Sequence[dict[str, str]] = (),
 ) -> PipelineResult:
     """One piece of evidence through detect, extract, classify and verify.
 
@@ -56,7 +57,7 @@ def run_pipeline(
             break
         if run.result.kind == EvidenceKind.UNKNOWN:
             run.result.kind = extraction.kind
-        classification = run.classify(extraction, preferences, attempt)
+        classification = run.classify(extraction, preferences, attempt, own_accounts)
         verdict = verify(extraction, classification, today, is_duplicate(extraction), sureness)
         run.record(
             "verify",
@@ -129,9 +130,13 @@ class _Run:
         return extraction, "model", sureness
 
     def classify(
-        self, extraction: Extraction, preferences: dict[str, Preference], attempt: int
+        self,
+        extraction: Extraction,
+        preferences: dict[str, Preference],
+        attempt: int,
+        own_accounts: Sequence[dict[str, str]] = (),
     ) -> Classification:
-        classification = classify(extraction, preferences)
+        classification = classify(extraction, preferences, own_accounts)
         call: dict[str, Any] = {}
         unsure = classification.purpose == Purpose.UNSURE and classification.category is None
         if unsure and extraction.to_person:
