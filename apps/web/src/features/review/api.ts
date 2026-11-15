@@ -52,3 +52,7 @@ export function sayHowPaid(
 ): Promise<Entry> {
   return send(`/v1/receipts/${entryId}/paid`, "POST", { paid_with: paidWith });
 }
+
+export function undoMatch(suggestionId: string): Promise<Entry> {
+  return send(`/v1/suggestions/${suggestionId}/undo`, "POST");
+}

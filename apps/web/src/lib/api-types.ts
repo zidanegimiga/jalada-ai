@@ -867,6 +867,7 @@ export interface components {
             ask_how_paid: boolean;
             entry: components["schemas"]["EntryResponse"] | null;
             evidence: components["schemas"]["EvidenceResponse"];
+            linked_receipt?: components["schemas"]["SuggestedMatchResponse"] | null;
             match?: components["schemas"]["SuggestedMatchResponse"] | null;
         };
         /** ReviewQueue */

@@ -106,3 +106,17 @@ def test_only_a_yes_can_be_undone_and_only_once(
     matches.undo(USER, suggestion_id)
     with pytest.raises(SuggestionNotFound):
         matches.undo(USER, suggestion_id)
+
+
+def test_to_check_shows_the_linked_receipt_until_it_is_taken_back(
+    joined: tuple[uuid.UUID, Transaction], matches: MatchReview, review: EntryReview
+) -> None:
+    suggestion_id, _ = joined
+    [item] = review.queue(USER)
+    assert item.linked_receipt is not None
+    assert item.linked_receipt.suggestion.id == suggestion_id
+    assert item.linked_receipt.candidate.counterparty == "SAMPLE MUSIC SHOP"
+
+    matches.undo(USER, suggestion_id)
+
+    assert all(item.linked_receipt is None for item in review.queue(USER))

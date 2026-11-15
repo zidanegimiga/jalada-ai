@@ -713,6 +713,16 @@
           "evidence": {
             "$ref": "#/components/schemas/EvidenceResponse"
           },
+          "linked_receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuggestedMatchResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "match": {
             "anyOf": [
               {

@@ -120,6 +120,8 @@ class ReviewItemResponse(BaseModel):
     match: SuggestedMatchResponse | None = None
     # True when the entry is a receipt whose payment never arrived: was it cash or card?
     ask_how_paid: bool = False
+    # A receipt the user said belongs to this payment, which they can still take back.
+    linked_receipt: SuggestedMatchResponse | None = None
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -133,6 +135,11 @@ class ReviewItemResponse(BaseModel):
             entry=entry,
             match=match,
             ask_how_paid=item.ask_how_paid,
+            linked_receipt=(
+                SuggestedMatchResponse.from_match(item.linked_receipt)
+                if item.linked_receipt
+                else None
+            ),
         )
 
 

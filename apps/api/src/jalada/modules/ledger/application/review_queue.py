@@ -9,7 +9,7 @@ from uuid import UUID
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
 from jalada.modules.ledger.domain.how_paid import DEFAULT_ASKING, time_to_ask
-from jalada.modules.ledger.domain.suggestions import MatchSuggestion
+from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
     as_entry,
@@ -40,6 +40,8 @@ class ReviewItem:
     match: SuggestedMatch | None = None
     # True when the entry is a receipt whose payment never arrived: was it cash or card?
     ask_how_paid: bool = False
+    # A receipt the user said belongs to this payment, which they can still take back.
+    linked_receipt: SuggestedMatch | None = None
 
 
 def review_queue(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
@@ -66,7 +68,23 @@ def _payment_item(
     if evidence is None:
         return None
     suggested = any(line.suggested for line in payment.lines)
-    return ReviewItem(evidence, as_entry(payment), suggested, match)
+    linked = None if match else _linked_receipt(work, payment)
+    return ReviewItem(evidence, as_entry(payment), suggested, match, linked_receipt=linked)
+
+
+def _linked_receipt(work: UnitOfWork, payment: Transaction) -> SuggestedMatch | None:
+    accepted = [
+        s
+        for s in work.suggestions_for(payment.user_id).involving(payment.id)
+        if s.payment_id == payment.id and s.status == SuggestionStatus.ACCEPTED
+    ]
+    if not accepted:
+        return None
+    candidate = work.transactions_for(payment.user_id).get(accepted[-1].candidate_id)
+    if candidate is None:
+        return None
+    receipt = work.evidence_for(payment.user_id).get(candidate.evidence[0].evidence_id)
+    return SuggestedMatch(accepted[-1], receipt, candidate) if receipt else None
 
 
 def _questions(work: UnitOfWork, user_id: UUID) -> list[ReviewItem]:
