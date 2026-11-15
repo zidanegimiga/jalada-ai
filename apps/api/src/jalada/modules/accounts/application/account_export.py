@@ -11,6 +11,7 @@ from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.suggestions import MatchSuggestion
 from jalada.modules.ledger.domain.transactions import Transaction
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.classifier import Preference
@@ -35,6 +36,7 @@ class AccountData:
     money_accounts: list[MoneyAccount] = field(default_factory=list)
     transactions: list[Transaction] = field(default_factory=list)
     audit_events: list[AuditEvent] = field(default_factory=list)
+    suggestions: list[MatchSuggestion] = field(default_factory=list)
 
 
 class AccountExport:
@@ -75,6 +77,7 @@ class AccountExport:
                 money_accounts=work.money_accounts_for(user_id).all(),
                 transactions=work.transactions_for(user_id).all(),
                 audit_events=work.audit_for(user_id).all(),
+                suggestions=work.suggestions_for(user_id).all(),
             )
 
     def write(self, user_id: UUID, out: IO[bytes]) -> None:

@@ -71,6 +71,7 @@ def test_the_archive_holds_every_kind_of_data(
         "money_accounts.json",
         "transactions.json",
         "audit_events.json",
+        "match_suggestions.json",
     } <= names
     account = json.loads(archive.read("account.json"))
     assert account["email"] == "jane@example.com" and account["telegram_linked"] is False

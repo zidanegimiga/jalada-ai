@@ -11,6 +11,7 @@ from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
+from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
     TransactionKind,
@@ -275,6 +276,41 @@ class FakeAuditTrail:
     def all(self) -> list[AuditEvent]:
         mine = [e for e in self.rows if e.user_id == self._user_id]
         return sorted(mine, key=lambda e: e.at)  # stable: the order written for equal times
+
+
+class FakeMatchSuggestions:
+    def __init__(self, rows: dict[UUID, MatchSuggestion], user_id: UUID) -> None:
+        self.rows = rows
+        self._user_id = user_id
+
+    def add(self, suggestion: MatchSuggestion) -> None:
+        if suggestion.user_id != self._user_id:
+            raise PermissionError("Suggestion belongs to another user")
+        pair = (suggestion.kind, suggestion.payment_id, suggestion.candidate_id)
+        taken = {(s.kind, s.payment_id, s.candidate_id) for s in self.all()}
+        assert pair not in taken, "the database refuses a second suggestion for a pair"
+        self.rows[suggestion.id] = suggestion
+
+    def get(self, suggestion_id: UUID) -> MatchSuggestion | None:
+        return next((s for s in self.all() if s.id == suggestion_id), None)
+
+    def involving(self, transaction_id: UUID) -> list[MatchSuggestion]:
+        return [s for s in self.all() if transaction_id in (s.payment_id, s.candidate_id)]
+
+    def open(self) -> list[MatchSuggestion]:
+        return [s for s in self.all() if s.status == SuggestionStatus.OPEN]
+
+    def all(self) -> list[MatchSuggestion]:
+        mine = [s for s in self.rows.values() if s.user_id == self._user_id]
+        return sorted(mine, key=lambda s: (s.created_at, s.id))
+
+    def decide(self, suggestion: MatchSuggestion) -> None:
+        old = self.get(suggestion.id)
+        if old is None or suggestion.user_id != self._user_id:
+            raise LookupError("No such suggestion for this user")
+        self.rows[suggestion.id] = replace(
+            old, status=suggestion.status, decided_at=suggestion.decided_at
+        )
 
 
 class FakePreferences:
