@@ -2,9 +2,7 @@ import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Spinner } from "@/components/ui/spinner";
-import { HowPaidCard } from "@/features/review/components/how-paid-card";
-import { MatchCard } from "@/features/review/components/match-card";
-import { ReviewCard } from "@/features/review/components/review-card";
+import { ReviewList } from "@/features/review/components/review-list";
 import {
   getCategories,
   getReviewQueue,
@@ -22,23 +20,7 @@ async function ReviewQueue() {
       </p>
     );
   }
-  return (
-    <div className="flex flex-col gap-4">
-      {items.map((item) =>
-        item.match ? (
-          <MatchCard key={item.match.suggestion_id} item={item} />
-        ) : item.ask_how_paid ? (
-          <HowPaidCard key={item.evidence.id} item={item} />
-        ) : (
-          <ReviewCard
-            key={item.entry?.id ?? item.evidence.id}
-            item={item}
-            categories={categories}
-          />
-        ),
-      )}
-    </div>
-  );
+  return <ReviewList items={items} categories={categories} />;
 }
 
 export default function ReviewPage() {
