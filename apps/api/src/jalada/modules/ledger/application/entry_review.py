@@ -26,6 +26,8 @@ class ReviewItem:
 
     evidence: Evidence
     entry: Entry | None
+    # True when the category is a model's suggestion, not the user's own or a rule's.
+    category_suggested: bool = False
 
 
 class EntryReview:
@@ -39,13 +41,19 @@ class EntryReview:
         with self._unit_of_work() as work:
             evidence = work.evidence_for(user_id)
             # Payments come from transactions. Certificates are not transactions yet.
-            payments = [as_entry(t) for t in work.transactions_for(user_id).pending(limit)]
+            payments = work.transactions_for(user_id).pending(limit)
             certificates = work.entries_for(user_id).pending(
                 limit, EntryKind.WITHHOLDING_CERTIFICATE
             )
-            entries = payments + certificates
             items = [
-                ReviewItem(e, entry) for entry in entries if (e := evidence.get(entry.evidence_id))
+                ReviewItem(e, as_entry(p), any(line.suggested for line in p.lines))
+                for p in payments
+                if (e := evidence.get(p.evidence[0].evidence_id))
+            ]
+            items += [
+                ReviewItem(e, entry)
+                for entry in certificates
+                if (e := evidence.get(entry.evidence_id))
             ]
             items += [ReviewItem(e, None) for e in evidence.needing_entry(limit)]
         return sorted(items, key=lambda item: item.evidence.received_at)

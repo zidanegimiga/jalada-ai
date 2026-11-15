@@ -35,6 +35,9 @@ def verify(
         review.append("amount or date not certain")
     if classification.confidence < CONFIDENCE_THRESHOLD:
         review.append("purpose not certain")
+    if classification.source == "model" and classification.category:
+        # A model's category is a suggestion, however sure it says it is (design 03).
+        review.append("category suggested")
     return Verdict(not problems and not review, problems, review)
 
 

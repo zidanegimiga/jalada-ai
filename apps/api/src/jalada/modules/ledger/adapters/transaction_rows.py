@@ -36,7 +36,7 @@ def load(db: DbSession, rows: Sequence[TransactionRow]) -> list[Transaction]:
         .order_by(TransactionLineRow.transaction_id, TransactionLineRow.position)
     ):
         lines[line.transaction_id].append(
-            TransactionLine(line.amount_cents, line.category, Purpose(line.purpose))
+            TransactionLine(line.amount_cents, line.category, Purpose(line.purpose), line.suggested)
         )
     links: dict[UUID, list[EvidenceLink]] = defaultdict(list)
     for link in db.scalars(

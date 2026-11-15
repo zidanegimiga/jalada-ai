@@ -56,6 +56,8 @@ class EntryResponse(BaseModel):
     category: str | None
     category_name: str | None
     confidence: float
+    # True when the category is only a suggestion: the user should check it, not just confirm.
+    category_suggested: bool = False
     # Set on a payment linked to a withholding certificate.
     linked_certificate_id: UUID | None = None
     # Set on a certificate: the payments linked to it.
@@ -92,7 +94,10 @@ class ReviewItemResponse(BaseModel):
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
-        entry = EntryResponse.from_entry(item.entry) if item.entry else None
+        entry = None
+        if item.entry:
+            entry = EntryResponse.from_entry(item.entry)
+            entry.category_suggested = item.category_suggested
         return cls(evidence=EvidenceResponse.from_evidence(item.evidence), entry=entry)
 
 

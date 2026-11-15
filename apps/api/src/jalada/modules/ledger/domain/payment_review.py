@@ -38,7 +38,7 @@ def corrected(transaction: Transaction, correction: Correction) -> Transaction:
     if correction.amount_cents is not None:
         line = replace(line, amount_cents=correction.amount_cents)
     if correction.category is not None:
-        line = replace(line, category=correction.category)
+        line = replace(line, category=correction.category, suggested=False)
     return replace(changed, lines=(line,))
 
 
@@ -61,7 +61,8 @@ def confirmed(transaction: Transaction, now: datetime) -> Transaction:
         category = CATEGORIES[line.category or ""]
         if category.direction != transaction.direction:
             raise ReviewProblem("That category does not fit money going this way.")
-        lines.append(replace(line, purpose=category.purpose))
+        # Confirming accepts each category as the user's own.
+        lines.append(replace(line, purpose=category.purpose, suggested=False))
     done = replace(
         transaction,
         status=TransactionStatus.CONFIRMED,

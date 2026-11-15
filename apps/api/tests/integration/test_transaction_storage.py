@@ -145,3 +145,17 @@ def test_a_payment_code_is_found_only_for_its_owner(
         assert mine.with_payment_code("UK5AB1CD55") == transaction
         assert mine.with_payment_code("UK5AB1CD56") is None
         assert work.transactions_for(uuid.uuid4()).with_payment_code("UK5AB1CD55") is None
+
+
+def test_a_suggested_category_is_kept(session_factory: sessionmaker[DbSession]) -> None:
+    waiting = saved(session_factory)
+    guessed = replace(
+        waiting, lines=(replace(waiting.lines[0], category="business_stock", suggested=True),)
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.transactions_for(waiting.user_id).update(guessed)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        found = work.transactions_for(waiting.user_id).get(waiting.id)
+    assert found is not None and found.lines[0].suggested

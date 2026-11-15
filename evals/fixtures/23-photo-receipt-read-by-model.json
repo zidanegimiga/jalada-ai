@@ -25,7 +25,7 @@
   ],
   "expected": {
     "kind": "receipt",
-    "outcome": "proposed",
+    "outcome": "needs_review",
     "fields": {
       "amount_cents": 25000,
       "occurred_on": "2026-11-04",

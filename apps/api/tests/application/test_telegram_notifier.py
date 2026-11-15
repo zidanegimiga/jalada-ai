@@ -8,7 +8,7 @@ from samples import JPEG, MPESA_SENT, confirmed_entry
 
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceKind, EvidenceSource
-from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import EntryStatus
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
@@ -99,9 +99,16 @@ def test_every_reason_the_verifier_gives_has_words_for_the_user() -> None:
         False,
     )
 
+    guessed = verify(
+        replace(certificate, kind=EvidenceKind.RECEIPT, amount_cents=100, direction=Direction.OUT),
+        Classification(Purpose.PERSONAL, "personal_food", 0.9, "model"),
+        date(2026, 11, 5),
+        False,
+    )
+
     reasons = {
         reason
-        for found in (verdict, too_old, no_date, no_tax, mismatch)
+        for found in (verdict, too_old, no_date, no_tax, mismatch, guessed)
         for reason in found.problems + found.review_reasons
     }
     assert reasons <= REASONS.keys()
@@ -178,3 +185,17 @@ def test_a_failing_reply_does_not_undo_the_processing(
 
     assert processor.process(USER, evidence.id) == "needs_review"
     assert len(store.payments()) == 1
+
+
+def test_a_guessed_category_is_offered_as_a_maybe() -> None:
+    notifier = TelegramNotifier(lambda: FakeUnitOfWork(Store()), FakeChat(), REVIEW)
+    entry = replace(
+        confirmed_entry(USER, date(2026, 11, 4), 25_000, "out", "business_stock"),
+        counterparty="SAMPLE SHOP",
+        status=EntryStatus.NEEDS_REVIEW,
+    )
+
+    assert notifier.message("needs_review", entry, ["category suggested"]) == (
+        "KSh 250.00 to SAMPLE SHOP on 4 Nov 2026, maybe Stock and supplies. "
+        f"That category is my guess, so please check it. Check it here: {REVIEW}"
+    )

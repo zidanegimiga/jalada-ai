@@ -35,6 +35,7 @@ export function entry(overrides: Partial<Entry> = {}): Entry {
     purpose: "personal",
     category: "personal_food",
     category_name: "Food",
+    category_suggested: false,
     ...overrides,
   };
 }

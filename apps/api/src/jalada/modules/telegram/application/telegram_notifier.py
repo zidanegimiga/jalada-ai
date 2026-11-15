@@ -10,6 +10,7 @@ from jalada.unit_of_work import UnitOfWork
 # The verifier's reasons for holding an entry back, in words for the user.
 REASONS = {
     "purpose not certain": "I was not sure what it was for.",
+    "category suggested": "That category is my guess, so please check it.",
     "amount or date not certain": "I was not sure I read the amount and date right.",
     "no amount": "I could not find the amount.",
     "no date": "I could not find the date.",
@@ -57,7 +58,10 @@ class TelegramNotifier:
         summary = _summary(entry)
         category = CATEGORIES.get(entry.category or "")
         if category:
-            summary = f"{summary}: {category.name}"
+            guessed = "category suggested" in reasons
+            summary = (
+                f"{summary}, maybe {category.name}" if guessed else f"{summary}: {category.name}"
+            )
         if outcome == "proposed":
             return f"{summary}. Confirm it here: {self._review_url}"
         return f"{summary}. {_explain(reasons)} Check it here: {self._review_url}"

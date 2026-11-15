@@ -48,7 +48,10 @@ def proposed_payment(
         confirmed_at=None,
         lines=(
             TransactionLine(
-                extraction.amount_cents, classification.category, classification.purpose
+                extraction.amount_cents,
+                classification.category,
+                classification.purpose,
+                suggested=classification.source == "model" and classification.category is not None,
             ),
         ),
         evidence=(EvidenceLink(evidence.id, role_for(extraction.kind), LinkedBy.PIPELINE, now),),

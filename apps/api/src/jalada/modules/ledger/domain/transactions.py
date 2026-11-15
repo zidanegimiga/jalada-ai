@@ -66,6 +66,8 @@ class TransactionLine:
     amount_cents: int | None
     category: str | None
     purpose: Purpose
+    # True while the category is a model's suggestion that the user has not accepted.
+    suggested: bool = False
 
 
 @dataclass(frozen=True)

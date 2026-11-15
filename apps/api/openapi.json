@@ -207,6 +207,11 @@
             ],
             "title": "Category Name"
           },
+          "category_suggested": {
+            "default": false,
+            "title": "Category Suggested",
+            "type": "boolean"
+          },
           "certificate_serial": {
             "anyOf": [
               {

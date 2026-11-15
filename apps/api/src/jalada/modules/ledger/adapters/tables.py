@@ -13,6 +13,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    false,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -172,6 +173,7 @@ class TransactionLineRow(Base):
     amount_cents: Mapped[int | None] = mapped_column(BigInteger)
     category: Mapped[str | None] = mapped_column(String(40))
     purpose: Mapped[str] = mapped_column(String(10))
+    suggested: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
 
 class TransactionEvidenceRow(Base):

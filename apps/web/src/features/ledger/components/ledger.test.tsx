@@ -26,6 +26,7 @@ describe("LedgerList", () => {
             amount_cents: 4_000_000,
             counterparty: "CLIENT",
             category_name: "Consultancy",
+            category_suggested: false,
           }),
           entry({ id: "b", direction: "out", amount_cents: 15000 }),
         ]}
@@ -50,6 +51,7 @@ describe("LedgerList with certificates", () => {
             amount_cents: 4_000_000,
             counterparty: "CLIENT",
             category_name: "Consultancy",
+            category_suggested: false,
             linked_payment_ids: ["pay-1"],
           }),
           entry({
@@ -58,6 +60,7 @@ describe("LedgerList with certificates", () => {
             amount_cents: 3_800_000,
             counterparty: "CLIENT",
             category_name: "Consultancy",
+            category_suggested: false,
             linked_certificate_id: "cert-1",
           }),
         ]}

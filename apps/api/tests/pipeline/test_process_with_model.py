@@ -37,7 +37,9 @@ def test_a_photo_the_rules_cannot_read_goes_to_the_model() -> None:
 
     result = run(EvidenceInput(None, "image/jpeg", PHOTO), model)
 
-    assert result.outcome == "proposed"
+    assert result.outcome == "needs_review", "a model's category is only a suggestion"
+    assert result.verdict is not None
+    assert result.verdict.review_reasons == ["category suggested"]
     assert result.extraction is not None and result.extraction.amount_cents == 25000
     assert result.classification is not None and result.classification.category == "business_stock"
     assert model.calls[0]["image"] == PHOTO
@@ -81,7 +83,7 @@ def test_an_unsure_model_answer_goes_to_review() -> None:
 
     assert result.outcome == "needs_review"
     assert result.verdict is not None
-    assert result.verdict.review_reasons == ["amount or date not certain"]
+    assert result.verdict.review_reasons == ["amount or date not certain", "category suggested"]
 
 
 def test_a_wrong_model_answer_is_retried_with_feedback() -> None:
@@ -90,7 +92,7 @@ def test_a_wrong_model_answer_is_retried_with_feedback() -> None:
 
     result = run(EvidenceInput(None, "image/jpeg", PHOTO), model)
 
-    assert result.outcome == "proposed"
+    assert result.outcome == "needs_review"
     assert result.attempts == 2
     assert "date is in the future" in model.calls[2]["content"]
 

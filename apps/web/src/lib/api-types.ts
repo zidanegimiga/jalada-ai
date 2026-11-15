@@ -593,6 +593,11 @@ export interface components {
             category: string | null;
             /** Category Name */
             category_name: string | null;
+            /**
+             * Category Suggested
+             * @default false
+             */
+            category_suggested: boolean;
             /** Certificate Serial */
             certificate_serial: string | null;
             /** Confidence */
