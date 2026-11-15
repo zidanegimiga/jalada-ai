@@ -52,3 +52,14 @@ export function sayHowPaid(
 ): Promise<Entry> {
   return send(`/v1/receipts/${entryId}/paid`, "POST", { paid_with: paidWith });
 }
+
+export function undoMatch(suggestionId: string): Promise<Entry> {
+  return send(`/v1/suggestions/${suggestionId}/undo`, "POST");
+}
+
+/** Confirms the listed payments that are still ready. The rest stay on To check. */
+export function confirmAll(
+  entryIds: string[],
+): Promise<{ confirmed: Entry[] }> {
+  return send(`/v1/review/confirm-all`, "POST", { entry_ids: entryIds });
+}

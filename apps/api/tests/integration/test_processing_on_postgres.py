@@ -1,6 +1,6 @@
 """The pipeline end to end against Postgres, where foreign keys and unique codes are real:
 a message is proposed as a payment, a second copy is linked to it, and a receipt is offered
-as the same purchase and joined into it."""
+as the same purchase, joined into it, and separated again."""
 
 import uuid
 from datetime import UTC, datetime
@@ -103,3 +103,12 @@ def test_a_receipt_waits_and_is_offered_with_its_payment(
         merged = work.transactions_for(user.id).get(suggestion.candidate_id)
         assert merged is not None and merged.status == TransactionStatus.MERGED
         assert work.suggestions_for(user.id).open() == []
+
+    MatchReview(lambda: SqlUnitOfWork(session_factory), clock).undo(user.id, suggestion.id)
+
+    with SqlUnitOfWork(session_factory) as work:
+        payment = work.transactions_for(user.id).get(suggestion.payment_id)
+        assert payment is not None
+        assert [link.evidence_id for link in payment.evidence] == [message.id]
+        waiting = work.transactions_for(user.id).get(suggestion.candidate_id)
+        assert waiting is not None and waiting.status == TransactionStatus.CANDIDATE

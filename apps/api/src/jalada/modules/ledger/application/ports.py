@@ -121,6 +121,11 @@ class TransactionRepository(Protocol):
         removed here: unlinking is its own action."""
         ...
 
+    def unlink(self, transaction_id: UUID, evidence_id: UUID) -> None:
+        """Removes one evidence link, when the user takes back the match that made it. The
+        audit trail keeps the link as it was."""
+        ...
+
 
 class AuditTrail(Protocol):
     """One user's audit trail. Events are added, never changed or removed."""

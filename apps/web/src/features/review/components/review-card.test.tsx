@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewCard } from "./review-card";
-import { CATEGORIES, entry, item } from "./test-data";
+import { CATEGORIES, entry, item, matchItem } from "./test-data";
 
 const router = { refresh: vi.fn() };
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
@@ -28,6 +28,13 @@ describe("ReviewCard", () => {
       "href",
       "/v1/evidence/evidence-1/file",
     );
+  });
+
+  it("shows a receipt the user linked to the payment", () => {
+    const linked = { ...item(entry()), linked_receipt: matchItem().match };
+    render(<ReviewCard item={linked} categories={CATEGORIES} />);
+
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
   });
 
   it("confirms with one tap", async () => {

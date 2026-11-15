@@ -120,6 +120,10 @@ class ReviewItemResponse(BaseModel):
     match: SuggestedMatchResponse | None = None
     # True when the entry is a receipt whose payment never arrived: was it cash or card?
     ask_how_paid: bool = False
+    # A receipt the user said belongs to this payment, which they can still take back.
+    linked_receipt: SuggestedMatchResponse | None = None
+    # True when the payment can be confirmed as it is, so it can go in Confirm all.
+    ready: bool = False
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -133,7 +137,23 @@ class ReviewItemResponse(BaseModel):
             entry=entry,
             match=match,
             ask_how_paid=item.ask_how_paid,
+            linked_receipt=(
+                SuggestedMatchResponse.from_match(item.linked_receipt)
+                if item.linked_receipt
+                else None
+            ),
+            ready=item.ready,
         )
+
+
+class ConfirmAllRequest(BaseModel):
+    # The ready payments the user saw listed. To check never shows more than 100 items.
+    entry_ids: list[UUID] = Field(min_length=1, max_length=100)
+
+
+class ConfirmAllResponse(BaseModel):
+    # Only what was still ready. Anything else stays on To check.
+    confirmed: list[EntryResponse]
 
 
 class HowPaidRequest(BaseModel):

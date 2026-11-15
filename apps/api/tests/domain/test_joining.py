@@ -4,7 +4,7 @@ import pytest
 from test_same_purchase import NOW, payment, receipt
 
 from jalada.modules.ledger.domain.categories import Purpose
-from jalada.modules.ledger.domain.joining import joined
+from jalada.modules.ledger.domain.joining import joined, separated
 from jalada.modules.ledger.domain.transactions import (
     LinkedBy,
     TransactionLine,
@@ -51,3 +51,17 @@ def test_the_receipt_gives_its_category_only_where_the_payment_has_none_of_its_o
 def test_only_a_candidate_can_be_joined() -> None:
     with pytest.raises(ValueError):
         joined(payment(), payment(), NOW)
+
+
+def test_separating_takes_the_receipt_off_and_the_candidate_waits_again() -> None:
+    paid, merged = joined(payment(), receipt(), NOW)
+
+    back, waiting = separated(paid, merged, payment().lines)
+
+    assert back.evidence == paid.evidence[:1]
+    assert back.lines == payment().lines
+    assert waiting.status == TransactionStatus.CANDIDATE
+    kept, _ = separated(paid, merged, None)
+    assert kept.lines == paid.lines, "without lines from before, the current ones stay"
+    with pytest.raises(ValueError):
+        separated(paid, receipt(), None)

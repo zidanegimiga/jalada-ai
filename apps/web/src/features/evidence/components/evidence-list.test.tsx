@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { EvidenceItem } from "../api";
 import { EvidenceList } from "./evidence-list";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 function item(overrides: Partial<EvidenceItem>): EvidenceItem {
   return {
@@ -66,6 +68,19 @@ describe("EvidenceList", () => {
     expect(screen.getByText("Linked to a payment")).toBeInTheDocument();
     expect(screen.getByText("Already recorded")).toBeInTheDocument();
     expect(screen.getByText("Waiting for its payment")).toBeInTheDocument();
+  });
+
+  it("offers to put back evidence marked not a transaction", () => {
+    render(
+      <EvidenceList
+        items={[
+          item({ id: "a", status: "not_a_transaction" }),
+          item({ id: "b", status: "confirmed" }),
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Put back" })).toHaveLength(1);
   });
 
   it("links to the original through the API", () => {

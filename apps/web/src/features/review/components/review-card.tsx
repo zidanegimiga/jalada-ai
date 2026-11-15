@@ -14,6 +14,7 @@ import {
 } from "../api";
 import type { Category, EntryValues, ReviewItem } from "../types";
 import { EntryForm } from "./entry-form";
+import { LinkedReceipt } from "./linked-receipt";
 import { NotATransaction } from "./not-a-transaction";
 
 export function ReviewCard({
@@ -67,6 +68,7 @@ export function ReviewCard({
           See original
         </a>
       </header>
+      {item.linked_receipt && <LinkedReceipt match={item.linked_receipt} />}
       {entry && !editing && (
         <>
           <p className="rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">

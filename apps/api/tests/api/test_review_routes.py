@@ -1,8 +1,14 @@
+import uuid
+from dataclasses import replace
+
 import pytest
 from fakes import FixedClock, Store
 from fastapi.testclient import TestClient
 from receipts import Send
 from samples import JPEG
+
+from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.transactions import TransactionLine, TransactionStatus
 
 
 def sign_up(client: TestClient, email: str = "jane@example.com") -> None:
@@ -145,3 +151,50 @@ def test_saying_how_a_receipt_was_paid(
     assert response.json()["status"] == "needs_review"
     wrong = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "bitcoin"})
     assert wrong.status_code == 422
+
+
+def test_not_a_transaction_can_be_taken_back(client: TestClient, waiting: str) -> None:
+    client.post(f"/v1/evidence/{waiting}/not-a-transaction")
+
+    assert client.delete(f"/v1/evidence/{waiting}/not-a-transaction").status_code == 204
+    [item] = client.get("/v1/review").json()["items"]
+    assert item["evidence"]["id"] == waiting
+    again = client.delete(f"/v1/evidence/{waiting}/not-a-transaction")
+    assert again.status_code == 422
+
+
+def test_a_yes_can_be_taken_back(client: TestClient, asked: str) -> None:
+    client.post(f"/v1/suggestions/{asked}/accept")
+
+    response = client.post(f"/v1/suggestions/{asked}/undo")
+
+    assert response.status_code == 200
+    assert response.json()["amount_cents"] == 41900
+    assert client.post(f"/v1/suggestions/{asked}/undo").status_code == 404
+
+
+def test_confirm_all_confirms_only_ready_payments(
+    client: TestClient, send: Send, store: Store
+) -> None:
+    sign_up(client)
+    [user_id] = store.users
+    send("message", user=user_id)
+    [unsure] = store.transactions.values()
+    known = TransactionLine(41900, "personal_other", Purpose.PERSONAL)
+    ready = replace(
+        unsure,
+        id=uuid.uuid4(),
+        payment_code=None,
+        status=TransactionStatus.PROPOSED,
+        lines=(known,),
+    )
+    store.transactions[ready.id] = ready
+    items = client.get("/v1/review").json()["items"]
+    assert [item["ready"] for item in items] == [False, True]
+
+    ids = [item["entry"]["id"] for item in items]
+    response = client.post("/v1/review/confirm-all", json={"entry_ids": ids})
+
+    assert response.status_code == 200
+    assert [entry["id"] for entry in response.json()["confirmed"]] == [str(ready.id)]
+    assert client.post("/v1/review/confirm-all", json={"entry_ids": []}).status_code == 422

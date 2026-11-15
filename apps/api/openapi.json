@@ -79,6 +79,41 @@
         "title": "CertificateResponse",
         "type": "object"
       },
+      "ConfirmAllRequest": {
+        "properties": {
+          "entry_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Entry Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entry_ids"
+        ],
+        "title": "ConfirmAllRequest",
+        "type": "object"
+      },
+      "ConfirmAllResponse": {
+        "properties": {
+          "confirmed": {
+            "items": {
+              "$ref": "#/components/schemas/EntryResponse"
+            },
+            "title": "Confirmed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "confirmed"
+        ],
+        "title": "ConfirmAllResponse",
+        "type": "object"
+      },
       "CorrectionRequest": {
         "properties": {
           "amount": {
@@ -713,6 +748,16 @@
           "evidence": {
             "$ref": "#/components/schemas/EvidenceResponse"
           },
+          "linked_receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuggestedMatchResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "match": {
             "anyOf": [
               {
@@ -722,6 +767,11 @@
                 "type": "null"
               }
             ]
+          },
+          "ready": {
+            "default": false,
+            "title": "Ready",
+            "type": "boolean"
           }
         },
         "required": [
@@ -2222,6 +2272,57 @@
       }
     },
     "/v1/evidence/{evidence_id}/not-a-transaction": {
+      "delete": {
+        "description": "Takes back \"Not a transaction\". The evidence goes back to where it was.",
+        "operationId": "put_back_v1_evidence__evidence_id__not_a_transaction_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Back",
+        "tags": [
+          "review"
+        ]
+      },
       "post": {
         "description": "For evidence that does not record money moving, such as a balance message.",
         "operationId": "mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post",
@@ -2501,6 +2602,66 @@
         ]
       }
     },
+    "/v1/review/confirm-all": {
+      "post": {
+        "description": "Confirms the listed payments that are ready to confirm. The rest are skipped.",
+        "operationId": "confirm_all_v1_review_confirm_all_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAllRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmAllResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm All",
+        "tags": [
+          "review"
+        ]
+      }
+    },
     "/v1/suggestions/{suggestion_id}/accept": {
       "post": {
         "description": "Yes, the receipt and the payment are the same purchase. Returns the payment, which\nstill needs confirming.",
@@ -2609,6 +2770,66 @@
           }
         },
         "summary": "Decline Suggestion",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/suggestions/{suggestion_id}/undo": {
+      "post": {
+        "description": "Takes back a yes: the receipt waits for its payment again, and the pair is not\noffered again. Returns the payment.",
+        "operationId": "undo_suggestion_v1_suggestions__suggestion_id__undo_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Undo Suggestion",
         "tags": [
           "review"
         ]

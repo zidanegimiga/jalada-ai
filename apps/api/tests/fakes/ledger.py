@@ -271,6 +271,13 @@ class FakeTransactions:
         kept = tuple(link for link in old.evidence if link.evidence_id not in known)
         self.rows[transaction.id] = replace(transaction, evidence=kept + transaction.evidence)
 
+    def unlink(self, transaction_id: UUID, evidence_id: UUID) -> None:
+        found = self.get(transaction_id)
+        if found is None:
+            return
+        kept = tuple(link for link in found.evidence if link.evidence_id != evidence_id)
+        self.rows[transaction_id] = replace(found, evidence=kept)
+
 
 class FakeAuditTrail:
     def __init__(self, rows: list[AuditEvent], user_id: UUID) -> None:

@@ -1,6 +1,7 @@
 import { FileText, Image as ImageIcon, MessageSquareText } from "lucide-react";
 
 import type { EvidenceItem } from "../api";
+import { PutBack } from "./put-back";
 
 // Every status the API can send has a label: a new one fails the type check until it does.
 const STATUS_LABELS: Record<EvidenceItem["status"], string> = {
@@ -63,6 +64,7 @@ export function EvidenceList({ items }: { items: EvidenceItem[] }) {
               >
                 Open
               </a>
+              {item.status === "not_a_transaction" && <PutBack id={item.id} />}
             </div>
           </li>
         );

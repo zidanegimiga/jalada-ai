@@ -417,7 +417,11 @@ export interface paths {
          * @description For evidence that does not record money moving, such as a balance message.
          */
         post: operations["mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post"];
-        delete?: never;
+        /**
+         * Put Back
+         * @description Takes back "Not a transaction". The evidence goes back to where it was.
+         */
+        delete: operations["put_back_v1_evidence__evidence_id__not_a_transaction_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -498,6 +502,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/review/confirm-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm All
+         * @description Confirms the listed payments that are ready to confirm. The rest are skipped.
+         */
+        post: operations["confirm_all_v1_review_confirm_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/suggestions/{suggestion_id}/accept": {
         parameters: {
             query?: never;
@@ -533,6 +557,27 @@ export interface paths {
          * @description No, they are not the same. The pair is never offered again.
          */
         post: operations["decline_suggestion_v1_suggestions__suggestion_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/suggestions/{suggestion_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo Suggestion
+         * @description Takes back a yes: the receipt waits for its payment again, and the pair is not
+         *     offered again. Returns the payment.
+         */
+        post: operations["undo_suggestion_v1_suggestions__suggestion_id__undo_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -619,6 +664,16 @@ export interface components {
             payments: components["schemas"]["EntryResponse"][];
             /** Suggestions */
             suggestions: components["schemas"]["EntryResponse"][];
+        };
+        /** ConfirmAllRequest */
+        ConfirmAllRequest: {
+            /** Entry Ids */
+            entry_ids: string[];
+        };
+        /** ConfirmAllResponse */
+        ConfirmAllResponse: {
+            /** Confirmed */
+            confirmed: components["schemas"]["EntryResponse"][];
         };
         /** CorrectionRequest */
         CorrectionRequest: {
@@ -842,7 +897,13 @@ export interface components {
             ask_how_paid: boolean;
             entry: components["schemas"]["EntryResponse"] | null;
             evidence: components["schemas"]["EvidenceResponse"];
+            linked_receipt?: components["schemas"]["SuggestedMatchResponse"] | null;
             match?: components["schemas"]["SuggestedMatchResponse"] | null;
+            /**
+             * Ready
+             * @default false
+             */
+            ready: boolean;
         };
         /** ReviewQueue */
         ReviewQueue: {
@@ -1684,6 +1745,37 @@ export interface operations {
             };
         };
     };
+    put_back_v1_evidence__evidence_id__not_a_transaction_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                evidence_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     download_tax_year_v1_exports__year__xlsx_get: {
         parameters: {
             query?: never;
@@ -1816,6 +1908,41 @@ export interface operations {
             };
         };
     };
+    confirm_all_v1_review_confirm_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmAllResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     accept_suggestion_v1_suggestions__suggestion_id__accept_post: {
         parameters: {
             query?: never;
@@ -1868,6 +1995,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_suggestion_v1_suggestions__suggestion_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

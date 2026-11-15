@@ -23,3 +23,12 @@ def decline_suggestion(
 ) -> None:
     """No, they are not the same. The pair is never offered again."""
     services.matches.decline(user.id, suggestion_id)
+
+
+@router.post("/v1/suggestions/{suggestion_id}/undo")
+def undo_suggestion(
+    suggestion_id: UUID, user: CurrentUser, services: ServicesDependency
+) -> EntryResponse:
+    """Takes back a yes: the receipt waits for its payment again, and the pair is not
+    offered again. Returns the payment."""
+    return EntryResponse.from_entry(services.matches.undo(user.id, suggestion_id))
