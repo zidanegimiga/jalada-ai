@@ -115,6 +115,8 @@ class SqlTransactions:
             .where(
                 TransactionRow.user_id == self._user_id,
                 TransactionRow.status == TransactionStatus.CONFIRMED,
+                # Money moved between the user's own accounts is neither in nor out.
+                TransactionRow.kind != TransactionKind.TRANSFER,
                 extract("year", TransactionRow.occurred_on) == year,
                 # A payment linked to a certificate is already counted in its gross amount.
                 ~exists().where(CertificatePaymentRow.payment_id == TransactionRow.id),

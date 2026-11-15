@@ -9,12 +9,17 @@ from sqlalchemy.orm import sessionmaker
 from test_ledger_storage import make_entry, setup_evidence
 
 from jalada.modules.ledger.domain.categories import Purpose
-from jalada.modules.ledger.domain.money_accounts import default_accounts
+from jalada.modules.ledger.domain.money_accounts import (
+    MoneyAccount,
+    MoneyAccountKind,
+    default_accounts,
+)
 from jalada.modules.ledger.domain.transactions import (
     EvidenceLink,
     EvidenceRole,
     LinkedBy,
     Transaction,
+    TransactionKind,
     TransactionLine,
     TransactionStatus,
     from_entry,
@@ -159,3 +164,37 @@ def test_a_suggested_category_is_kept(session_factory: sessionmaker[DbSession]) 
     with SqlUnitOfWork(session_factory) as work:
         found = work.transactions_for(waiting.user_id).get(waiting.id)
     assert found is not None and found.lines[0].suggested
+
+
+def test_a_transfer_keeps_where_it_went_and_is_not_counted(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    transaction = saved(session_factory)
+    bank = MoneyAccount(
+        uuid.uuid4(),
+        transaction.user_id,
+        MoneyAccountKind.BANK,
+        "SAMPLE BANK ending 6789",
+        False,
+        NOW,
+        {"paybill": "sample bank", "account": "0123456789"},
+    )
+    line = TransactionLine(transaction.amount_cents, "own_transfer_out", Purpose.PERSONAL)
+    transfer = replace(
+        transaction,
+        kind=TransactionKind.TRANSFER,
+        to_account_id=bank.id,
+        status=TransactionStatus.CONFIRMED,
+        confirmed_at=NOW,
+        lines=(line,),
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.money_accounts_for(transaction.user_id).add(bank)
+        work.transactions_for(transaction.user_id).update(transfer)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        assert work.transactions_for(transaction.user_id).get(transaction.id) == transfer
+        assert bank in work.money_accounts_for(transaction.user_id).all()
+        year = transaction.occurred_on.year if transaction.occurred_on else 0
+        assert work.transactions_for(transaction.user_id).monthly_totals(year) == []

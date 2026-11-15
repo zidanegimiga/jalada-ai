@@ -43,6 +43,7 @@ CATEGORIES: dict[str, Category] = {
         _money_in("own_transfer", "Transfer between own accounts", P),
         _money_in("refund", "Refund", P),
         _money_in("other_income", "Other money in", P),
+        _cost("own_transfer_out", "Transfer to own account", P),
         _cost("business_airtime_data", "Data and airtime", B),
         _cost("business_transport", "Transport", B),
         _cost("business_equipment", "Equipment that lasts years", B),

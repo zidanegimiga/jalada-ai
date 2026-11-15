@@ -123,6 +123,7 @@ class MoneyAccountRow(Base):
     name: Mapped[str] = mapped_column(String(80))
     tracked: Mapped[bool] = mapped_column(Boolean)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    identifiers: Mapped[dict[str, str]] = mapped_column(JSONB, server_default="{}")
 
 
 class TransactionRow(Base):
@@ -156,6 +157,7 @@ class TransactionRow(Base):
     run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("pipeline_runs.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    to_account_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("money_accounts.id"))
 
 
 class TransactionLineRow(Base):

@@ -105,6 +105,8 @@ class Transaction:
     confirmed_at: datetime | None
     lines: tuple[TransactionLine, ...]
     evidence: tuple[EvidenceLink, ...]
+    # Where a transfer went: another of the user's accounts. None for anything else.
+    to_account_id: UUID | None = None
 
 
 def line_problems(transaction: Transaction) -> list[str]:

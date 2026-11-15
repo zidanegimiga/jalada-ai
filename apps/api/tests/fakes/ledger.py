@@ -256,6 +256,8 @@ class FakeTransactions:
         for t in self.rows.values():
             day = t.occurred_on
             mine = t.user_id == self._user_id and t.id not in self._linked_payments
+            if t.kind == TransactionKind.TRANSFER:
+                continue
             if not mine or t.status != TransactionStatus.CONFIRMED or not day or day.year != year:
                 continue
             for line in t.lines:
