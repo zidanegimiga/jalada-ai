@@ -70,9 +70,11 @@ export function ReviewCard({
       {entry && !editing && (
         <>
           <p className="rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
-            {entry.category_name
-              ? entry.category_name
-              : "We could not tell what this was for."}
+            {!entry.category_name
+              ? "We could not tell what this was for."
+              : entry.category_suggested
+                ? `Suggested: ${entry.category_name}. Is that right?`
+                : entry.category_name}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -90,7 +92,7 @@ export function ReviewCard({
                   : setEditing(true)
               }
             >
-              Confirm
+              {entry.category_suggested ? "Yes, confirm" : "Confirm"}
             </Button>
           </div>
         </>

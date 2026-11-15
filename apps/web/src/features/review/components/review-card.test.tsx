@@ -116,4 +116,22 @@ describe("ReviewCard", () => {
       screen.getByRole("button", { name: "Not a transaction" }),
     ).toBeInTheDocument();
   });
+
+  it("offers a model's category as a suggestion to accept or change", async () => {
+    const fetch = respond(200, entry({ status: "confirmed" }));
+    render(
+      <ReviewCard
+        item={item(entry({ category_suggested: true }))}
+        categories={CATEGORIES}
+      />,
+    );
+
+    expect(
+      screen.getByText("Suggested: Food. Is that right?"),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Yes, confirm" }));
+
+    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(fetch.mock.calls[0][0]).toBe("/v1/entries/entry-1/confirm");
+  });
 });
