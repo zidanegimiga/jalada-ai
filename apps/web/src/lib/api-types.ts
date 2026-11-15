@@ -417,7 +417,11 @@ export interface paths {
          * @description For evidence that does not record money moving, such as a balance message.
          */
         post: operations["mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post"];
-        delete?: never;
+        /**
+         * Put Back
+         * @description Takes back "Not a transaction". The evidence goes back to where it was.
+         */
+        delete: operations["put_back_v1_evidence__evidence_id__not_a_transaction_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1654,6 +1658,37 @@ export interface operations {
         };
     };
     mark_not_a_transaction_v1_evidence__evidence_id__not_a_transaction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                evidence_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_back_v1_evidence__evidence_id__not_a_transaction_delete: {
         parameters: {
             query?: never;
             header?: never;

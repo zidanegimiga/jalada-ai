@@ -145,3 +145,13 @@ def test_saying_how_a_receipt_was_paid(
     assert response.json()["status"] == "needs_review"
     wrong = client.post(f"/v1/receipts/{candidate.id}/paid", json={"paid_with": "bitcoin"})
     assert wrong.status_code == 422
+
+
+def test_not_a_transaction_can_be_taken_back(client: TestClient, waiting: str) -> None:
+    client.post(f"/v1/evidence/{waiting}/not-a-transaction")
+
+    assert client.delete(f"/v1/evidence/{waiting}/not-a-transaction").status_code == 204
+    [item] = client.get("/v1/review").json()["items"]
+    assert item["evidence"]["id"] == waiting
+    again = client.delete(f"/v1/evidence/{waiting}/not-a-transaction")
+    assert again.status_code == 422

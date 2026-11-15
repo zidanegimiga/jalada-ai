@@ -4,7 +4,7 @@ from uuid import UUID
 
 from jalada.core.ports import Clock
 from jalada.modules.evidence.domain.evidence import EvidenceStatus
-from jalada.modules.ledger.application import history, payment_review
+from jalada.modules.ledger.application import history, payment_review, putting_back
 from jalada.modules.ledger.application.review_queue import ReviewItem, review_queue
 from jalada.modules.ledger.domain.audit import Actor, AuditAction
 from jalada.modules.ledger.domain.categories import CATEGORIES
@@ -72,6 +72,12 @@ class EntryReview:
             else:
                 self._reject_certificate(work, user_id, evidence_id)
             work.evidence_for(user_id).set_status(evidence_id, EvidenceStatus.NOT_A_TRANSACTION)
+            work.commit()
+
+    def put_back(self, user_id: UUID, evidence_id: UUID) -> None:
+        """Takes back "Not a transaction": the evidence returns to the review queue."""
+        with self._unit_of_work() as work:
+            putting_back.put_back(work, user_id, evidence_id, self._clock.now())
             work.commit()
 
     def _confirm_certificate(

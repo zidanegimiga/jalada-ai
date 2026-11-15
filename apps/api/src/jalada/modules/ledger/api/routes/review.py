@@ -47,3 +47,11 @@ def mark_not_a_transaction(
 ) -> None:
     """For evidence that does not record money moving, such as a balance message."""
     services.review.mark_not_a_transaction(user.id, evidence_id)
+
+
+@router.delete(
+    "/v1/evidence/{evidence_id}/not-a-transaction", status_code=status.HTTP_204_NO_CONTENT
+)
+def put_back(evidence_id: UUID, user: CurrentUser, services: ServicesDependency) -> None:
+    """Takes back "Not a transaction". The evidence goes back to where it was."""
+    services.review.put_back(user.id, evidence_id)
