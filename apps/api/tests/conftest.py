@@ -19,6 +19,7 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 from receipts import LEISURE, RECEIPT, USER, Send
 from samples import JPEG, MPESA_PAYBILL
+from transfers import Paste
 
 from jalada.app import create_app
 from jalada.core.ports import HealthCheck
@@ -38,6 +39,7 @@ from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
+from jalada.modules.ledger.application.own_accounts import OwnAccounts
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.domain.run_types import Budget
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
@@ -152,6 +154,7 @@ def make_app(
             review=review,
             matches=MatchReview(lambda: FakeUnitOfWork(store), FixedClock()),
             how_paid=HowPaid(lambda: FakeUnitOfWork(store), FixedClock()),
+            own_accounts=OwnAccounts(lambda: FakeUnitOfWork(store), FixedClock()),
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
             certificate_payments=CertificatePayments(lambda: FakeUnitOfWork(store), FixedClock()),
             tax_year_export=TaxYearExport(
@@ -202,3 +205,21 @@ def send(  # see receipts.Send
         return evidence.id, processor.process(user, evidence.id)
 
     return sent
+
+
+@pytest.fixture
+def paste(  # see transfers.Paste
+    store: Store, capture: EvidenceCapture, evidence_store: FakeEvidenceStore, clock: FixedClock
+) -> Paste:
+    def pasted(message: str, user: uuid.UUID = USER) -> uuid.UUID:
+        evidence = capture.capture_text(user, message, EvidenceSource.WEB_PASTE).evidence
+        processor = EvidenceProcessor(
+            lambda: FakeUnitOfWork(store), evidence_store, FakeTextReader(), clock, Budget()
+        )
+        processor.process(user, evidence.id)
+        [payment] = [
+            t for t in store.transactions.values() if t.evidence[0].evidence_id == evidence.id
+        ]
+        return payment.id
+
+    return pasted

@@ -45,6 +45,7 @@ export function item(entryValue: Entry | null): ReviewItem {
     entry: entryValue,
     ask_how_paid: false,
     ready: false,
+    ask_own_account: false,
     evidence: {
       id: "evidence-1",
       source: "web_paste",

@@ -40,6 +40,7 @@ from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.ledger.application.match_review import MatchReview
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
+from jalada.modules.ledger.application.own_accounts import OwnAccounts
 from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
 from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
@@ -78,6 +79,7 @@ def build_services(settings: Settings) -> Services:
         review=EntryReview(unit_of_work, clock),
         matches=MatchReview(unit_of_work, clock),
         how_paid=HowPaid(unit_of_work, clock),
+        own_accounts=OwnAccounts(unit_of_work, clock),
         ledger=Ledger(unit_of_work),
         certificate_payments=CertificatePayments(unit_of_work, clock),
         tax_year_export=TaxYearExport(

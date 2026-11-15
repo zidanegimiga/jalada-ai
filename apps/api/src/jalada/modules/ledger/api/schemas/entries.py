@@ -124,6 +124,8 @@ class ReviewItemResponse(BaseModel):
     linked_receipt: SuggestedMatchResponse | None = None
     # True when the payment can be confirmed as it is, so it can go in Confirm all.
     ready: bool = False
+    # True when the payment went to a paybill that may be the user's own account.
+    ask_own_account: bool = False
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -143,6 +145,7 @@ class ReviewItemResponse(BaseModel):
                 else None
             ),
             ready=item.ready,
+            ask_own_account=item.ask_own_account,
         )
 
 

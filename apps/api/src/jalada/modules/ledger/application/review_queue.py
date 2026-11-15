@@ -16,6 +16,7 @@ from jalada.modules.ledger.domain.transactions import (
     as_entry,
     candidate_as_entry,
 )
+from jalada.modules.ledger.domain.transfers import may_be_own_account, own_account_for
 from jalada.unit_of_work import UnitOfWork
 
 
@@ -45,6 +46,8 @@ class ReviewItem:
     linked_receipt: SuggestedMatch | None = None
     # True when the payment can be confirmed as it is, so it can go in Confirm all.
     ready: bool = False
+    # True when the payment went to a paybill that may be the user's own account.
+    ask_own_account: bool = False
 
 
 def review_queue(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
@@ -74,8 +77,22 @@ def _payment_item(
     linked = None if match else _linked_receipt(work, payment)
     ready = ready_to_confirm(payment, open_question=match is not None)
     return ReviewItem(
-        evidence, as_entry(payment), suggested, match, linked_receipt=linked, ready=ready
+        evidence,
+        as_entry(payment),
+        suggested,
+        match,
+        linked_receipt=linked,
+        ready=ready,
+        ask_own_account=match is None and _ask_own_account(work, payment),
     )
+
+
+def _ask_own_account(work: UnitOfWork, payment: Transaction) -> bool:
+    """Asked until the user says yes, or picks a category, which a rule then remembers."""
+    chosen = any(line.category and not line.suggested for line in payment.lines)
+    if chosen or not may_be_own_account(payment):
+        return False
+    return own_account_for(payment, work.money_accounts_for(payment.user_id).all()) is None
 
 
 def _linked_receipt(work: UnitOfWork, payment: Transaction) -> SuggestedMatch | None:
