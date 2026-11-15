@@ -63,3 +63,8 @@ export function confirmAll(
 ): Promise<{ confirmed: Entry[] }> {
   return send(`/v1/review/confirm-all`, "POST", { entry_ids: entryIds });
 }
+
+/** The paybill account this payment went to is mine, so it is a transfer. */
+export function sayOwnAccount(entryId: string): Promise<Entry> {
+  return send(`/v1/payments/${entryId}/own-account`, "POST");
+}

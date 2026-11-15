@@ -16,6 +16,7 @@ import type { Category, EntryValues, ReviewItem } from "../types";
 import { EntryForm } from "./entry-form";
 import { LinkedReceipt } from "./linked-receipt";
 import { NotATransaction } from "./not-a-transaction";
+import { OwnAccountQuestion } from "./own-account-question";
 
 export function ReviewCard({
   item,
@@ -69,6 +70,9 @@ export function ReviewCard({
         </a>
       </header>
       {item.linked_receipt && <LinkedReceipt match={item.linked_receipt} />}
+      {entry && item.ask_own_account && !editing && (
+        <OwnAccountQuestion entryId={entry.id} />
+      )}
       {entry && !editing && (
         <>
           <p className="rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">

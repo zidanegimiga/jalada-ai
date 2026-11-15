@@ -37,6 +37,19 @@ describe("ReviewCard", () => {
     expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
   });
 
+  it("asks if a paybill payment went to my own account", () => {
+    const asked = {
+      ...item(entry({ category: null, category_name: null })),
+      ask_own_account: true,
+    };
+    render(<ReviewCard item={asked} categories={CATEGORIES} />);
+
+    expect(screen.getByText(/Is this your own account\?/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Yes, it is my account" }),
+    ).toBeInTheDocument();
+  });
+
   it("confirms with one tap", async () => {
     const fetch = respond(200, entry({ status: "confirmed" }));
     render(<ReviewCard item={item(entry())} categories={CATEGORIES} />);
