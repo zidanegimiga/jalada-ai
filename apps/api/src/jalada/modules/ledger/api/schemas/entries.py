@@ -146,6 +146,16 @@ class ReviewItemResponse(BaseModel):
         )
 
 
+class ConfirmAllRequest(BaseModel):
+    # The ready payments the user saw listed. To check never shows more than 100 items.
+    entry_ids: list[UUID] = Field(min_length=1, max_length=100)
+
+
+class ConfirmAllResponse(BaseModel):
+    # Only what was still ready. Anything else stays on To check.
+    confirmed: list[EntryResponse]
+
+
 class HowPaidRequest(BaseModel):
     paid_with: PaidWith
 

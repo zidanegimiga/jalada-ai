@@ -79,6 +79,41 @@
         "title": "CertificateResponse",
         "type": "object"
       },
+      "ConfirmAllRequest": {
+        "properties": {
+          "entry_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Entry Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entry_ids"
+        ],
+        "title": "ConfirmAllRequest",
+        "type": "object"
+      },
+      "ConfirmAllResponse": {
+        "properties": {
+          "confirmed": {
+            "items": {
+              "$ref": "#/components/schemas/EntryResponse"
+            },
+            "title": "Confirmed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "confirmed"
+        ],
+        "title": "ConfirmAllResponse",
+        "type": "object"
+      },
       "CorrectionRequest": {
         "properties": {
           "amount": {
@@ -2562,6 +2597,66 @@
           }
         },
         "summary": "Read Review Queue",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/review/confirm-all": {
+      "post": {
+        "description": "Confirms the listed payments that are ready to confirm. The rest are skipped.",
+        "operationId": "confirm_all_v1_review_confirm_all_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAllRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmAllResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm All",
         "tags": [
           "review"
         ]

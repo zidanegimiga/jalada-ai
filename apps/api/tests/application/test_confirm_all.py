@@ -66,3 +66,48 @@ def test_a_payment_with_no_category_is_not_ready(send: Send, review: EntryReview
     [item] = review.queue(USER)
     assert item.entry is not None and item.entry.category is None
     assert not item.ready
+
+
+def test_confirm_all_confirms_every_ready_payment(
+    paid: Send, review: EntryReview, store: Store
+) -> None:
+    first, _ = paid()
+    second, _ = paid(SECOND)
+
+    confirmed = review.confirm_all(USER, [first, second])
+
+    assert [entry.id for entry in confirmed] == [first, second]
+    assert {store.transactions[t].status for t in (first, second)} == {"confirmed"}
+    assert [e.action for e in store.audit_events][-2:] == ["confirmed", "confirmed"]
+    assert review.queue(USER) == []
+
+
+def test_only_what_was_listed_is_confirmed(paid: Send, review: EntryReview, store: Store) -> None:
+    first, _ = paid()
+    arrived_later, _ = paid(SECOND)
+
+    review.confirm_all(USER, [first])
+
+    assert store.transactions[arrived_later].status == "proposed"
+
+
+def test_a_payment_that_needs_a_look_is_skipped(
+    paid: Send, send: Send, review: EntryReview, store: Store
+) -> None:
+    ready, _ = paid()
+    send("message")
+    [unsure] = [t.id for t in store.transactions.values() if t.id != ready]
+
+    confirmed = review.confirm_all(USER, [ready, unsure, uuid.uuid4()])
+
+    assert [entry.id for entry in confirmed] == [ready]
+    assert store.transactions[unsure].status == "needs_review"
+
+
+def test_confirm_all_never_touches_another_users_payments(
+    paid: Send, review: EntryReview, store: Store
+) -> None:
+    payment_id, _ = paid()
+
+    assert review.confirm_all(uuid.uuid4(), [payment_id]) == []
+    assert store.transactions[payment_id].status == "proposed"

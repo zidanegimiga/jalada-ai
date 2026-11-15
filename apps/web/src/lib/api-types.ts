@@ -502,6 +502,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/review/confirm-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm All
+         * @description Confirms the listed payments that are ready to confirm. The rest are skipped.
+         */
+        post: operations["confirm_all_v1_review_confirm_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/suggestions/{suggestion_id}/accept": {
         parameters: {
             query?: never;
@@ -644,6 +664,16 @@ export interface components {
             payments: components["schemas"]["EntryResponse"][];
             /** Suggestions */
             suggestions: components["schemas"]["EntryResponse"][];
+        };
+        /** ConfirmAllRequest */
+        ConfirmAllRequest: {
+            /** Entry Ids */
+            entry_ids: string[];
+        };
+        /** ConfirmAllResponse */
+        ConfirmAllResponse: {
+            /** Confirmed */
+            confirmed: components["schemas"]["EntryResponse"][];
         };
         /** CorrectionRequest */
         CorrectionRequest: {
@@ -1865,6 +1895,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewQueue"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_all_v1_review_confirm_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmAllRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmAllResponse"];
                 };
             };
             /** @description Validation Error */

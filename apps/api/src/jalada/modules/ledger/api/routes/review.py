@@ -4,6 +4,8 @@ from fastapi import APIRouter, status
 
 from jalada.dependencies import CurrentUser, ServicesDependency
 from jalada.modules.ledger.api.schemas.entries import (
+    ConfirmAllRequest,
+    ConfirmAllResponse,
     CorrectionRequest,
     EntryResponse,
     ReviewItemResponse,
@@ -22,6 +24,15 @@ def read_review_queue(user: CurrentUser, services: ServicesDependency) -> Review
 @router.post("/v1/entries/{entry_id}/confirm")
 def confirm_entry(entry_id: UUID, user: CurrentUser, services: ServicesDependency) -> EntryResponse:
     return EntryResponse.from_entry(services.review.confirm(user.id, entry_id))
+
+
+@router.post("/v1/review/confirm-all")
+def confirm_all(
+    body: ConfirmAllRequest, user: CurrentUser, services: ServicesDependency
+) -> ConfirmAllResponse:
+    """Confirms the listed payments that are ready to confirm. The rest are skipped."""
+    entries = services.review.confirm_all(user.id, body.entry_ids)
+    return ConfirmAllResponse(confirmed=[EntryResponse.from_entry(entry) for entry in entries])
 
 
 @router.patch("/v1/entries/{entry_id}")
