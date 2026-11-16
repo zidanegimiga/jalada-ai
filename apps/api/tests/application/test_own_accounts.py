@@ -154,3 +154,13 @@ def test_yes_makes_money_in_from_a_bank_a_transfer(
     assert store.transactions[later].to_account_id == account.id
     [item] = review.queue(USER)
     assert item.ready and not item.ask_own_account
+
+
+def test_choosing_a_transfer_category_under_change_makes_a_transfer(
+    paste: Paste, review: EntryReview, store: Store
+) -> None:
+    payment_id = paste(FROM_BANK)
+
+    review.confirm(USER, payment_id, Correction(category="own_transfer"))
+
+    assert store.transactions[payment_id].kind == TransactionKind.TRANSFER

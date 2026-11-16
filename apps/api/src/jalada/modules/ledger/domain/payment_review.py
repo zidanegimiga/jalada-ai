@@ -8,9 +8,11 @@ from jalada.modules.ledger.domain.categories import CATEGORIES
 from jalada.modules.ledger.domain.entries import Correction
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
+    TransactionKind,
     TransactionStatus,
     line_problems,
 )
+from jalada.modules.ledger.domain.transfers import TRANSFER_CATEGORIES
 
 
 class ReviewProblem(ValueError):
@@ -37,9 +39,20 @@ def corrected(transaction: Transaction, correction: Correction) -> Transaction:
     [line] = changed.lines
     if correction.amount_cents is not None:
         line = replace(line, amount_cents=correction.amount_cents)
-    if correction.category is not None:
-        line = replace(line, category=correction.category, suggested=False)
-    return replace(changed, lines=(line,))
+    if correction.category is None:
+        return replace(changed, lines=(line,))
+    line = replace(line, category=correction.category, suggested=False)
+    return _kind_for(replace(changed, lines=(line,)), correction.category)
+
+
+def _kind_for(transaction: Transaction, category: str) -> Transaction:
+    """A transfer category makes the payment a transfer, so it is neither money in nor out.
+    Moving it to any other category makes it a payment again."""
+    if category in TRANSFER_CATEGORIES.values():
+        return replace(transaction, kind=TransactionKind.TRANSFER)
+    if transaction.kind == TransactionKind.TRANSFER:
+        return replace(transaction, kind=TransactionKind.PAYMENT, to_account_id=None)
+    return transaction
 
 
 def confirmed(transaction: Transaction, now: datetime) -> Transaction:
