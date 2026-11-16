@@ -119,6 +119,8 @@
   --border: #e4e5d8;
   --input: #e4e5d8;
   --ring: var(--pumpkin);
+  /* The focus outline: a deeper pumpkin, because pumpkin itself is too light on ivory. */
+  --focus: #a84a17;
   --radius: 1rem;
 }
 
@@ -143,12 +145,18 @@
     --border: #2d2d29;
     --input: #2d2d29;
     --ring: var(--pumpkin);
+    --focus: var(--pumpkin);
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  /* One focus outline for links, buttons and fields, seen from the keyboard. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;
