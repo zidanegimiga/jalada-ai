@@ -8,7 +8,7 @@ import { createCn } from "cn/config";
 export const TOKENS = {
   text: ["small", "body", "lead", "title", "amount", "total", "display"],
   radius: ["card", "inset", "control"],
-  spacing: ["gutter", "card", "section", "icon", "icon-lg"],
+  spacing: ["gutter", "card", "section", "tap", "icon", "icon-lg"],
   container: ["page"],
   shadow: ["raised", "overlay"],
 };

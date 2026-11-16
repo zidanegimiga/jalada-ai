@@ -74,6 +74,9 @@
   --spacing-card: 1.25rem;
   --spacing-section: 1.5rem;
 
+  /* The smallest thing a thumb has to hit, used as min-h-tap or size-tap. */
+  --spacing-tap: 2.75rem;
+
   /* Icon sizes, used as size-icon and size-icon-lg. */
   --spacing-icon: 1.25rem;
   --spacing-icon-lg: 1.5rem;

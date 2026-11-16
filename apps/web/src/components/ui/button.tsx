@@ -19,12 +19,12 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        // Tap targets stay at least 40px tall, 48px by default, for use on small phones.
+        // Tap targets stay at least 44px tall, 48px by default, for use on small phones.
         default: "h-12 gap-2 px-5",
-        sm: "h-10 gap-1.5 px-4 text-small",
+        sm: "h-tap gap-1.5 px-4 text-small",
         lg: "h-14 gap-2 px-6 text-lead",
         icon: "size-12",
-        "icon-sm": "size-10",
+        "icon-sm": "size-tap",
       },
     },
     defaultVariants: {

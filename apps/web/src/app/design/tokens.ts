@@ -71,6 +71,7 @@ export const SPACING = [
   { name: "gutter", use: "Page side margin" },
   { name: "card", use: "Inside a card" },
   { name: "section", use: "Between sections" },
+  { name: "tap", use: "Smallest tap target" },
 ] as const;
 
 export const ICONS = [

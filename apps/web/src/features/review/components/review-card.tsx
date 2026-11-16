@@ -68,7 +68,7 @@ export function ReviewCard({
           href={`/v1/evidence/${evidence.id}/file`}
           target="_blank"
           rel="noreferrer"
-          className="shrink-0 underline underline-offset-4"
+          className="inline-flex min-h-tap shrink-0 items-center underline underline-offset-4"
         >
           See original
         </a>

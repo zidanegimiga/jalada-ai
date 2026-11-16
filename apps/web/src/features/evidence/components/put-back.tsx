@@ -25,7 +25,7 @@ export function PutBack({ id }: { id: string }) {
       <button
         type="button"
         onClick={onClick}
-        className="underline underline-offset-4"
+        className="inline-flex min-h-tap items-center underline underline-offset-4"
       >
         Put back
       </button>

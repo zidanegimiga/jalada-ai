@@ -59,7 +59,7 @@ export function EvidenceList({ items }: { items: EvidenceItem[] }) {
                 href={`/v1/evidence/${item.id}/file`}
                 target="_blank"
                 rel="noreferrer"
-                className="underline underline-offset-4"
+                className="inline-flex min-h-tap min-w-tap items-center justify-end underline underline-offset-4"
                 aria-label={`Open ${label.toLowerCase()}`}
               >
                 Open
