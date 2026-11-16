@@ -50,6 +50,19 @@ describe("ReviewCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows the own account of a transfer, with Undo", () => {
+    const moved = {
+      ...item(entry({ category: "own_transfer_out" })),
+      own_account: "SAMPLE BANK PAYBILL ending 6789",
+    };
+    render(<ReviewCard item={moved} categories={CATEGORIES} />);
+
+    expect(
+      screen.getByText("To your own account, SAMPLE BANK PAYBILL ending 6789."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+  });
+
   it("confirms with one tap", async () => {
     const fetch = respond(200, entry({ status: "confirmed" }));
     render(<ReviewCard item={item(entry())} categories={CATEGORIES} />);

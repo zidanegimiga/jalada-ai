@@ -68,3 +68,8 @@ export function confirmAll(
 export function sayOwnAccount(entryId: string): Promise<Entry> {
   return send(`/v1/payments/${entryId}/own-account`, "POST");
 }
+
+/** The account is not the user's after all: the transfer becomes a payment again. */
+export function takeBackOwnAccount(entryId: string): Promise<Entry> {
+  return send(`/v1/payments/${entryId}/own-account/undo`, "POST");
+}
