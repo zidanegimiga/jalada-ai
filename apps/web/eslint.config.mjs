@@ -5,6 +5,15 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // cn from @/lib/utils knows the design tokens; the plain package does not.
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { paths: [{ name: "cn", message: "Import cn from @/lib/utils." }] },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
