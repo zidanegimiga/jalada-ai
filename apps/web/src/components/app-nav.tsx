@@ -18,7 +18,7 @@ export function AppNav() {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-3">
+      <ul className="mx-auto grid max-w-page grid-cols-3">
         {LINKS.map(({ href, label, Icon }) => {
           const current = pathname === href;
           return (
@@ -26,11 +26,13 @@ export function AppNav() {
               <Link
                 href={href}
                 aria-current={current ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-1 text-sm ${current ? "font-bold text-foreground" : "text-muted-foreground"}`}
+                className={`flex h-16 flex-col items-center justify-center gap-1 text-small ${current ? "font-bold text-foreground" : "text-muted-foreground"}`}
               >
                 <Icon
                   aria-hidden="true"
-                  className={current ? "size-6 text-primary" : "size-6"}
+                  className={
+                    current ? "size-icon-lg text-primary" : "size-icon-lg"
+                  }
                 />
                 {label}
               </Link>

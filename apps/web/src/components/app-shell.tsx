@@ -8,9 +8,9 @@ import { AppNav } from "./app-nav";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 pt-8 pb-28">
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-section px-gutter pt-8 pb-28">
         <header className="flex items-center justify-between">
-          <p className="text-lg font-bold">Jalada AI</p>
+          <p className="text-lead font-bold">Jalada AI</p>
           <Link
             href="/account"
             className={buttonVariants({ variant: "outline", size: "sm" })}

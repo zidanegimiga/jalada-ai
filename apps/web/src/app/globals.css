@@ -34,6 +34,60 @@
 }
 
 /*
+ * Design tokens. Screens use these names, not raw sizes, so every page shares one scale.
+ * The /design page shows each of them.
+ */
+@theme {
+  /* Type: seven steps, each with its line height. Titles and figures are bold and set a
+   * little tighter, which is the heading treatment. */
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.625rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-title--font-weight: 700;
+  --text-title--letter-spacing: -0.01em;
+  --text-amount: 1.5rem;
+  --text-amount--line-height: 2rem;
+  --text-amount--font-weight: 700;
+  --text-amount--letter-spacing: -0.01em;
+  --text-total: 1.875rem;
+  --text-total--line-height: 2.25rem;
+  --text-total--font-weight: 700;
+  --text-total--letter-spacing: -0.02em;
+  --text-display: 2.25rem;
+  --text-display--line-height: 2.5rem;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.02em;
+
+  /* Radii: cards and panels, notes inside a card, and form controls. Buttons are pills. */
+  --radius-card: 1.5rem;
+  --radius-inset: 1rem;
+  --radius-control: 0.75rem;
+
+  /* Spacing on top of Tailwind's 4px steps: the page's side margin, the inside of a
+   * card, and the space between sections of a page. */
+  --spacing-gutter: 1rem;
+  --spacing-card: 1.25rem;
+  --spacing-section: 1.5rem;
+
+  /* Icon sizes, used as size-icon and size-icon-lg. */
+  --spacing-icon: 1.25rem;
+  --spacing-icon-lg: 1.5rem;
+
+  /* The app is one column, as wide as a large phone, on every screen. */
+  --container-page: 28rem;
+
+  /* Elevation: things that sit above the page, such as a sheet or a menu. Cards stay flat
+   * and are set apart by their background. */
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.06);
+  --shadow-overlay: 0 8px 24px rgb(0 0 0 / 0.12), 0 2px 6px rgb(0 0 0 / 0.08);
+}
+
+/*
  * Palette: black, pumpkin, ivory and flax.
  * Text on pumpkin and flax is black, because white on pumpkin fails contrast.
  * The dark theme follows the phone's system setting.
