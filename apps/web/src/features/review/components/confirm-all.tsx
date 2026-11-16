@@ -55,7 +55,7 @@ export function ConfirmAll({ entries }: { entries: Entry[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-3xl bg-secondary p-5 text-secondary-foreground">
+    <div className="flex flex-col gap-3 rounded-card bg-secondary p-card text-secondary-foreground">
       <p>
         {summary(entries)} Check the list below, then confirm them together.
       </p>

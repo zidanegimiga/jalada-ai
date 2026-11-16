@@ -24,7 +24,7 @@ export function PaymentRow({
         <span className="font-bold">
           {formatKsh(payment.amount_cents ?? 0)}
         </span>
-        <span className="truncate text-sm text-muted-foreground">
+        <span className="truncate text-small text-muted-foreground">
           {payment.counterparty ?? "Unknown"}
           {payment.occurred_on ? ` · ${formatDay(payment.occurred_on)}` : ""}
         </span>

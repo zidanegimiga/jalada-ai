@@ -39,12 +39,12 @@ async function Overview() {
   ]);
   return (
     <>
-      <h1 className="text-4xl font-bold">Hello, {user.display_name}</h1>
+      <h1 className="text-display">Hello, {user.display_name}</h1>
       {summary && <MonthCard year={year} month={summary} />}
       {waiting.length > 0 && (
         <Link
           href="/review"
-          className="rounded-3xl bg-secondary px-5 py-4 text-lg font-medium text-secondary-foreground"
+          className="rounded-card bg-secondary px-5 py-4 text-lead font-medium text-secondary-foreground"
         >
           {waiting.length === 1
             ? "1 item to check"
@@ -87,7 +87,7 @@ export default function Home() {
         <Telegram />
       </Suspense>
       <section aria-labelledby="recent-heading" className="flex flex-col gap-3">
-        <h2 id="recent-heading" className="text-xl font-bold">
+        <h2 id="recent-heading" className="text-title">
           Recent
         </h2>
         <Suspense fallback={<Spinner />}>

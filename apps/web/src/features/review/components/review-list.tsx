@@ -39,7 +39,7 @@ export function ReviewList({
       ))}
       {ready.length > 0 && (
         <section className="flex flex-col gap-4" aria-labelledby="ready">
-          <h2 id="ready" className="text-2xl font-bold">
+          <h2 id="ready" className="text-title">
             Ready to confirm
           </h2>
           {entries.length > 1 && <ConfirmAll entries={entries} />}

@@ -34,9 +34,9 @@ export function CapturePanel() {
   return (
     <section
       aria-labelledby="capture-heading"
-      className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5"
+      className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
     >
-      <h2 id="capture-heading" className="text-xl font-bold">
+      <h2 id="capture-heading" className="text-title">
         Add evidence
       </h2>
       <label className={buttonVariants({ size: "lg" })}>

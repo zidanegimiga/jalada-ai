@@ -12,7 +12,7 @@ export function SignInNotice() {
   const message = MESSAGES[useSearchParams().get("error") ?? ""];
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-xl bg-secondary px-4 py-3 text-secondary-foreground">
+    <p role="alert" className="rounded-control bg-secondary px-4 py-3 text-secondary-foreground">
       {message}
     </p>
   );

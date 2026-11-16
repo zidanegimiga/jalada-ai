@@ -37,16 +37,16 @@ export function TelegramCard({
   return (
     <section
       aria-labelledby="telegram-heading"
-      className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5"
+      className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
     >
-      <h2 id="telegram-heading" className="text-xl font-bold">
+      <h2 id="telegram-heading" className="text-title">
         Send receipts from Telegram
       </h2>
       {code ? (
         <>
           <p>
             Your code is{" "}
-            <strong className="font-mono text-2xl tracking-widest">
+            <strong className="font-mono text-amount tracking-widest">
               {code.code}
             </strong>
             . It works for 10 minutes.
@@ -62,7 +62,7 @@ export function TelegramCard({
               Open Telegram
             </a>
           )}
-          <p className="text-sm text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             Or send the code to the bot yourself.
           </p>
         </>

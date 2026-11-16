@@ -26,9 +26,9 @@ function describeReasons(reasons: string[]) {
 
 function SideOf({ side }: { side: Side }) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
+    <div className="flex items-start justify-between gap-3 rounded-inset bg-secondary px-4 py-3 text-secondary-foreground">
       <div className="flex flex-col gap-1">
-        <p className="text-sm text-muted-foreground">{side.label}</p>
+        <p className="text-small text-muted-foreground">{side.label}</p>
         <p className="font-bold">
           {side.amountCents ? formatKsh(side.amountCents) : "Amount not read"}
         </p>
@@ -68,8 +68,8 @@ export function MatchCard({ item }: { item: ReviewItem }) {
   }
 
   return (
-    <article className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5">
-      <h2 className="text-xl font-bold">
+    <article className="flex flex-col gap-4 rounded-card border border-border bg-card p-card">
+      <h2 className="text-title">
         We found a receipt that may belong to this payment
       </h2>
       <SideOf

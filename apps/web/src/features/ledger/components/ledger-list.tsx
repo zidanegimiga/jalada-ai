@@ -34,7 +34,9 @@ function Row({ entry }: { entry: Entry }) {
         <span className="truncate font-medium">
           {entry.counterparty ?? "Unknown"}
         </span>
-        <span className="text-sm text-muted-foreground">{details(entry)}</span>
+        <span className="text-small text-muted-foreground">
+          {details(entry)}
+        </span>
       </div>
       <span
         className={
@@ -53,13 +55,13 @@ function Row({ entry }: { entry: Entry }) {
 export function LedgerList({ entries }: { entries: Entry[] }) {
   if (entries.length === 0) {
     return (
-      <p className="text-lg text-muted-foreground">
+      <p className="text-lead text-muted-foreground">
         Nothing confirmed here yet.
       </p>
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-border rounded-3xl border border-border bg-card">
+    <ul className="flex flex-col divide-y divide-border rounded-card border border-border bg-card">
       {entries.map((entry) => (
         <li key={entry.id}>
           {entry.kind === "withholding_certificate" ? (

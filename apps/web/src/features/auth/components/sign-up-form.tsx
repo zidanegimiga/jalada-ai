@@ -24,7 +24,7 @@ export function SignUpForm() {
         maxLength={128}
         aria-describedby="password-hint"
       />
-      <p id="password-hint" className="-mt-3 text-sm text-muted-foreground">
+      <p id="password-hint" className="-mt-3 text-small text-muted-foreground">
         At least 10 characters.
       </p>
       {error && (

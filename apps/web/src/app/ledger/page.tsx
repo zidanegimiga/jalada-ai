@@ -42,7 +42,7 @@ async function Entries({ query }: { query: Promise<LedgerQuery> }) {
 export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
   return (
     <AppShell>
-      <h1 className="text-4xl font-bold">Ledger</h1>
+      <h1 className="text-display">Ledger</h1>
       <Suspense fallback={<div className="h-56" />}>
         <Export />
       </Suspense>

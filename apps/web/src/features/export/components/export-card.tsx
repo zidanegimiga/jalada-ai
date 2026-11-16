@@ -15,9 +15,9 @@ export function ExportCard({ currentYear }: { currentYear: number }) {
   return (
     <section
       aria-labelledby="export-heading"
-      className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5"
+      className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
     >
-      <h2 id="export-heading" className="text-xl font-bold">
+      <h2 id="export-heading" className="text-title">
         For your tax return
       </h2>
       <p className="text-muted-foreground">
@@ -28,7 +28,7 @@ export function ExportCard({ currentYear }: { currentYear: number }) {
         id="export-year"
         value={year}
         onChange={(event) => setYear(Number(event.target.value))}
-        className="h-12 rounded-xl border border-input bg-card px-4 text-base"
+        className="h-12 rounded-control border border-input bg-card px-4 text-body"
       >
         {years.map((option) => (
           <option key={option} value={option}>

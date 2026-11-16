@@ -14,7 +14,7 @@ export function AccountNotice() {
   return (
     <p
       role="status"
-      className="rounded-3xl bg-secondary px-5 py-4 text-secondary-foreground"
+      className="rounded-card bg-secondary px-5 py-4 text-secondary-foreground"
     >
       {message}
     </p>

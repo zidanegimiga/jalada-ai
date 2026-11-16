@@ -16,14 +16,14 @@ async function Account() {
   return (
     <>
       <section className="flex flex-col gap-1">
-        <p className="text-lg font-medium">{user.display_name}</p>
+        <p className="text-lead font-medium">{user.display_name}</p>
         <p className="text-muted-foreground">{user.email}</p>
       </section>
       <section
         aria-labelledby="data-heading"
-        className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5"
+        className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
       >
-        <h2 id="data-heading" className="text-xl font-bold">
+        <h2 id="data-heading" className="text-title">
           Your data
         </h2>
         <p className="text-muted-foreground">
@@ -41,9 +41,9 @@ async function Account() {
       </section>
       <section
         aria-labelledby="delete-heading"
-        className="flex flex-col gap-3 rounded-3xl border border-destructive/40 bg-card p-5"
+        className="flex flex-col gap-3 rounded-card border border-destructive/40 bg-card p-card"
       >
-        <h2 id="delete-heading" className="text-xl font-bold">
+        <h2 id="delete-heading" className="text-title">
           Delete my account
         </h2>
         <p className="text-muted-foreground">
@@ -61,7 +61,7 @@ async function Account() {
 async function Versions() {
   const { web, api } = await getVersions();
   return (
-    <p className="text-sm text-muted-foreground">
+    <p className="text-small text-muted-foreground">
       Version: web {web}, API {api}
     </p>
   );
@@ -70,7 +70,7 @@ async function Versions() {
 export default function AccountPage() {
   return (
     <AppShell>
-      <h1 className="text-4xl font-bold">Account</h1>
+      <h1 className="text-display">Account</h1>
       <Suspense fallback={<Spinner />}>
         <Account />
       </Suspense>

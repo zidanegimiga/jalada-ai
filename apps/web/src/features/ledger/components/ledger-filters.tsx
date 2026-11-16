@@ -41,7 +41,7 @@ export function LedgerFilters() {
           type="month"
           value={params.get("month") ?? ""}
           onChange={(e) => set("month", e.target.value)}
-          className="h-12 rounded-xl border border-input bg-card px-4 text-base"
+          className="h-12 rounded-control border border-input bg-card px-4 text-body"
         />
       </div>
       {(Object.keys(CHOICES) as (keyof typeof CHOICES)[]).map((name) => (

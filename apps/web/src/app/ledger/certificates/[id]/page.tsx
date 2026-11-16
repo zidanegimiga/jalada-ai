@@ -24,7 +24,7 @@ export default function CertificatePage({
         <Link href="/ledger" className="underline underline-offset-4">
           Back to the ledger
         </Link>
-        <h1 className="text-4xl font-bold">Withholding certificate</h1>
+        <h1 className="text-display">Withholding certificate</h1>
         <Suspense fallback={<Spinner />}>
           <Details params={params} />
         </Suspense>

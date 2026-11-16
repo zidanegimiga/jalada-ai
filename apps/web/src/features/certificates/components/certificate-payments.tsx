@@ -11,7 +11,7 @@ import type { Certificate } from "../types";
 import { describe, PaymentRow } from "./payment-row";
 
 const LIST =
-  "flex flex-col divide-y divide-border rounded-3xl border border-border bg-card";
+  "flex flex-col divide-y divide-border rounded-card border border-border bg-card";
 
 /** Links a withholding certificate to the deposits that paid it, so income counts once. */
 export function CertificatePayments({ data }: { data: Certificate }) {
@@ -31,8 +31,8 @@ export function CertificatePayments({ data }: { data: Certificate }) {
 
   return (
     <>
-      <section className="flex flex-col gap-1 rounded-3xl border border-border bg-card p-5">
-        <p className="text-2xl font-bold">
+      <section className="flex flex-col gap-1 rounded-card border border-border bg-card p-card">
+        <p className="text-amount">
           {formatKsh(certificate.amount_cents ?? 0)}
         </p>
         <p className="text-muted-foreground">
@@ -47,7 +47,7 @@ export function CertificatePayments({ data }: { data: Certificate }) {
         </p>
       </section>
       <section aria-labelledby="linked-heading" className="flex flex-col gap-3">
-        <h2 id="linked-heading" className="text-xl font-bold">
+        <h2 id="linked-heading" className="text-title">
           Payments for this certificate
         </h2>
         {payments.length === 0 ? (
@@ -82,7 +82,7 @@ export function CertificatePayments({ data }: { data: Certificate }) {
           aria-labelledby="suggested-heading"
           className="flex flex-col gap-3"
         >
-          <h2 id="suggested-heading" className="text-xl font-bold">
+          <h2 id="suggested-heading" className="text-title">
             Could be the payment
           </h2>
           <ul className={LIST}>

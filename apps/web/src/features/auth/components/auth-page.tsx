@@ -12,10 +12,10 @@ type AuthPageProps = {
 
 export function AuthPage({ title, notice, children, footer }: AuthPageProps) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 py-12">
+    <main className="mx-auto flex w-full max-w-page flex-1 flex-col justify-center gap-8 px-gutter py-12">
       <div className="flex flex-col gap-2">
-        <p className="text-lg font-bold">Jalada AI</p>
-        <h1 className="text-4xl font-bold">{title}</h1>
+        <p className="text-lead font-bold">Jalada AI</p>
+        <h1 className="text-display">{title}</h1>
       </div>
       {notice}
       <Suspense>

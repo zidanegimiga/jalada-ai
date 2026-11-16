@@ -26,7 +26,7 @@ export function LinkedReceipt({ match }: { match: Match }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-border px-4 py-3">
+    <div className="flex flex-col gap-2 rounded-inset border border-border px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <p>
           Receipt from {match.counterparty ?? "an unknown shop"} is linked.{" "}

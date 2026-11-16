@@ -99,7 +99,7 @@ export function EntryForm({
           required
           defaultValue={keptCategory ?? ""}
           key={direction}
-          className="h-12 rounded-xl border border-input bg-card px-4 text-base"
+          className="h-12 rounded-control border border-input bg-card px-4 text-body"
         >
           <option value="" disabled>
             Choose one

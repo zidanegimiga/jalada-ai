@@ -17,7 +17,7 @@ export function NotATransaction({ onConfirm }: { onConfirm: () => void }) {
     );
   }
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-secondary p-4 text-secondary-foreground">
+    <div className="flex flex-col gap-3 rounded-inset bg-secondary p-4 text-secondary-foreground">
       <p>
         This will not be counted anywhere. The original stays in your records.
       </p>

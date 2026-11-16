@@ -48,10 +48,10 @@ export function ReviewCard({
   }
 
   return (
-    <article className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5">
+    <article className="flex flex-col gap-4 rounded-card border border-border bg-card p-card">
       <header className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <p className="text-2xl font-bold">
+          <p className="text-amount">
             {entry?.amount_cents
               ? formatKsh(entry.amount_cents)
               : "Amount not read"}
@@ -86,7 +86,7 @@ export function ReviewCard({
       )}
       {entry && !editing && (
         <>
-          <p className="rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
+          <p className="rounded-inset bg-secondary px-4 py-3 text-secondary-foreground">
             {!entry.category_name
               ? "We could not tell what this was for."
               : entry.category_suggested

@@ -18,8 +18,8 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center text-foreground">
-        <h1 className="text-2xl font-bold">Something went wrong</h1>
+      <body className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-gutter text-center text-foreground">
+        <h1 className="text-display">Something went wrong</h1>
         <p className="text-muted-foreground">
           It has been reported. Your records are safe.
         </p>

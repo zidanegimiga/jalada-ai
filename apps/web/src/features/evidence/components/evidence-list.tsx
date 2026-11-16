@@ -39,21 +39,21 @@ export function EvidenceList({ items }: { items: EvidenceItem[] }) {
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-border rounded-3xl border border-border bg-card">
+    <ul className="flex flex-col divide-y divide-border rounded-card border border-border bg-card">
       {items.map((item) => {
         const { label, Icon } = describe(item);
         return (
           <li key={item.id} className="flex items-center gap-4 px-4 py-4">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-secondary">
-              <Icon aria-hidden="true" className="size-5" />
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-inset bg-secondary">
+              <Icon aria-hidden="true" className="size-icon" />
             </span>
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="font-medium">{label}</span>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-small text-muted-foreground">
                 {dateFormat.format(new Date(item.received_at))}
               </span>
             </div>
-            <div className="flex flex-col items-end gap-1 text-sm">
+            <div className="flex flex-col items-end gap-1 text-small">
               <span>{STATUS_LABELS[item.status]}</span>
               <a
                 href={`/v1/evidence/${item.id}/file`}

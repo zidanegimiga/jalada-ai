@@ -35,7 +35,7 @@ export function OwnAccountQuestion({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-border px-4 py-3">
+    <div className="flex flex-col gap-2 rounded-inset border border-border px-4 py-3">
       <p>{WORDING[direction]} If it is not yours, choose what it was for.</p>
       <Button variant="outline" onClick={yes} className="self-start">
         Yes, it is my account
