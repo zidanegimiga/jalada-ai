@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Amount } from "@/components/ui/amount";
 import type { Entry } from "@/features/review/types";
 import { formatDay, formatKsh } from "@/lib/format";
 
@@ -22,7 +23,7 @@ export function PaymentRow({
     <li className="flex items-center justify-between gap-3 px-4 py-4">
       <div className="flex min-w-0 flex-col">
         <span className="font-bold">
-          {formatKsh(payment.amount_cents ?? 0)}
+          <Amount cents={payment.amount_cents ?? 0} />
         </span>
         <span className="truncate text-small text-muted-foreground">
           {payment.counterparty ?? "Unknown"}

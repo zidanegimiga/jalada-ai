@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
 import { formatDay, formatKsh } from "@/lib/format";
 
@@ -33,7 +34,7 @@ export function CertificatePayments({ data }: { data: Certificate }) {
     <>
       <section className="flex flex-col gap-1 rounded-card border border-border bg-card p-card">
         <p className="text-amount">
-          {formatKsh(certificate.amount_cents ?? 0)}
+          <Amount cents={certificate.amount_cents ?? 0} />
         </p>
         <p className="text-muted-foreground">
           {certificate.counterparty ?? "Unknown payer"}

@@ -156,4 +156,13 @@
   html {
     @apply font-sans;
   }
+  /* Headings break into lines of even length, and paragraphs avoid a lone last word. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }

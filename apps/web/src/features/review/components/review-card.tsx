@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
-import { formatDay, formatKsh } from "@/lib/format";
+import { formatDay } from "@/lib/format";
 
 import {
   confirmEntry,
@@ -52,9 +53,11 @@ export function ReviewCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <p className="text-amount">
-            {entry?.amount_cents
-              ? formatKsh(entry.amount_cents)
-              : "Amount not read"}
+            {entry?.amount_cents ? (
+              <Amount cents={entry.amount_cents} />
+            ) : (
+              "Amount not read"
+            )}
           </p>
           <p className="text-muted-foreground">
             {entry?.counterparty ?? "Unknown"}

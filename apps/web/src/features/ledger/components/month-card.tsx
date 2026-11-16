@@ -20,8 +20,10 @@ function Row({
   return (
     <div className="flex flex-col gap-1">
       <p className="text-small opacity-80">{label}</p>
-      <p className="text-total">{formatKsh(business + personal)}</p>
-      <p className="text-small opacity-80">
+      <p className="text-total tabular-nums">
+        {formatKsh(business + personal)}
+      </p>
+      <p className="text-small tabular-nums opacity-80">
         Business {formatKsh(business)} · Personal {formatKsh(personal)}
       </p>
     </div>

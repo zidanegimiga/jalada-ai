@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
-import { formatDay, formatKsh } from "@/lib/format";
+import { formatDay } from "@/lib/format";
 
 import { acceptMatch, declineMatch } from "../api";
 import type { ReviewItem } from "../types";
@@ -30,7 +31,11 @@ function SideOf({ side }: { side: Side }) {
       <div className="flex flex-col gap-1">
         <p className="text-small text-muted-foreground">{side.label}</p>
         <p className="font-bold">
-          {side.amountCents ? formatKsh(side.amountCents) : "Amount not read"}
+          {side.amountCents ? (
+            <Amount cents={side.amountCents} />
+          ) : (
+            "Amount not read"
+          )}
         </p>
         <p>
           {side.counterparty ?? "Unknown"}

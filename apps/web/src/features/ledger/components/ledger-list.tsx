@@ -41,8 +41,8 @@ function Row({ entry }: { entry: Entry }) {
       <span
         className={
           isIn && counted
-            ? "shrink-0 font-bold text-money-in"
-            : "shrink-0 font-bold"
+            ? "shrink-0 font-bold tabular-nums text-money-in"
+            : "shrink-0 font-bold tabular-nums"
         }
       >
         {isIn ? "+" : "−"}
