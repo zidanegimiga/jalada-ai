@@ -173,7 +173,7 @@ This runs ruff, mypy, the API and worker tests, ESLint, the TypeScript check and
 
 The API's contract lives in `apps/api/openapi.json`, and a test fails when the code no longer matches it. After changing the API on purpose, `make openapi` rewrites it and regenerates the web app's types in `apps/web/src/lib/api-types.ts`; CI fails if those are stale.
 
-`make e2e` runs the main journey in a browser with Playwright: sign up, paste an M-Pesa message, wait for the worker to read it, confirm it, find it in the ledger, download the year's workbook and delete the account. It builds a separate copy of the whole stack under its own Docker project, so your local data is untouched, and removes it afterwards. Stop your own stack first (`make down`), because both use the same ports. Running it several times within a minute trips the sign-in rate limit. CI runs the same journey on every pull request.
+`make e2e` runs the main journey in a browser with Playwright: sign up, paste an M-Pesa message, wait for the worker to read it, confirm it, find it in the ledger, download the year's workbook and delete the account. It also opens every page in the light and dark themes and checks it with axe against WCAG 2.2 AA, and checks that every link, button and field is at least 44px for a thumb. It builds a separate copy of the whole stack under its own Docker project, so your local data is untouched, and removes it afterwards. Stop your own stack first (`make down`), because both use the same ports. Running it several times within a minute trips the sign-in rate limit. CI runs the same journey on every pull request.
 
 After changing a table in `apps/api/src/jalada/adapters/database/tables.py`, generate a migration with `make migration name="what changed"`.
 
