@@ -63,3 +63,25 @@ def test_an_account_cannot_be_added_for_someone_else(
 
     with SqlUnitOfWork(session_factory) as work, pytest.raises(PermissionError):
         work.money_accounts_for(user.id).add(mpesa)
+
+
+def test_an_account_forgets_how_messages_name_it(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    user = new_user(session_factory)
+    stranger = new_user(session_factory)
+    named = {"sender": "sample bank 303030"}
+    bank = MoneyAccount(uuid.uuid4(), user.id, MoneyAccountKind.BANK, "Bank", False, NOW, named)
+    with SqlUnitOfWork(session_factory) as work:
+        work.money_accounts_for(user.id).add(bank)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        work.money_accounts_for(user.id).update(replace(bank, identifiers={}))
+        with pytest.raises(LookupError):
+            work.money_accounts_for(stranger.id).update(bank)
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        [saved] = work.money_accounts_for(user.id).all()
+        assert saved.identifiers == {}

@@ -126,6 +126,8 @@ class ReviewItemResponse(BaseModel):
     ready: bool = False
     # True when the payment went to a paybill that may be the user's own account.
     ask_own_account: bool = False
+    # The user's account a waiting transfer went to or came from, which they can take back.
+    own_account: str | None = None
 
     @classmethod
     def from_item(cls, item: ReviewItem) -> "ReviewItemResponse":
@@ -146,6 +148,7 @@ class ReviewItemResponse(BaseModel):
             ),
             ready=item.ready,
             ask_own_account=item.ask_own_account,
+            own_account=item.own_account,
         )
 
 

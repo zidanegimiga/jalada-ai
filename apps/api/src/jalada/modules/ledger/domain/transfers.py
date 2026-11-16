@@ -112,6 +112,12 @@ def account_name(identifiers: dict[str, str], counterparty: str) -> str:
     return f"{name} ending {number[-4:]}" if number else name
 
 
+def as_payment(transfer: Transaction) -> Transaction:
+    """A transfer taken back: a payment again, with what it was for still to choose."""
+    line = TransactionLine(transfer.amount_cents, None, Purpose.UNSURE)
+    return replace(transfer, kind=TransactionKind.PAYMENT, to_account_id=None, lines=(line,))
+
+
 def as_transfer(payment: Transaction, other_account: MoneyAccount) -> Transaction:
     category = TRANSFER_CATEGORIES[payment.direction or Direction.OUT]
     line = TransactionLine(payment.amount_cents, category, Purpose.PERSONAL)

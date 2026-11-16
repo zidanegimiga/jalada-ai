@@ -163,6 +163,11 @@ class FakeMoneyAccounts:
         assert account.name not in {a.name for a in self.all()}, "the database refuses it"
         self.rows[account.id] = account
 
+    def update(self, account: MoneyAccount) -> None:
+        if account.id not in {a.id for a in self.all()}:
+            raise LookupError("No such account for this user")
+        self.rows[account.id] = account
+
 
 class FakeTransactions:
     def __init__(

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.modules.ledger.adapters.tables import MoneyAccountRow
@@ -37,6 +37,15 @@ class SqlMoneyAccounts:
             )
         )
         self._db.flush()
+
+    def update(self, account: MoneyAccount) -> None:
+        updated = self._db.execute(
+            update(MoneyAccountRow)
+            .where(MoneyAccountRow.user_id == self._user_id, MoneyAccountRow.id == account.id)
+            .values(name=account.name, identifiers=account.identifiers)
+        )
+        if updated.rowcount != 1:  # type: ignore[attr-defined]
+            raise LookupError("No such account for this user")
 
 
 def _to_account(row: MoneyAccountRow) -> MoneyAccount:

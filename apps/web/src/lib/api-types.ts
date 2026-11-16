@@ -485,6 +485,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/payments/{entry_id}/own-account/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take Back The Account
+         * @description The account is not the user's after all. Returns the payment, with what it was for
+         *     still to choose.
+         */
+        post: operations["take_back_the_account_v1_payments__entry_id__own_account_undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/{entry_id}/paid": {
         parameters: {
             query?: never;
@@ -925,6 +946,8 @@ export interface components {
             evidence: components["schemas"]["EvidenceResponse"];
             linked_receipt?: components["schemas"]["SuggestedMatchResponse"] | null;
             match?: components["schemas"]["SuggestedMatchResponse"] | null;
+            /** Own Account */
+            own_account?: string | null;
             /**
              * Ready
              * @default false
@@ -1867,6 +1890,39 @@ export interface operations {
         };
     };
     say_the_account_is_mine_v1_payments__entry_id__own_account_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    take_back_the_account_v1_payments__entry_id__own_account_undo_post: {
         parameters: {
             query?: never;
             header?: never;

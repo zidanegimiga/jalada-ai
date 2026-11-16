@@ -67,6 +67,9 @@ class MoneyAccountRepository(Protocol):
 
     def all(self) -> list[MoneyAccount]: ...
     def add(self, account: MoneyAccount) -> None: ...
+    def update(self, account: MoneyAccount) -> None:
+        """Saves a new name or identifiers for an account the user already has."""
+        ...
 
 
 class TransactionRepository(Protocol):

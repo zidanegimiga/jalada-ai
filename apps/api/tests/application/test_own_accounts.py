@@ -164,3 +164,58 @@ def test_choosing_a_transfer_category_under_change_makes_a_transfer(
     review.confirm(USER, payment_id, Correction(category="own_transfer"))
 
     assert store.transactions[payment_id].kind == TransactionKind.TRANSFER
+
+
+def test_a_waiting_transfer_shows_its_account(
+    paste: Paste, own: OwnAccounts, review: EntryReview
+) -> None:
+    own.say_mine(USER, paste(TO_BANK))
+
+    [item] = review.queue(USER)
+    assert item.own_account == "SAMPLE BANK PAYBILL ending 6789"
+
+
+def test_taking_back_yes_asks_again(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    first, again = paste(TO_BANK), paste(AGAIN)
+    own.say_mine(USER, first)
+
+    entry = own.take_back(USER, first)
+
+    assert entry.category is None
+    payments = [store.transactions[t] for t in (first, again)]
+    assert [(p.kind, p.to_account_id) for p in payments] == [(TransactionKind.PAYMENT, None)] * 2
+    assert [a.identifiers for a in store.money_accounts.values() if a.user_id == USER] == [{}]
+    assert [(i.ask_own_account, i.own_account) for i in review.queue(USER)] == [(True, None)] * 2
+    later = paste(TO_BANK.replace("UK6CC1CC11", "UK6CC1CC19"))
+    assert store.transactions[later].kind == TransactionKind.PAYMENT
+
+
+def test_a_confirmed_transfer_stays_when_another_is_taken_back(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    first = paste(TO_BANK)
+    own.say_mine(USER, first)
+    review.confirm(USER, first)
+    later = paste(AGAIN)
+
+    own.take_back(USER, later)
+
+    assert store.transactions[first].kind == TransactionKind.TRANSFER
+    assert store.transactions[later].kind == TransactionKind.PAYMENT
+
+
+def test_only_a_waiting_transfer_can_be_taken_back(
+    paste: Paste, own: OwnAccounts, review: EntryReview
+) -> None:
+    payment_id = paste(TO_BANK)
+
+    with pytest.raises(InvalidEntry):
+        own.take_back(USER, payment_id)
+    own.say_mine(USER, payment_id)
+    with pytest.raises(EntryNotFound):
+        own.take_back(uuid.uuid4(), payment_id)
+    review.confirm(USER, payment_id)
+    with pytest.raises(InvalidEntry):
+        own.take_back(USER, payment_id)
