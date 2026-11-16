@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { FormError } from "@/components/ui/form-error";
+
 import { putBack } from "../api";
 
 /** For evidence marked "Not a transaction" by mistake: puts it back on To check. */
@@ -29,11 +31,7 @@ export function PutBack({ id }: { id: string }) {
       >
         Put back
       </button>
-      {error && (
-        <span role="alert" className="text-destructive">
-          {error}
-        </span>
-      )}
+      <FormError message={error} />
     </>
   );
 }

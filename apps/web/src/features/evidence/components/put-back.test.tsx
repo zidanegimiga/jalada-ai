@@ -36,8 +36,10 @@ describe("PutBack", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Put back" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This is not marked as not a transaction.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "This is not marked as not a transaction.",
+      ),
     );
     expect(router.refresh).not.toHaveBeenCalled();
   });

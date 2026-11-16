@@ -6,6 +6,7 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormError } from "@/components/ui/form-error";
 
 /** Deleting cannot be undone, so the email has to be typed out before the button works. */
 export function DeleteAccountForm({ email }: { email: string }) {
@@ -52,11 +53,7 @@ export function DeleteAccountForm({ email }: { email: string }) {
       >
         {busy ? "Deleting..." : "Delete my account"}
       </Button>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </form>
   );
 }

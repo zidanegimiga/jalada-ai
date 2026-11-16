@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import { formatDay } from "@/lib/format";
 
 import { markNotATransaction, sayHowPaid } from "../api";
@@ -73,11 +74,7 @@ export function HowPaidCard({ item }: { item: ReviewItem }) {
           Card
         </Button>
       </div>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
       <NotATransaction
         onConfirm={() => answer(() => markNotATransaction(evidence.id))}
       />

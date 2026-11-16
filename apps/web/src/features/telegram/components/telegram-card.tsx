@@ -4,6 +4,7 @@ import { Send } from "lucide-react";
 import { useState } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 type LinkCode = { code: string; bot_link: string | null };
 
@@ -72,11 +73,7 @@ export function TelegramCard({
           Link Telegram
         </Button>
       )}
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </section>
   );
 }

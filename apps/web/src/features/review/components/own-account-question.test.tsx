@@ -57,8 +57,10 @@ describe("OwnAccountQuestion", () => {
       screen.getByRole("button", { name: "Yes, it is my account" }),
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This payment was not to or from a business account.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "This payment was not to or from a business account.",
+      ),
     );
   });
 });

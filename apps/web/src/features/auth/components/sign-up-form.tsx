@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 import { signUp } from "../api";
 import { FormField } from "./form-field";
@@ -27,11 +28,7 @@ export function SignUpForm() {
       <p id="password-hint" className="-mt-3 text-small text-muted-foreground">
         At least 10 characters.
       </p>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Creating account..." : "Create account"}
       </Button>

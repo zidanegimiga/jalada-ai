@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import { formatDay } from "@/lib/format";
 
 import { acceptMatch, declineMatch } from "../api";
@@ -113,11 +114,7 @@ export function MatchCard({ item }: { item: ReviewItem }) {
           Yes, same purchase
         </Button>
       </div>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </article>
   );
 }

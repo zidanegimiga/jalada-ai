@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import { formatKsh } from "@/lib/format";
 
 import { confirmAll } from "../api";
@@ -63,11 +64,7 @@ export function ConfirmAll({ entries }: { entries: Entry[] }) {
         Confirm all {entries.length}
       </Button>
       {skipped > 0 && <p role="status">{stillWaiting(skipped)}</p>}
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   );
 }

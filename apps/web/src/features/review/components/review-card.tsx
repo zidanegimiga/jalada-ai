@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import { formatDay } from "@/lib/format";
 
 import {
@@ -125,11 +126,7 @@ export function ReviewCard({
           submitLabel={entry ? "Save and confirm" : "Add to ledger"}
         />
       )}
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
       <NotATransaction
         onConfirm={() => run(() => markNotATransaction(evidence.id))}
       />

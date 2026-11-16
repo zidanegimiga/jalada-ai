@@ -57,8 +57,10 @@ describe("OwnAccountNote", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Undo" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This is not a transfer waiting to be confirmed.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "This is not a transfer waiting to be confirmed.",
+      ),
     );
   });
 });

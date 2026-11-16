@@ -113,8 +113,10 @@ describe("ReviewCard", () => {
     });
     fireEvent.submit(screen.getByRole("button", { name: "Add to ledger" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Add the amount before confirming.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Add the amount before confirming.",
+      ),
     );
     expect(router.refresh).not.toHaveBeenCalled();
   });

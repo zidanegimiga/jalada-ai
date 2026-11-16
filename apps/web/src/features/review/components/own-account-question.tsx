@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 import { sayOwnAccount } from "../api";
 
@@ -40,11 +41,7 @@ export function OwnAccountQuestion({
       <Button variant="outline" onClick={yes} className="self-start">
         Yes, it is my account
       </Button>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   );
 }

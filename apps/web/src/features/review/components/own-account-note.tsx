@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 import { takeBackOwnAccount } from "../api";
 
@@ -41,11 +42,7 @@ export function OwnAccountNote({
           Undo
         </Button>
       </div>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   );
 }

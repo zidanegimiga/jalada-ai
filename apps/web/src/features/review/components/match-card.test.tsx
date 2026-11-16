@@ -63,8 +63,10 @@ describe("MatchCard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Not the same" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "That question has no answer to give any more.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "That question has no answer to give any more.",
+      ),
     );
     expect(router.refresh).not.toHaveBeenCalled();
   });

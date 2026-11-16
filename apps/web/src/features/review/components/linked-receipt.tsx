@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 import { undoMatch } from "../api";
 import type { ReviewItem } from "../types";
@@ -43,11 +44,7 @@ export function LinkedReceipt({ match }: { match: Match }) {
           Undo
         </Button>
       </div>
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   );
 }

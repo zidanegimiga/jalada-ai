@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Amount } from "@/components/ui/amount";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import { formatDay, formatKsh } from "@/lib/format";
 
 import { linkPayment, unlinkPayment } from "../api";
@@ -106,11 +107,7 @@ export function CertificatePayments({ data }: { data: Certificate }) {
           </ul>
         </section>
       )}
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </>
   );
 }

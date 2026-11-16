@@ -62,8 +62,10 @@ describe("DeleteAccountForm", () => {
     type("jane@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Delete my account" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Type your email exactly.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Type your email exactly.",
+      ),
     );
     expect(router.replace).not.toHaveBeenCalled();
   });

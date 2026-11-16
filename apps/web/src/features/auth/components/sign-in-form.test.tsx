@@ -40,7 +40,9 @@ describe("SignInForm", () => {
 
     fillAndSubmit();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(message),
+    );
     expect(router.replace).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
   });

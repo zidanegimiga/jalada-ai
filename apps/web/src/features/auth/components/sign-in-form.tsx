@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 
 import { signIn } from "../api";
 import { FormField } from "./form-field";
@@ -15,11 +16,7 @@ export function SignInForm() {
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <FormField label="Email" name="email" type="email" autoComplete="email" />
       <FormField label="Password" name="password" type="password" autoComplete="current-password" />
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Signing in..." : "Sign in"}
       </Button>

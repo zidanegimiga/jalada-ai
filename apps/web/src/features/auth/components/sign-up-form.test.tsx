@@ -47,6 +47,8 @@ describe("SignUpForm", () => {
 
     fillAndSubmit();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("already exists");
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("already exists"),
+    );
   });
 });

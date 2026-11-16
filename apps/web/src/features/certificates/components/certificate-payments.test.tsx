@@ -92,8 +92,8 @@ describe("CertificatePayments", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^Link / }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Too much for this certificate.",
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Too much for this certificate.",),
     );
   });
 
