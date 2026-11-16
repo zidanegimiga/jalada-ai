@@ -20,7 +20,7 @@ from jalada.modules.ledger.domain.transfers import (
     as_transfer,
     may_be_own_account,
     own_account_for,
-    paybill_identifiers,
+    own_identifiers,
 )
 
 NOW = datetime(2026, 11, 6, 9, tzinfo=UTC)
@@ -28,7 +28,7 @@ USER = uuid.uuid4()
 
 
 def paid(
-    counterparty: str = "SAMPLE BANK PAYBILL", reference: str | None = "0123 456789"
+    counterparty: str | None = "SAMPLE BANK PAYBILL", reference: str | None = "0123 456789"
 ) -> Transaction:
     return Transaction(
         id=uuid.uuid4(),
@@ -56,7 +56,7 @@ def bank(identifiers: dict[str, str]) -> MoneyAccount:
 
 
 def test_a_paybill_is_known_by_its_name_and_account_number() -> None:
-    assert paybill_identifiers(paid()) == {
+    assert own_identifiers(paid()) == {
         "paybill": "sample bank paybill",
         "account": "0123456789",
     }
@@ -66,12 +66,13 @@ def test_a_paybill_is_known_by_its_name_and_account_number() -> None:
     "payment",
     [
         paid(reference=None),
-        replace(paid(), direction=Direction.IN),
         replace(paid(), kind=TransactionKind.TRANSFER),
+        replace(paid("JANE DOE 0712345678"), direction=Direction.IN),
+        replace(paid(None), direction=Direction.IN),
     ],
 )
-def test_only_payments_out_to_a_paybill_account_have_one(payment: Transaction) -> None:
-    assert paybill_identifiers(payment) is None
+def test_only_paybills_and_business_senders_have_one(payment: Transaction) -> None:
+    assert own_identifiers(payment) is None
     assert not may_be_own_account(payment)
 
 
@@ -108,3 +109,32 @@ def test_the_account_is_named_by_its_last_digits() -> None:
     name = account_name({"account": "0123456789"}, "SAMPLE  BANK PAYBILL")
 
     assert name == "SAMPLE BANK PAYBILL ending 6789"
+
+
+def received(counterparty: str = "SAMPLE BANK 303030") -> Transaction:
+    return replace(paid(counterparty, None), direction=Direction.IN)
+
+
+def test_money_in_from_a_business_is_known_by_its_name() -> None:
+    assert own_identifiers(received()) == {"sender": "sample bank 303030"}
+
+
+def test_money_in_from_a_bank_may_be_the_users_own() -> None:
+    assert may_be_own_account(received())
+    assert not may_be_own_account(received("SAMPLE TRADERS 303030"))
+
+
+def test_money_in_from_the_account_is_a_transfer_and_not_income() -> None:
+    mine = bank({"sender": "sample bank 303030"})
+
+    transfer = as_transfer(received(), mine)
+
+    assert own_account_for(received(), [mine]) == mine
+    assert (transfer.kind, transfer.to_account_id) == (TransactionKind.TRANSFER, mine.id)
+    assert transfer.lines == (TransactionLine(500000, "own_transfer", Purpose.PERSONAL),)
+
+
+def test_a_sender_is_named_as_it_is_written() -> None:
+    assert account_name({"sender": "sample bank 303030"}, "SAMPLE  BANK 303030") == (
+        "SAMPLE BANK 303030"
+    )

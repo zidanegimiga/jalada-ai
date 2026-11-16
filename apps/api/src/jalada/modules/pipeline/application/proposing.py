@@ -60,6 +60,6 @@ def save_proposal(
 
 
 def _as_transfer(work: UnitOfWork, payment: Transaction) -> Transaction:
-    """A payment to an account the user said is theirs, proposed as a transfer to it."""
+    """A payment to or from an account the user said is theirs, proposed as a transfer."""
     account = own_account_for(payment, work.money_accounts_for(payment.user_id).all())
     return as_transfer(payment, account) if account else payment

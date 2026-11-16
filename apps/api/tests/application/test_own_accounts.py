@@ -6,7 +6,7 @@ import uuid
 import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store
 from receipts import USER
-from transfers import AGAIN, OTHER_ACCOUNT, TO_BANK, Paste
+from transfers import AGAIN, FROM_BANK, FROM_BANK_AGAIN, OTHER_ACCOUNT, TO_BANK, Paste
 
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.own_accounts import OwnAccounts
@@ -124,3 +124,33 @@ def test_another_account_at_the_same_paybill_is_still_asked_about(
 
     asked = [item.ask_own_account for item in review.queue(USER)]
     assert asked == [False, True]
+
+
+def test_money_in_from_a_bank_is_asked_about(paste: Paste, review: EntryReview) -> None:
+    paste(FROM_BANK)
+
+    [item] = review.queue(USER)
+    assert item.ask_own_account
+
+
+def test_yes_makes_money_in_from_a_bank_a_transfer(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    payment_id = paste(FROM_BANK)
+
+    entry = own.say_mine(USER, payment_id)
+
+    assert entry.category == "own_transfer"
+    transfer = store.transactions[payment_id]
+    account = store.money_accounts[transfer.to_account_id] if transfer.to_account_id else None
+    assert transfer.kind == TransactionKind.TRANSFER
+    assert account is not None and account.name == "SAMPLE BANK 303030"
+    assert account.identifiers == {"sender": "sample bank 303030"}
+    review.confirm(USER, payment_id)
+
+    later = paste(FROM_BANK_AGAIN)
+
+    assert store.transactions[later].kind == TransactionKind.TRANSFER
+    assert store.transactions[later].to_account_id == account.id
+    [item] = review.queue(USER)
+    assert item.ready and not item.ask_own_account

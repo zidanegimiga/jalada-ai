@@ -1,4 +1,4 @@
-"""Answering "Is this your own account?" for a payment to a paybill."""
+"""Answering "Is this your own account?" for a payment to a paybill or from a business."""
 
 import uuid
 from collections.abc import Callable
@@ -15,7 +15,7 @@ from jalada.modules.ledger.domain.transfers import (
     account_name,
     as_transfer,
     own_account_for,
-    paybill_identifiers,
+    own_identifiers,
 )
 from jalada.shared.errors import EntryNotFound, InvalidEntry
 from jalada.unit_of_work import UnitOfWork
@@ -31,15 +31,15 @@ class OwnAccounts:
         self._clock = clock
 
     def say_mine(self, user_id: UUID, payment_id: UUID) -> Entry:
-        """The paybill account is the user's own. This payment, and any other waiting
-        payment to the same account, become transfers to confirm."""
+        """The account on the other side is the user's own. This payment, and any other
+        waiting payment to or from the same account, become transfers to confirm."""
         now = self._clock.now()
         with self._unit_of_work() as work:
             payment = work.transactions_for(user_id).get(payment_id)
             if payment is None:
                 raise EntryNotFound
-            if payment.status not in WAITING or paybill_identifiers(payment) is None:
-                raise InvalidEntry("This payment was not sent to a paybill account.")
+            if payment.status not in WAITING or own_identifiers(payment) is None:
+                raise InvalidEntry("This payment was not to or from a business account.")
             account = _account(work, payment, now)
             transfer = _make_transfer(work, payment, account, now)
             for other in work.transactions_for(user_id).pending(LIMIT):
@@ -50,15 +50,15 @@ class OwnAccounts:
 
 
 def _account(work: UnitOfWork, payment: Transaction, now: datetime) -> MoneyAccount:
-    """The account for the paybill, opened the first time. It is known only by name."""
+    """The account, opened the first time. It is known only by how messages name it."""
     accounts = work.money_accounts_for(payment.user_id)
     found = own_account_for(payment, accounts.all())
     if found:
         return found
-    identifiers = paybill_identifiers(payment) or {}
-    name = account_name(identifiers, payment.counterparty or "")
+    named = own_identifiers(payment) or {}
+    name = account_name(named, payment.counterparty or "")
     opened = MoneyAccount(
-        uuid.uuid4(), payment.user_id, MoneyAccountKind.BANK, name, False, now, identifiers
+        uuid.uuid4(), payment.user_id, MoneyAccountKind.BANK, name, False, now, named
     )
     accounts.add(opened)
     return opened

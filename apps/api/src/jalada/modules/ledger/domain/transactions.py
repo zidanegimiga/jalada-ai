@@ -105,7 +105,8 @@ class Transaction:
     confirmed_at: datetime | None
     lines: tuple[TransactionLine, ...]
     evidence: tuple[EvidenceLink, ...]
-    # Where a transfer went: another of the user's accounts. None for anything else.
+    # The user's other account in a transfer: where money went, or where money in came
+    # from. None for anything else.
     to_account_id: UUID | None = None
 
 
