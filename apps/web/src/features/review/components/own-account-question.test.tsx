@@ -18,7 +18,7 @@ describe("OwnAccountQuestion", () => {
         new Response(JSON.stringify(entry()), { status: 200 }),
       );
     vi.stubGlobal("fetch", fetch);
-    render(<OwnAccountQuestion entryId="entry-1" />);
+    render(<OwnAccountQuestion entryId="entry-1" direction="out" />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Yes, it is my account" }),
@@ -28,30 +28,37 @@ describe("OwnAccountQuestion", () => {
     expect(fetch.mock.calls[0][0]).toBe("/v1/payments/entry-1/own-account");
   });
 
+  it("asks about money in as coming from the account", () => {
+    render(<OwnAccountQuestion entryId="entry-1" direction="in" />);
+
+    expect(
+      screen.getByText(/Did this come from your own account\?/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/is not income/)).toBeInTheDocument();
+  });
+
   it("shows why it did not save", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              error: {
-                message: "This payment was not sent to a paybill account.",
-              },
-            }),
-            { status: 422 },
-          ),
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error: {
+              message: "This payment was not to or from a business account.",
+            },
+          }),
+          { status: 422 },
         ),
+      ),
     );
-    render(<OwnAccountQuestion entryId="entry-1" />);
+    render(<OwnAccountQuestion entryId="entry-1" direction="out" />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Yes, it is my account" }),
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This payment was not sent to a paybill account.",
+      "This payment was not to or from a business account.",
     );
   });
 });

@@ -71,7 +71,10 @@ export function ReviewCard({
       </header>
       {item.linked_receipt && <LinkedReceipt match={item.linked_receipt} />}
       {entry && item.ask_own_account && !editing && (
-        <OwnAccountQuestion entryId={entry.id} />
+        <OwnAccountQuestion
+          entryId={entry.id}
+          direction={entry.direction === "in" ? "in" : "out"}
+        />
       )}
       {entry && !editing && (
         <>
