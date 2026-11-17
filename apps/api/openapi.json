@@ -1,6 +1,31 @@
 {
   "components": {
     "schemas": {
+      "Actor": {
+        "enum": [
+          "user",
+          "pipeline",
+          "system"
+        ],
+        "title": "Actor",
+        "type": "string"
+      },
+      "AuditAction": {
+        "enum": [
+          "proposed",
+          "confirmed",
+          "corrected",
+          "entered",
+          "rejected",
+          "linked",
+          "merged",
+          "answered",
+          "restored",
+          "unlinked"
+        ],
+        "title": "AuditAction",
+        "type": "string"
+      },
       "Body_upload_evidence_v1_evidence_post": {
         "properties": {
           "file": {
@@ -249,6 +274,35 @@
         ],
         "title": "Direction",
         "type": "string"
+      },
+      "EntryDetailResponse": {
+        "description": "One payment with the evidence linked to it and its history, oldest first.",
+        "properties": {
+          "entry": {
+            "$ref": "#/components/schemas/EntryResponse"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/LinkedEvidenceResponse"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryItemResponse"
+            },
+            "title": "History",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entry",
+          "evidence",
+          "history"
+        ],
+        "title": "EntryDetailResponse",
+        "type": "object"
       },
       "EntryKind": {
         "enum": [
@@ -538,6 +592,20 @@
         "title": "EvidenceResponse",
         "type": "object"
       },
+      "EvidenceRole": {
+        "description": "What a piece of evidence does for a transaction.",
+        "enum": [
+          "payment_proof",
+          "receipt",
+          "invoice",
+          "certificate",
+          "payslip",
+          "statement",
+          "other"
+        ],
+        "title": "EvidenceRole",
+        "type": "string"
+      },
       "EvidenceSource": {
         "enum": [
           "web_upload",
@@ -593,6 +661,36 @@
           "version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "HistoryItemResponse": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/AuditAction"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "changed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Changed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "changed"
+        ],
+        "title": "HistoryItemResponse",
         "type": "object"
       },
       "HowPaidRequest": {
@@ -678,6 +776,56 @@
           "payment_id"
         ],
         "title": "LinkPaymentRequest",
+        "type": "object"
+      },
+      "LinkedBy": {
+        "description": "How evidence came to be linked: read from it, an exact code match, a suggestion the\nuser accepted, or the user's own choice.",
+        "enum": [
+          "pipeline",
+          "exact",
+          "suggested",
+          "user"
+        ],
+        "title": "LinkedBy",
+        "type": "string"
+      },
+      "LinkedEvidenceResponse": {
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "linked_at": {
+            "format": "date-time",
+            "title": "Linked At",
+            "type": "string"
+          },
+          "linked_by": {
+            "$ref": "#/components/schemas/LinkedBy"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/EvidenceRole"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "linked_by",
+          "linked_at",
+          "content_type",
+          "received_at"
+        ],
+        "title": "LinkedEvidenceResponse",
         "type": "object"
       },
       "MonthResponse": {
@@ -1877,6 +2025,64 @@
       }
     },
     "/v1/entries/{entry_id}": {
+      "get": {
+        "description": "One payment, the evidence linked to it, and what happened to it, oldest first.",
+        "operationId": "read_entry_v1_entries__entry_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Entry",
+        "tags": [
+          "ledger"
+        ]
+      },
       "patch": {
         "description": "Change what the pipeline got wrong, and confirm the entry in the same step.",
         "operationId": "correct_entry_v1_entries__entry_id__patch",

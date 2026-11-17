@@ -4,6 +4,7 @@ from datetime import date
 from uuid import UUID
 
 from jalada.modules.ledger.application import records
+from jalada.modules.ledger.application.entry_detail import EntryDetail, entry_detail
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.ledger import (
     CategoryTotal,
@@ -47,6 +48,11 @@ class Ledger:
         if last.occurred_on is None:
             raise RuntimeError("A confirmed entry has no date")
         return LedgerPage(entries[:size], LedgerPosition(last.occurred_on, last.id), links)
+
+    def detail(self, user_id: UUID, entry_id: UUID) -> EntryDetail:
+        """One payment with its evidence and history. Raises EntryNotFound."""
+        with self._unit_of_work() as work:
+            return entry_detail(work, user_id, entry_id)
 
     def categories(self, user_id: UUID, start: date, end: date) -> list[CategoryTotal]:
         """Where money came from and went, by category, between two dates."""

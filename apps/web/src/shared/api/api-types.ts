@@ -288,7 +288,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Read Entry
+         * @description One payment, the evidence linked to it, and what happened to it, oldest first.
+         */
+        get: operations["read_entry_v1_entries__entry_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -702,6 +706,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Actor
+         * @enum {string}
+         */
+        Actor: "user" | "pipeline" | "system";
+        /**
+         * AuditAction
+         * @enum {string}
+         */
+        AuditAction: "proposed" | "confirmed" | "corrected" | "entered" | "rejected" | "linked" | "merged" | "answered" | "restored" | "unlinked";
         /** Body_upload_evidence_v1_evidence_post */
         Body_upload_evidence_v1_evidence_post: {
             /** File */
@@ -778,6 +792,17 @@ export interface components {
          * @enum {string}
          */
         Direction: "in" | "out";
+        /**
+         * EntryDetailResponse
+         * @description One payment with the evidence linked to it and its history, oldest first.
+         */
+        EntryDetailResponse: {
+            entry: components["schemas"]["EntryResponse"];
+            /** Evidence */
+            evidence: components["schemas"]["LinkedEvidenceResponse"][];
+            /** History */
+            history: components["schemas"]["HistoryItemResponse"][];
+        };
         /**
          * EntryKind
          * @enum {string}
@@ -872,6 +897,12 @@ export interface components {
             status: components["schemas"]["EvidenceStatus"];
         };
         /**
+         * EvidenceRole
+         * @description What a piece of evidence does for a transaction.
+         * @enum {string}
+         */
+        EvidenceRole: "payment_proof" | "receipt" | "invoice" | "certificate" | "payslip" | "statement" | "other";
+        /**
          * EvidenceSource
          * @enum {string}
          */
@@ -895,6 +926,18 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** HistoryItemResponse */
+        HistoryItemResponse: {
+            action: components["schemas"]["AuditAction"];
+            actor: components["schemas"]["Actor"];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Changed */
+            changed: string[];
         };
         /** HowPaidRequest */
         HowPaidRequest: {
@@ -926,6 +969,35 @@ export interface components {
              * Format: uuid
              */
             payment_id: string;
+        };
+        /**
+         * LinkedBy
+         * @description How evidence came to be linked: read from it, an exact code match, a suggestion the
+         *     user accepted, or the user's own choice.
+         * @enum {string}
+         */
+        LinkedBy: "pipeline" | "exact" | "suggested" | "user";
+        /** LinkedEvidenceResponse */
+        LinkedEvidenceResponse: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Linked At
+             * Format: date-time
+             */
+            linked_at: string;
+            linked_by: components["schemas"]["LinkedBy"];
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            role: components["schemas"]["EvidenceRole"];
         };
         /** MonthResponse */
         MonthResponse: {
@@ -1516,6 +1588,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LedgerResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_entry_v1_entries__entry_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryDetailResponse"];
                 };
             };
             /** @description Validation Error */
