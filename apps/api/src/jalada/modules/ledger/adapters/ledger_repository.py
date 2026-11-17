@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
@@ -8,19 +8,23 @@ from sqlalchemy import (
     Select,
     and_,
     exists,
-    extract,
-    func,
     or_,
     select,
     update,
 )
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.modules.ledger.adapters.tables import CertificatePaymentRow, EntryRevisionRow, EntryRow
+from jalada.modules.ledger.adapters import entry_totals
+from jalada.modules.ledger.adapters.tables import EntryRevisionRow, EntryRow
 from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+)
 
 PENDING = [EntryStatus.PROPOSED, EntryStatus.NEEDS_REVIEW]
 
@@ -93,23 +97,12 @@ class SqlEntryRepository:
         return [_to_entry(row) for row in self._db.scalars(query)]
 
     def monthly_totals(self, year: int, kind: EntryKind | None = None) -> list[Total]:
-        month = extract("month", EntryRow.occurred_on)
-        query = (
-            select(month, EntryRow.direction, EntryRow.purpose, func.sum(EntryRow.amount_cents))
-            .where(
-                EntryRow.user_id == self._user_id,
-                EntryRow.status == EntryStatus.CONFIRMED,
-                extract("year", EntryRow.occurred_on) == year,
-                # A payment linked to a certificate is already counted in its gross amount.
-                ~exists().where(CertificatePaymentRow.payment_id == EntryRow.id),
-                *([EntryRow.kind == kind] if kind else []),
-            )
-            .group_by(month, EntryRow.direction, EntryRow.purpose)
-        )
-        return [
-            Total(int(m), Direction(str(direction)), Purpose(purpose), int(cents or 0))
-            for m, direction, purpose, cents in self._db.execute(query)
-        ]
+        return entry_totals.monthly(self._db, self._user_id, year, kind)
+
+    def category_totals(
+        self, start: date, end: date, kind: EntryKind | None = None
+    ) -> list[CategoryTotal]:
+        return entry_totals.by_category(self._db, self._user_id, start, end, kind)
 
     def all(self) -> list[Entry]:
         query = self._mine().order_by(EntryRow.created_at)

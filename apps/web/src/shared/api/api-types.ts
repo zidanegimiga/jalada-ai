@@ -626,6 +626,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/summary/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Category Totals
+         * @description Confirmed money in and out per category between two dates, both included.
+         */
+        get: operations["read_category_totals_v1_summary_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/summary/monthly": {
         parameters: {
             query?: never;
@@ -694,6 +714,24 @@ export interface components {
             purpose: components["schemas"]["Purpose"];
             /** Slug */
             slug: string;
+        };
+        /** CategoryTotalResponse */
+        CategoryTotalResponse: {
+            /** Category */
+            category: string | null;
+            /** Cents */
+            cents: number;
+            direction: components["schemas"]["Direction"];
+            /** Name */
+            name: string;
+        };
+        /**
+         * CategoryTotalsResponse
+         * @description Totals per category between two dates, largest first.
+         */
+        CategoryTotalsResponse: {
+            /** Totals */
+            totals: components["schemas"]["CategoryTotalResponse"][];
         };
         /** CertificateResponse */
         CertificateResponse: {
@@ -2142,6 +2180,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_category_totals_v1_summary_categories_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryTotalsResponse"];
                 };
             };
             /** @description Validation Error */

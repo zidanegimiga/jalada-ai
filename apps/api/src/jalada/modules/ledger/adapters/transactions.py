@@ -2,19 +2,23 @@ from dataclasses import asdict
 from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import Select, and_, delete, exists, extract, func, or_, select, update
+from sqlalchemy import Select, and_, delete, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.modules.ledger.adapters import transaction_rows
+from jalada.modules.ledger.adapters import transaction_rows, transaction_totals
 from jalada.modules.ledger.adapters.tables import (
-    CertificatePaymentRow,
     TransactionEvidenceRow,
     TransactionLineRow,
     TransactionRow,
 )
-from jalada.modules.ledger.domain.categories import Direction, Purpose
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.categories import Direction
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+)
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
     TransactionKind,
@@ -107,26 +111,10 @@ class SqlTransactions:
         return found[0] if found else None
 
     def monthly_totals(self, year: int) -> list[Total]:
-        month = extract("month", TransactionRow.occurred_on)
-        line = TransactionLineRow
-        query = (
-            select(month, TransactionRow.direction, line.purpose, func.sum(line.amount_cents))
-            .join(line, line.transaction_id == TransactionRow.id)
-            .where(
-                TransactionRow.user_id == self._user_id,
-                TransactionRow.status == TransactionStatus.CONFIRMED,
-                # Money moved between the user's own accounts is neither in nor out.
-                TransactionRow.kind != TransactionKind.TRANSFER,
-                extract("year", TransactionRow.occurred_on) == year,
-                # A payment linked to a certificate is already counted in its gross amount.
-                ~exists().where(CertificatePaymentRow.payment_id == TransactionRow.id),
-            )
-            .group_by(month, TransactionRow.direction, line.purpose)
-        )
-        return [
-            Total(int(m), Direction(str(direction)), Purpose(purpose), int(cents or 0))
-            for m, direction, purpose, cents in self._db.execute(query)
-        ]
+        return transaction_totals.monthly(self._db, self._user_id, year)
+
+    def category_totals(self, start: date, end: date) -> list[CategoryTotal]:
+        return transaction_totals.by_category(self._db, self._user_id, start, end)
 
     def update(self, transaction: Transaction) -> None:
         self._check_owner(transaction)

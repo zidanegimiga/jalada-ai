@@ -76,3 +76,44 @@ def test_categories_are_listed(client: TestClient) -> None:
         "purpose": "personal",
     } in categories
     assert len(categories) == 24
+
+
+def test_category_totals_cover_the_dates_asked_for(client: TestClient, store: Store) -> None:
+    user = signed_in_user(client, store)
+    store.save_entries(
+        confirmed_entry(user, date(2026, 1, 5), 4_000_000, "in", "consultancy_fees"),
+        confirmed_entry(user, date(2026, 1, 9), 80_000, "out", "personal_food"),
+        confirmed_entry(user, date(2026, 2, 3), 1_000, "out", "personal_food"),
+    )
+
+    january = client.get(
+        "/v1/summary/categories", params={"from": "2026-01-01", "to": "2026-01-31"}
+    ).json()
+
+    assert january["totals"] == [
+        {
+            "direction": "in",
+            "category": "consultancy_fees",
+            "name": "Consultancy or freelance fees",
+            "cents": 4_000_000,
+        },
+        {"direction": "out", "category": "personal_food", "name": "Food", "cents": 80_000},
+    ]
+
+
+def test_category_totals_refuse_an_end_before_the_start(client: TestClient, store: Store) -> None:
+    signed_in_user(client, store)
+
+    response = client.get(
+        "/v1/summary/categories", params={"from": "2026-02-01", "to": "2026-01-01"}
+    )
+
+    assert response.status_code == 422
+
+
+def test_category_totals_need_a_session(client: TestClient) -> None:
+    response = client.get(
+        "/v1/summary/categories", params={"from": "2026-01-01", "to": "2026-01-31"}
+    )
+
+    assert response.status_code == 401

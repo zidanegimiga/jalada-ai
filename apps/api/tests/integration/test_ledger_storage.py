@@ -19,7 +19,12 @@ from jalada.modules.evidence.domain.evidence import (
 )
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+)
 from jalada.modules.pipeline.application.ports import PipelineRun
 from jalada.modules.pipeline.domain.run_types import StepRecord
 from jalada.sql_unit_of_work import SqlUnitOfWork
@@ -221,6 +226,7 @@ def test_ledger_queries_filter_page_and_total_in_postgres(
         rest = entries.confirmed(LedgerFilter(), LedgerPosition(last.occurred_on, last.id), 10)
         business = entries.confirmed(LedgerFilter(purpose=Purpose.BUSINESS), None, 10)
         totals = entries.monthly_totals(2026)
+        january = entries.category_totals(date(2026, 1, 1), date(2026, 1, 31))
 
     assert len(first) + len(rest) == 4
     assert {e.id for e in first}.isdisjoint({e.id for e in rest})
@@ -228,6 +234,10 @@ def test_ledger_queries_filter_page_and_total_in_postgres(
     assert Total(1, Direction.OUT, Purpose.BUSINESS, 30_000) in totals
     assert Total(1, Direction.IN, Purpose.BUSINESS, 4_000_000) in totals
     assert Total(2, Direction.OUT, Purpose.PERSONAL, 80_000) in totals
+    assert sorted(january, key=lambda t: t.cents) == [
+        CategoryTotal(Direction.OUT, "business_airtime_data", 30_000),
+        CategoryTotal(Direction.IN, "consultancy_fees", 4_000_000),
+    ]
 
 
 def test_the_payers_tax_number_is_kept(session_factory: sessionmaker[DbSession]) -> None:

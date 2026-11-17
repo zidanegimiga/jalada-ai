@@ -30,6 +30,26 @@ class Total:
     cents: int
 
 
+@dataclass(frozen=True)
+class CategoryTotal:
+    """Confirmed money in one direction and category. `category` is None for money that
+    was confirmed without one."""
+
+    direction: Direction
+    category: str | None
+    cents: int
+
+
+def combine(totals: list[CategoryTotal]) -> list[CategoryTotal]:
+    """Adds up totals from several sources by direction and category, largest first."""
+    sums: dict[tuple[Direction, str | None], int] = {}
+    for total in totals:
+        key = (total.direction, total.category)
+        sums[key] = sums.get(key, 0) + total.cents
+    combined = [CategoryTotal(d, c, cents) for (d, c), cents in sums.items() if cents]
+    return sorted(combined, key=lambda t: t.cents, reverse=True)
+
+
 @dataclass
 class MonthSummary:
     """Money in and out for one month, in cents, split between business and personal."""
