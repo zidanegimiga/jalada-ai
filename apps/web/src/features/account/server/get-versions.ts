@@ -1,6 +1,6 @@
 import "server-only";
 
-import { apiGet } from "@/lib/server-api";
+import { apiGet } from "@/shared/api/server-api";
 
 /** A commit hash shortened to the usual 7 characters; other versions as they are. */
 export function shortVersion(version: string): string {

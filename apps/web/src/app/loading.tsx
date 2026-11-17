@@ -1,4 +1,4 @@
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/shared/components/Spinner";
 
 /** Shown while a page's first data loads during navigation. */
 export default function Loading() {

@@ -2,8 +2,8 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { Schema } from "@/lib/api-schema";
-import { apiGet } from "@/lib/server-api";
+import type { Schema } from "@/shared/api/api-schema";
+import { apiGet } from "@/shared/api/server-api";
 
 export type TelegramStatus = Schema<"TelegramStatus">;
 

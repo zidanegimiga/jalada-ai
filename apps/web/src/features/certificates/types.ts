@@ -1,3 +1,3 @@
-import type { Schema } from "@/lib/api-schema";
+import type { Schema } from "@/shared/api/api-schema";
 
 export type Certificate = Schema<"CertificateResponse">;

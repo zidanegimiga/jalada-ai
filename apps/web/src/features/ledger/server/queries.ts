@@ -1,6 +1,6 @@
 import "server-only";
 
-import { apiGet } from "@/lib/server-api";
+import { apiGet } from "@/shared/api/server-api";
 
 import { ledgerSearch } from "../search";
 import type { LedgerPage, LedgerQuery, Month } from "../types";

@@ -10,7 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
-    "types": "openapi-typescript ../api/openapi.json -o src/lib/api-types.ts"
+    "types": "openapi-typescript ../api/openapi.json -o src/shared/api/api-types.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/shared/components/Button";
 
 /** Shown for an address that does not exist, or a record that is not yours. */
 export default function NotFound() {

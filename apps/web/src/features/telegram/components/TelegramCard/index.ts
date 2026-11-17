@@ -1,0 +1,1 @@
+export { TelegramCard } from "./TelegramCard";

@@ -1,0 +1,1 @@
+export { HowPaidCard } from "./HowPaidCard";

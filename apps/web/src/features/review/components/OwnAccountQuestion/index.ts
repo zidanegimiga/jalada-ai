@@ -1,0 +1,1 @@
+export { OwnAccountQuestion } from "./OwnAccountQuestion";

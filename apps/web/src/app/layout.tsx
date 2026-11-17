@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
 
-import { Splash, SplashScript } from "@/components/splash/splash";
+import { Splash, SplashScript } from "@/app/_components/Splash";
 
 import "./globals.css";
 

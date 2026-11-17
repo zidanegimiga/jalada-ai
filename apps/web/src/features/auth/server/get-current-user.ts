@@ -1,8 +1,8 @@
 import "server-only";
 
-import { apiGet } from "@/lib/server-api";
+import { apiGet } from "@/shared/api/server-api";
 
-import type { User } from "../api";
+import type { User } from "../api/auth.api";
 
 /** Asks the API who owns the session cookie. Null when signed out or the session expired. */
 export function getCurrentUser(): Promise<User | null> {
