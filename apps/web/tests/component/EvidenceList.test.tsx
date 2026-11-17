@@ -97,12 +97,12 @@ describe("EvidenceList", () => {
     expect(screen.getAllByRole("button", { name: "Put back" })).toHaveLength(1);
   });
 
-  it("links to the original through the API", () => {
+  it("opens each piece of evidence in a sheet, named by its kind", () => {
     render(<EvidenceList items={[item({ id: "abc" })]} />);
 
-    expect(screen.getByRole("link", { name: "Open photo" })).toHaveAttribute(
-      "href",
-      "/v1/evidence/abc/file",
+    expect(screen.getByRole("button", { name: "Open photo" })).toHaveAttribute(
+      "aria-haspopup",
+      "dialog",
     );
   });
 });

@@ -25,10 +25,9 @@ describe("ReviewCard", () => {
     expect(screen.getByText("KSh 150.00")).toBeInTheDocument();
     expect(screen.getByText("JANE WANJIKU · 4 Nov 2026")).toBeInTheDocument();
     expect(screen.getByText("Food")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "See original" })).toHaveAttribute(
-      "href",
-      "/v1/evidence/evidence-1/file",
-    );
+    expect(
+      screen.getByRole("button", { name: "See original" }),
+    ).toHaveAttribute("aria-haspopup", "dialog");
   });
 
   it("shows a receipt the user linked to the payment", () => {

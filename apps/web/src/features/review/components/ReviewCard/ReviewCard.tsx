@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { EvidenceDialog } from "@/features/evidence/components/EvidenceDialog";
 import { Amount } from "@/shared/components/Amount";
 import { Button } from "@/shared/components/Button";
 import { FormError } from "@/shared/components/FormError";
@@ -65,14 +66,18 @@ export function ReviewCard({
             {entry?.occurred_on ? ` · ${formatDay(entry.occurred_on)}` : ""}
           </p>
         </div>
-        <a
-          href={`/v1/evidence/${evidence.id}/file`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex min-h-tap shrink-0 items-center underline underline-offset-4"
-        >
-          See original
-        </a>
+        <EvidenceDialog
+          evidenceId={evidence.id}
+          contentType={evidence.content_type}
+          trigger={
+            <button
+              type="button"
+              className="inline-flex min-h-tap shrink-0 items-center underline underline-offset-4"
+            >
+              See original
+            </button>
+          }
+        />
       </header>
       {item.linked_receipt && <LinkedReceipt match={item.linked_receipt} />}
       {entry && item.own_account && !editing && (

@@ -8,7 +8,7 @@ import {
 import { EmptyState } from "@/shared/components/EmptyState";
 
 import type { EvidenceItem } from "../../api/evidence.api";
-import { MessageDialog } from "../MessageDialog";
+import { EvidenceDialog } from "../EvidenceDialog";
 import { PutBack } from "../PutBack";
 
 // Every status the API can send has a label: a new one fails the type check until it does.
@@ -87,22 +87,20 @@ export function EvidenceList({
             </div>
             <div className="flex flex-col items-end gap-1 text-small">
               <span>{STATUS_LABELS[item.status]}</span>
-              {item.content_type.startsWith("text/") ? (
-                <MessageDialog
-                  evidenceId={item.id}
-                  received={`Received ${dateFormat.format(new Date(item.received_at))}`}
-                />
-              ) : (
-                <a
-                  href={`/v1/evidence/${item.id}/file`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-tap min-w-tap items-center justify-end underline underline-offset-4"
-                  aria-label={`Open ${label.toLowerCase()}`}
-                >
-                  Open
-                </a>
-              )}
+              <EvidenceDialog
+                evidenceId={item.id}
+                contentType={item.content_type}
+                description={`Received ${dateFormat.format(new Date(item.received_at))}`}
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex min-h-tap min-w-tap items-center justify-end underline underline-offset-4"
+                  >
+                    <span aria-hidden="true">Open</span>
+                    <span className="sr-only">Open {label.toLowerCase()}</span>
+                  </button>
+                }
+              />
               {item.status === "not_a_transaction" && <PutBack id={item.id} />}
             </div>
           </li>
