@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
 
+import { ClickSounds } from "@/app/_components/ClickSounds";
 import { Splash, SplashScript } from "@/app/_components/Splash";
 import { ThemeScript } from "@/app/_components/ThemeScript";
 import { THEME_COLOURS } from "@/shared/theme/theme";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         <Splash />
+        <ClickSounds />
         {children}
       </body>
     </html>

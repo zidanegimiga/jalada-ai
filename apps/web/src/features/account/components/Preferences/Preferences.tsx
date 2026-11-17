@@ -1,3 +1,4 @@
+import { SoundChoice } from "@/shared/components/SoundChoice";
 import { ThemeChoice } from "@/shared/components/ThemeChoice";
 
 /** Settings kept on this device. */
@@ -11,6 +12,7 @@ export function Preferences() {
         On this device
       </h2>
       <ThemeChoice />
+      <SoundChoice />
     </section>
   );
 }
