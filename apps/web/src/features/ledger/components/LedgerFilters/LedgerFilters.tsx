@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { buttonVariants } from "@/shared/components/Button";
-import { Label } from "@/shared/components/Label";
+import { MonthPicker } from "@/shared/components/MonthPicker";
 
 const CHOICES = {
   direction: [
@@ -57,17 +57,12 @@ function FilterControls({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="month">Month</Label>
-        <input
-          id="month"
-          type="month"
-          value={params.get("month") ?? ""}
-          onChange={(e) => set("month", e.target.value)}
-          disabled={disabled}
-          className="h-12 rounded-control border border-input bg-card px-4 text-body"
-        />
-      </div>
+      <MonthPicker
+        label="Month"
+        value={params.get("month") ?? ""}
+        onChange={(month) => set("month", month)}
+        disabled={disabled}
+      />
       {(Object.keys(CHOICES) as (keyof typeof CHOICES)[]).map((name) => (
         <div
           key={name}
