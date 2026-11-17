@@ -2,20 +2,27 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { buttonVariants } from "@/shared/components/Button";
+import { ChipTabs } from "@/shared/components/ChipTabs";
 import { MonthPicker } from "@/shared/components/MonthPicker";
 
+/** Each filter's chips; the empty value means no filter. */
 const CHOICES = {
-  direction: [
-    ["", "All"],
-    ["in", "Money in"],
-    ["out", "Money out"],
-  ],
-  purpose: [
-    ["", "All"],
-    ["business", "Business"],
-    ["personal", "Personal"],
-  ],
+  direction: {
+    label: "Direction",
+    chips: [
+      { value: "", label: "All" },
+      { value: "in", label: "Money in" },
+      { value: "out", label: "Money out" },
+    ],
+  },
+  purpose: {
+    label: "Purpose",
+    chips: [
+      { value: "", label: "All" },
+      { value: "business", label: "Business" },
+      { value: "personal", label: "Personal" },
+    ],
+  },
 } as const;
 
 /** Filters live in the address, so a filtered ledger can be bookmarked or shared. */
@@ -63,33 +70,18 @@ function FilterControls({
         onChange={(month) => set("month", month)}
         disabled={disabled}
       />
-      {(Object.keys(CHOICES) as (keyof typeof CHOICES)[]).map((name) => (
-        <div
-          key={name}
-          role="group"
-          aria-label={name === "direction" ? "Direction" : "Purpose"}
-          className="flex flex-wrap gap-2"
-        >
-          {CHOICES[name].map(([value, label]) => {
-            const active = (params.get(name) ?? "") === value;
-            return (
-              <button
-                key={label}
-                type="button"
-                aria-pressed={active}
-                disabled={disabled}
-                onClick={() => set(name, value)}
-                className={buttonVariants({
-                  variant: active ? "default" : "outline",
-                  size: "sm",
-                })}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      ))}
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(CHOICES) as (keyof typeof CHOICES)[]).map((name) => (
+          <ChipTabs
+            key={name}
+            label={CHOICES[name].label}
+            chips={CHOICES[name].chips}
+            value={params.get(name) ?? ""}
+            onChange={(value) => set(name, value)}
+            disabled={disabled}
+          />
+        ))}
+      </div>
     </div>
   );
 }
