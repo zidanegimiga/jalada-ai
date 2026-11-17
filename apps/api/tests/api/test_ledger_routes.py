@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import replace
 from datetime import date
 
 from fakes import Store
@@ -117,3 +118,23 @@ def test_category_totals_need_a_session(client: TestClient) -> None:
     )
 
     assert response.status_code == 401
+
+
+def test_ledger_search_comes_from_the_query(client: TestClient, store: Store) -> None:
+    user = signed_in_user(client, store)
+    store.save_entries(
+        replace(
+            confirmed_entry(user, date(2026, 1, 5), 4_000_000, "in", "consultancy_fees"),
+            counterparty="PETER OTIENO",
+        ),
+        replace(
+            confirmed_entry(user, date(2026, 2, 3), 80_000, "out", "personal_food"),
+            counterparty="MAMA MBOGA SHOP",
+        ),
+    )
+
+    found = client.get("/v1/entries", params={"search": " otieno "}).json()
+    too_long = client.get("/v1/entries", params={"search": "x" * 81})
+
+    assert [i["counterparty"] for i in found["items"]] == ["PETER OTIENO"]
+    assert too_long.status_code == 422

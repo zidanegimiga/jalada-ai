@@ -270,6 +270,7 @@ export interface paths {
         /**
          * Read Ledger
          * @description Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.
+         *     `search` finds words in who the money was with.
          */
         get: operations["read_ledger_v1_entries_get"];
         put?: never;
@@ -1497,6 +1498,7 @@ export interface operations {
                 direction?: components["schemas"]["Direction"] | null;
                 purpose?: components["schemas"]["Purpose"] | null;
                 category?: string | null;
+                search?: string | null;
                 cursor?: string | null;
             };
             header?: never;

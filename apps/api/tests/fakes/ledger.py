@@ -14,6 +14,7 @@ from jalada.modules.ledger.domain.ledger import (
     LedgerFilter,
     LedgerPosition,
     Total,
+    matches_search,
 )
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
@@ -130,6 +131,7 @@ def _keeps(filters: LedgerFilter, entry: Entry) -> bool:
         or (filters.direction and entry.direction != filters.direction)
         or (filters.purpose and entry.purpose != filters.purpose)
         or (filters.category and entry.category != filters.category)
+        or not matches_search(entry.counterparty, filters.search)
     )
 
 
@@ -140,6 +142,8 @@ def _keeps_transaction(filters: LedgerFilter, t: Transaction) -> bool:
     ):
         return False
     if filters.direction and t.direction != filters.direction:
+        return False
+    if not matches_search(t.counterparty, filters.search):
         return False
     return any(
         (not filters.purpose or line.purpose == filters.purpose)

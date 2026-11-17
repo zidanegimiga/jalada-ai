@@ -135,3 +135,20 @@ def test_categories_count_split_lines_and_leave_out_linked_payments(
 
     assert april["personal_food"] == 10_000 and april["business_stock"] == 5_000
     assert sum(april.values()) == 15_000 + 4_000_000, "the deposit is counted on its certificate"
+
+
+def test_search_finds_who_the_money_was_with_in_any_case(ledger: Ledger, store: Store) -> None:
+    store.save_entries(
+        replace(
+            confirmed_entry(USER, date(2026, 5, 2), 640_00, "out", "personal_food"),
+            counterparty="MAMA MBOGA SHOP",
+        ),
+        replace(
+            confirmed_entry(USER, date(2026, 5, 3), 900_00, "out", "personal_food"),
+            counterparty="JANE WANJIKU",
+        ),
+    )
+
+    found = ledger.page(USER, LedgerFilter(search="mboga")).entries
+
+    assert [e.counterparty for e in found] == ["MAMA MBOGA SHOP"]

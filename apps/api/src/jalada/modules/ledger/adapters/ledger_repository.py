@@ -14,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session as DbSession
 
+from jalada.core.database.text_search import contains_pattern
 from jalada.modules.ledger.adapters import entry_totals
 from jalada.modules.ledger.adapters.tables import EntryRevisionRow, EntryRow
 from jalada.modules.ledger.application.ports import Revision
@@ -152,6 +153,9 @@ def _conditions(filters: LedgerFilter) -> list[ColumnElement[bool]]:
         conditions.append(EntryRow.purpose == filters.purpose)
     if filters.category:
         conditions.append(EntryRow.category == filters.category)
+    if filters.search:
+        pattern = contains_pattern(filters.search)
+        conditions.append(EntryRow.counterparty.ilike(pattern, escape="\\"))
     return conditions
 
 

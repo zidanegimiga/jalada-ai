@@ -227,6 +227,8 @@ def test_ledger_queries_filter_page_and_total_in_postgres(
         business = entries.confirmed(LedgerFilter(purpose=Purpose.BUSINESS), None, 10)
         totals = entries.monthly_totals(2026)
         january = entries.category_totals(date(2026, 1, 1), date(2026, 1, 31))
+        found = entries.confirmed(LedgerFilter(search="someone"), None, 10)
+        searched = entries.confirmed(LedgerFilter(search="Some_%"), None, 10)
 
     assert len(first) + len(rest) == 4
     assert {e.id for e in first}.isdisjoint({e.id for e in rest})
@@ -234,6 +236,8 @@ def test_ledger_queries_filter_page_and_total_in_postgres(
     assert Total(1, Direction.OUT, Purpose.BUSINESS, 30_000) in totals
     assert Total(1, Direction.IN, Purpose.BUSINESS, 4_000_000) in totals
     assert Total(2, Direction.OUT, Purpose.PERSONAL, 80_000) in totals
+    assert len(found) == 4, "every sample was with SOMEONE, found in any case"
+    assert searched == [], "the person's % and _ are not wildcards"
     assert sorted(january, key=lambda t: t.cents) == [
         CategoryTotal(Direction.OUT, "business_airtime_data", 30_000),
         CategoryTotal(Direction.IN, "consultancy_fees", 4_000_000),

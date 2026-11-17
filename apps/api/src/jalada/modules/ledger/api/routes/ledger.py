@@ -32,10 +32,13 @@ def read_ledger(
     direction: Direction | None = None,
     purpose: Purpose | None = None,
     category: str | None = None,
+    search: Annotated[str | None, Query(max_length=80)] = None,
     cursor: str | None = None,
 ) -> LedgerResponse:
-    """Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page."""
-    filters = LedgerFilter(start, end, direction, purpose, category)
+    """Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.
+    `search` finds words in who the money was with."""
+    words = search.strip() if search else None
+    filters = LedgerFilter(start, end, direction, purpose, category, words or None)
     after = decode_position(cursor) if cursor else None
     return LedgerResponse.from_page(services.ledger.page(user.id, filters, after))
 

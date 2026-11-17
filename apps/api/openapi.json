@@ -1713,7 +1713,7 @@
     },
     "/v1/entries": {
       "get": {
-        "description": "Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.",
+        "description": "Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.\n`search` finds words in who the money was with.",
         "operationId": "read_ledger_v1_entries_get",
         "parameters": [
           {
@@ -1796,6 +1796,23 @@
                 }
               ],
               "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
             }
           },
           {

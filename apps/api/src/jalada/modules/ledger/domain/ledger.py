@@ -12,6 +12,15 @@ class LedgerFilter:
     direction: Direction | None = None
     purpose: Purpose | None = None
     category: str | None = None
+    # Words to find in who the money was with, in any case.
+    search: str | None = None
+
+
+def matches_search(counterparty: str | None, search: str | None) -> bool:
+    """Whether a counterparty holds the search words, ignoring case. No search matches all."""
+    if not search:
+        return True
+    return search.casefold() in (counterparty or "").casefold()
 
 
 @dataclass(frozen=True)

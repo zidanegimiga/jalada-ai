@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import ColumnElement, exists, select
 from sqlalchemy.orm import Session as DbSession
 
+from jalada.core.database.text_search import contains_pattern
 from jalada.modules.ledger.adapters.tables import (
     TransactionEvidenceRow,
     TransactionLineRow,
@@ -87,6 +88,9 @@ def conditions(filters: LedgerFilter) -> list[ColumnElement[bool]]:
         found.append(TransactionRow.occurred_on <= filters.end)
     if filters.direction:
         found.append(TransactionRow.direction == filters.direction)
+    if filters.search:
+        pattern = contains_pattern(filters.search)
+        found.append(TransactionRow.counterparty.ilike(pattern, escape="\\"))
     line: list[ColumnElement[bool]] = []
     if filters.purpose:
         line.append(TransactionLineRow.purpose == filters.purpose)
