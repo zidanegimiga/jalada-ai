@@ -96,4 +96,5 @@ export const ICONS = [
 export const SHADOWS = [
   { name: "raised", use: "Sheets and menus" },
   { name: "overlay", use: "Dialogs" },
+  { name: "float", use: "The bottom bar over the page" },
 ] as const;

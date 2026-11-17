@@ -1,8 +1,33 @@
-/* Page changes inside the app. The header and the bottom bar are part of the root, which is
- * swapped at once so they never move; only the page and the navigation highlight animate. */
+/* Page changes inside the app. Only the page and the navigation highlight move. The root and
+ * the app's frame (top bar, bottom bar, side rail) swap at once, and the frame has layers of
+ * its own above the page, so a sliding page passes under it. */
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
+  animation: none;
+}
+
+/* The frame and the labels show only their new state. Their old and new pictures would
+ * otherwise be blended, which dims a label that just lost the highlight. */
+::view-transition-old(app-header),
+::view-transition-old(app-nav),
+::view-transition-old(side-nav),
+::view-transition-old(*.nav-link) {
+  display: none;
+}
+
+::view-transition-new(app-header),
+::view-transition-new(app-nav),
+::view-transition-new(side-nav),
+::view-transition-new(*.nav-link) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(app-header),
+::view-transition-group(app-nav),
+::view-transition-group(side-nav) {
+  z-index: 50;
   animation: none;
 }
 
@@ -35,7 +60,14 @@
 }
 
 /* The pumpkin highlight in the bottom bar glides to the new page, with a little overshoot. */
+/* The navigation labels sit above the highlight, as they do on the page. */
+::view-transition-group(*.nav-link) {
+  z-index: 52;
+  animation: none;
+}
+
 ::view-transition-group(nav-highlight) {
+  z-index: 51;
   animation-duration: 480ms;
   animation-timing-function: cubic-bezier(0.34, 1.4, 0.64, 1);
 }

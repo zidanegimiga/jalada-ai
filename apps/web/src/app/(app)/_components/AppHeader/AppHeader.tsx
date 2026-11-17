@@ -10,7 +10,11 @@ import { UserAvatar } from "../UserAvatar";
 /** The bar at the top of every signed-in page: the logo, the theme and the account. */
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background pt-[env(safe-area-inset-top)] lg:hidden">
+    <header
+      className="sticky top-0 z-40 border-b border-border bg-background pt-[env(safe-area-inset-top)] lg:hidden"
+      // Its own layer in page transitions, so pages slide under it.
+      style={{ viewTransitionName: "app-header" }}
+    >
       <div className="mx-auto flex h-16 w-full max-w-page items-center gap-2 px-gutter">
         <Link
           href="/"

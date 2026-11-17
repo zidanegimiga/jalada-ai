@@ -27,6 +27,7 @@ export function SideNav({
     <nav
       aria-label="Main"
       className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-border bg-card px-4 py-6 lg:flex"
+      style={{ viewTransitionName: "side-nav" }}
     >
       <Link
         href="/"
@@ -58,6 +59,10 @@ export function SideNav({
                 href={href}
                 aria-current={here ? "page" : undefined}
                 transitionTypes={[index > current ? NAV_FORWARD : NAV_BACK]}
+                style={{
+                  viewTransitionName: `side-link-${index}`,
+                  viewTransitionClass: "nav-link",
+                }}
                 className={cn(
                   "relative flex min-h-12 items-center gap-3 rounded-control px-3 font-medium transition-colors",
                   here

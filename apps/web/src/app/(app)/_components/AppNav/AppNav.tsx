@@ -19,9 +19,16 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
     <nav
       aria-label="Main"
       className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex justify-center px-gutter lg:hidden"
+      // Its own layer in page transitions, so pages slide under it, never over it.
+      style={{ viewTransitionName: "app-nav" }}
     >
+      {/* The page fades out just above the bar, so nothing scrolls into it edge to edge. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-36 bg-linear-to-t from-background from-30% to-transparent"
+      />
       <ul
-        className="relative grid grid-cols-3 rounded-full bg-foreground p-1.5 text-background shadow-overlay dark:border dark:border-border dark:bg-card dark:text-foreground"
+        className="relative grid grid-cols-3 rounded-full bg-foreground p-1.5 text-background shadow-float ring-1 ring-black/10 dark:bg-muted dark:text-foreground dark:ring-white/12"
         style={{ "--current": current } as CSSProperties}
       >
         <li
@@ -44,9 +51,15 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
                 href={href}
                 aria-current={here ? "page" : undefined}
                 transitionTypes={[index > current ? NAV_FORWARD : NAV_BACK]}
+                // A layer above the gliding highlight, so the label stays readable.
+                style={{
+                  viewTransitionName: `nav-link-${index}`,
+                  viewTransitionClass: "nav-link",
+                }}
                 className={cn(
-                  "group flex h-14 w-24 flex-col items-center justify-center gap-0.5 rounded-full text-tiny font-medium transition-[color,scale] duration-300 active:scale-95",
-                  here && "text-primary-foreground",
+                  "group flex h-14 w-24 flex-col items-center justify-center gap-0.5 rounded-full text-tiny font-medium transition-[color,scale] duration-200 active:scale-95",
+                  // Leaving the highlight turns light at once; arriving waits for it to slide in.
+                  here && "text-primary-foreground delay-300",
                 )}
               >
                 <span
@@ -61,7 +74,7 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
                   {label}
                 </span>
                 {href === "/review" && (
-                  <span className="absolute top-1 right-5 [--badge-ring:var(--foreground)] dark:[--badge-ring:var(--card)]">
+                  <span className="absolute top-1 right-5 [--badge-ring:var(--foreground)] dark:[--badge-ring:var(--muted)]">
                     {toCheck}
                   </span>
                 )}
