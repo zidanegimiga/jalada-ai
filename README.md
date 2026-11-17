@@ -52,20 +52,27 @@ jalada-ai/
 ├── apps/
 │   ├── api/                  FastAPI service, home of the jalada Python package
 │   │   ├── src/jalada/
-│   │   │   ├── domain/       business rules, no input or output
-│   │   │   ├── application/  use cases and the interfaces (ports) they need
-│   │   │   ├── adapters/     database, storage, model and OCR implementations
-│   │   │   ├── pipeline/     detector, extractor, classifier, verifier, runner
-│   │   │   ├── api/          HTTP routes and schemas
-│   │   │   ├── config/       typed settings from the environment
-│   │   │   └── composition.py  wires everything together
+│   │   │   ├── core/         settings, logging, clock, jobs, storage, resilience
+│   │   │   ├── shared/       money, dates, errors and HTTP helpers every module uses
+│   │   │   ├── modules/      accounts, evidence, pipeline, ledger, exports, telegram, health
+│   │   │   │   └── <module>/
+│   │   │   │       ├── domain/       business rules, no input or output
+│   │   │   │       ├── application/  use cases and the interfaces (ports) they need
+│   │   │   │       ├── adapters/     database, storage, model and OCR implementations
+│   │   │   │       ├── api/          HTTP routes and schemas
+│   │   │   │       ├── module.py     the routes the module adds to the app
+│   │   │   │       └── wiring.py     builds the module's use cases
+│   │   │   ├── migrations/   Alembic
+│   │   │   └── composition.py  wires the modules together
 │   │   └── tests/
 │   ├── worker/               runs pipeline jobs, reuses the jalada package
 │   └── web/                  Next.js app
-│       └── src/
-│           ├── app/          routes
-│           ├── components/ui/  shadcn components
-│           └── lib/          shared helpers
+│       ├── src/
+│       │   ├── app/          routes: (app) for signed-in pages, (auth) for sign-in and sign-up
+│       │   ├── features/     one folder per feature: api/, server/, hooks/, components/
+│       │   └── shared/       components, api client, format, styles and config used everywhere
+│       ├── tests/            component/, unit/ and support/
+│       └── e2e/              Playwright journeys
 ├── evals/                    invented fixtures and the pipeline scoring script
 ├── infra/                    docker compose
 ├── docs/
