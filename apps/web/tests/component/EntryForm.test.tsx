@@ -29,7 +29,9 @@ describe("EntryForm", () => {
     );
 
     expect(screen.getByLabelText("Amount (KSh)")).toHaveValue("150.00");
-    expect(screen.getByLabelText("Date")).toHaveValue("2026-11-04");
+    expect(screen.getByRole("button", { name: "Date" })).toHaveTextContent(
+      "4 Nov 2026",
+    );
     expect(
       screen.getByRole("combobox", { name: "What it was for" }),
     ).toHaveTextContent("Food");

@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 
 import { Button } from "@/shared/components/Button";
+import { DatePicker } from "@/shared/components/DatePicker";
 import { FormField } from "@/features/auth/components/FormField";
 import { Select } from "@/shared/components/Select";
 import { centsToInput } from "@/shared/format/format";
@@ -77,11 +78,9 @@ export function EntryForm({
           entry?.amount_cents ? centsToInput(entry.amount_cents) : ""
         }
       />
-      <FormField
+      <DatePicker
         label="Date"
         name="occurred_on"
-        id={`${id}-occurred_on`}
-        type="date"
         defaultValue={entry?.occurred_on ?? ""}
       />
       <FormField
