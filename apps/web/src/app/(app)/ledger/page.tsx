@@ -2,7 +2,6 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { AppShell } from "@/app/(app)/_components/AppShell";
 import { Spinner } from "@/shared/components/Spinner";
 import { buttonVariants } from "@/shared/components/Button";
 import { ExportCard } from "@/features/export/components/ExportCard";
@@ -46,7 +45,7 @@ async function Entries({ query }: { query: Promise<LedgerQuery> }) {
 
 export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
   return (
-    <AppShell>
+    <>
       <h1 className="text-display">Ledger</h1>
       <Suspense fallback={<div className="h-56" />}>
         <Export />
@@ -57,6 +56,6 @@ export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
       <Suspense fallback={<Spinner />}>
         <Entries query={searchParams as Promise<LedgerQuery>} />
       </Suspense>
-    </AppShell>
+    </>
   );
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { AppShell } from "@/app/(app)/_components/AppShell";
 import { Spinner } from "@/shared/components/Spinner";
 import { CertificatePayments } from "@/features/certificates/components/CertificatePayments";
 import { getCertificate } from "@/features/certificates/server/get-certificate";
@@ -20,15 +19,13 @@ export default function CertificatePage({
 }: PageProps<"/ledger/certificates/[id]">) {
   return (
     <Suspense>
-      <AppShell>
-        <Link href="/ledger" className="underline underline-offset-4">
-          Back to the ledger
-        </Link>
-        <h1 className="text-display">Withholding certificate</h1>
-        <Suspense fallback={<Spinner />}>
-          <Details params={params} />
-        </Suspense>
-      </AppShell>
+      <Link href="/ledger" className="underline underline-offset-4">
+        Back to the ledger
+      </Link>
+      <h1 className="text-display">Withholding certificate</h1>
+      <Suspense fallback={<Spinner />}>
+        <Details params={params} />
+      </Suspense>
     </Suspense>
   );
 }

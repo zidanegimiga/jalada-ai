@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { AppShell } from "@/app/(app)/_components/AppShell";
 import { Spinner } from "@/shared/components/Spinner";
 import { AccountNotice } from "@/features/auth/components/AccountNotice";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
@@ -83,7 +82,7 @@ async function RecentEvidence() {
 
 export default function Home() {
   return (
-    <AppShell>
+    <>
       <Suspense>
         <AccountNotice />
       </Suspense>
@@ -102,6 +101,6 @@ export default function Home() {
           <RecentEvidence />
         </Suspense>
       </section>
-    </AppShell>
+    </>
   );
 }

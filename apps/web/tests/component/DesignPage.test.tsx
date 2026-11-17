@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import DesignPage from "@/app/(app)/design/page";
+import DesignPage from "@/app/design/page";
 import {
   COLOURS,
   ICONS,
@@ -11,7 +11,7 @@ import {
   SHADOWS,
   SPACING,
   TYPE,
-} from "@/app/(app)/design/tokens";
+} from "@/app/design/tokens";
 
 const css = readFileSync(join(__dirname, "../../src/app/globals.css"), "utf8");
 

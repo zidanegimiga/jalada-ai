@@ -2,7 +2,6 @@ import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { AppShell } from "@/app/(app)/_components/AppShell";
 import { Spinner } from "@/shared/components/Spinner";
 import { buttonVariants } from "@/shared/components/Button";
 import { DeleteAccountForm } from "@/features/account/components/DeleteAccountForm";
@@ -69,7 +68,7 @@ async function Versions() {
 
 export default function AccountPage() {
   return (
-    <AppShell>
+    <>
       <h1 className="text-display">Account</h1>
       <Suspense fallback={<Spinner />}>
         <Account />
@@ -77,6 +76,6 @@ export default function AccountPage() {
       <Suspense>
         <Versions />
       </Suspense>
-    </AppShell>
+    </>
   );
 }

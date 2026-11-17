@@ -2,7 +2,6 @@ import { CheckCheck } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { AppShell } from "@/app/(app)/_components/AppShell";
 import { buttonVariants } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { Spinner } from "@/shared/components/Spinner";
@@ -40,11 +39,11 @@ async function ReviewQueue() {
 
 export default function ReviewPage() {
   return (
-    <AppShell>
+    <>
       <h1 className="text-display">To check</h1>
       <Suspense fallback={<Spinner />}>
         <ReviewQueue />
       </Suspense>
-    </AppShell>
+    </>
   );
 }
