@@ -4,56 +4,10 @@ import Link from "next/link";
 import { buttonVariants } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import type { Entry } from "@/features/review/types";
-import { formatDay, formatKsh } from "@/shared/format/format";
+import { cn } from "@/shared/styles/cn";
 
-/** What sits under the counterparty: the category, the date and any certificate link. */
-function details(entry: Entry): string {
-  const isCertificate = entry.kind === "withholding_certificate";
-  const parts = [
-    isCertificate ? "Withholding certificate" : (entry.category_name ?? ""),
-  ];
-  if (entry.occurred_on) parts.push(formatDay(entry.occurred_on));
-  if (isCertificate) {
-    const count = entry.linked_payment_ids?.length ?? 0;
-    parts.push(
-      count === 0
-        ? "No payment linked"
-        : count === 1
-          ? "1 payment linked"
-          : `${count} payments linked`,
-    );
-  } else if (entry.linked_certificate_id) {
-    parts.push("Counted on its certificate");
-  }
-  return parts.filter(Boolean).join(" · ");
-}
-
-function Row({ entry }: { entry: Entry }) {
-  const isIn = entry.direction === "in";
-  const counted = !entry.linked_certificate_id;
-  return (
-    <div className="flex items-center justify-between gap-3 px-4 py-4">
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate font-medium">
-          {entry.counterparty ?? "Unknown"}
-        </span>
-        <span className="text-small text-muted-foreground">
-          {details(entry)}
-        </span>
-      </div>
-      <span
-        className={
-          isIn && counted
-            ? "shrink-0 font-bold tabular-nums text-money-in"
-            : "shrink-0 font-bold tabular-nums"
-        }
-      >
-        {isIn ? "+" : "−"}
-        {formatKsh(entry.amount_cents ?? 0)}
-      </span>
-    </div>
-  );
-}
+import { groupByMonth } from "../../group";
+import { LEDGER_COLUMNS, LedgerRow } from "../LedgerRow";
 
 export function LedgerList({
   entries,
@@ -103,21 +57,53 @@ export function LedgerList({
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-border rounded-card border border-border bg-card">
-      {entries.map((entry) => (
-        <li key={entry.id}>
-          {entry.kind === "withholding_certificate" ? (
-            <Link
-              href={`/ledger/certificates/${entry.id}`}
-              className="block hover:bg-muted"
+    <div className="flex flex-col gap-6">
+      {groupByMonth(entries).map((group) => (
+        <section
+          key={group.key}
+          aria-labelledby={`month-${group.key}`}
+          className="flex flex-col gap-2"
+        >
+          <div className="flex items-baseline justify-between px-1 font-mono text-tiny tracking-widest text-muted-foreground uppercase">
+            <h2 id={`month-${group.key}`}>{group.label}</h2>
+            <p>
+              {group.entries.length === 1
+                ? "1 entry"
+                : `${group.entries.length} entries`}
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-card border border-border bg-card">
+            <div
+              aria-hidden="true"
+              className={cn(
+                LEDGER_COLUMNS,
+                "hidden border-b border-border bg-muted py-2.5 font-mono text-tiny tracking-widest text-muted-foreground uppercase lg:grid",
+              )}
             >
-              <Row entry={entry} />
-            </Link>
-          ) : (
-            <Row entry={entry} />
-          )}
-        </li>
+              <span>Date</span>
+              <span>Who</span>
+              <span>What for</span>
+              <span className="justify-self-end">Amount</span>
+            </div>
+            <ul className="flex flex-col divide-y divide-border">
+              {group.entries.map((entry) => (
+                <li key={entry.id}>
+                  {entry.kind === "withholding_certificate" ? (
+                    <Link
+                      href={`/ledger/certificates/${entry.id}`}
+                      className="block transition-colors hover:bg-muted"
+                    >
+                      <LedgerRow entry={entry} />
+                    </Link>
+                  ) : (
+                    <LedgerRow entry={entry} />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       ))}
-    </ul>
+    </div>
   );
 }

@@ -36,6 +36,9 @@ describe("LedgerList", () => {
     expect(screen.getByText("+KSh 40,000.00")).toHaveClass("text-money-in");
     expect(screen.getByText("−KSh 150.00")).not.toHaveClass("text-money-in");
     expect(screen.getByText("Consultancy · 4 Nov 2026")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "November 2026" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -76,7 +79,9 @@ describe("LedgerList with certificates", () => {
         "Withholding certificate · 4 Nov 2026 · 1 payment linked",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Counted on its certificate/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Consultancy · 4 Nov 2026 · Counted on its certificate"),
+    ).toBeInTheDocument();
     expect(screen.getByText("+KSh 38,000.00")).not.toHaveClass("text-money-in");
   });
 });
