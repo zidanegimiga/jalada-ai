@@ -95,16 +95,16 @@ export function LedgerList({
             <ul className="flex flex-col divide-y divide-border">
               {group.entries.map((entry) => (
                 <li key={entry.id}>
-                  {entry.kind === "withholding_certificate" ? (
-                    <Link
-                      href={`/ledger/certificates/${entry.id}`}
-                      className="block transition-colors hover:bg-muted"
-                    >
-                      <LedgerRow entry={entry} search={search} />
-                    </Link>
-                  ) : (
+                  <Link
+                    href={
+                      entry.kind === "withholding_certificate"
+                        ? `/ledger/certificates/${entry.id}`
+                        : `/ledger/entries/${entry.id}`
+                    }
+                    className="block transition-colors hover:bg-muted"
+                  >
                     <LedgerRow entry={entry} search={search} />
-                  )}
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -122,10 +122,9 @@ describe("LedgerList with certificates", () => {
       />,
     );
 
-    expect(screen.getByRole("link")).toHaveAttribute(
-      "href",
-      "/ledger/certificates/cert-1",
-    );
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(["/ledger/certificates/cert-1", "/ledger/entries/pay-1"]);
     expect(
       screen.getByText(
         "Withholding certificate · 4 Nov 2026 · 1 payment linked",
