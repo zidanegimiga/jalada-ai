@@ -5,7 +5,7 @@ const apiUrl = process.env.API_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   // Read at build time. Netlify sets COMMIT_REF to the commit and CONTEXT to "production"
-  // or "deploy-preview". Shown on the account page and attached to error reports.
+  // or "deploy-preview". Attached to error reports, so each one names the build it came from.
   env: {
     APP_VERSION: process.env.COMMIT_REF ?? "development",
     APP_ENVIRONMENT: process.env.CONTEXT ?? "development",

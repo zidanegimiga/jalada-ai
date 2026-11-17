@@ -6,7 +6,6 @@ import { Spinner } from "@/shared/components/Spinner";
 import { buttonVariants } from "@/shared/components/Button";
 import { DeleteAccountForm } from "@/features/account/components/DeleteAccountForm";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
-import { getVersions } from "@/features/account/server/get-versions";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 
 async function Account() {
@@ -57,24 +56,12 @@ async function Account() {
   );
 }
 
-async function Versions() {
-  const { web, api } = await getVersions();
-  return (
-    <p className="text-small text-muted-foreground">
-      Version: web {web}, API {api}
-    </p>
-  );
-}
-
 export default function AccountPage() {
   return (
     <>
       <h1 className="text-display">Account</h1>
       <Suspense fallback={<Spinner />}>
         <Account />
-      </Suspense>
-      <Suspense>
-        <Versions />
       </Suspense>
     </>
   );
