@@ -9,7 +9,7 @@ export async function ToCheckBadge() {
     <>
       <span
         aria-hidden="true"
-        className="absolute top-1 right-5 flex h-5 min-w-5 items-center justify-center rounded-full bg-(--flax) px-1 text-tiny font-bold text-(--black) ring-2 ring-foreground motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300 dark:ring-card"
+        className="flex h-5 min-w-5 items-center justify-center rounded-full bg-(--flax) px-1 text-tiny font-bold text-(--black) ring-2 ring-(--badge-ring,transparent) motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300"
       >
         {shown}
       </span>

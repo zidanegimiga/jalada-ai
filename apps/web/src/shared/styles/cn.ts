@@ -19,7 +19,7 @@ export const TOKENS = {
   ],
   radius: ["card", "inset", "control"],
   spacing: ["gutter", "card", "section", "tap", "icon", "icon-lg"],
-  container: ["page", "wide"],
+  container: ["page", "wide", "content"],
   shadow: ["raised", "overlay"],
 };
 

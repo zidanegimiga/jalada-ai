@@ -1,29 +1,13 @@
 "use client";
 
-import { BookOpen, Home, ListChecks, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/shared/styles/cn";
 
+import { currentIndex, DESTINATIONS } from "../navigation";
 import { NAV_BACK, NAV_FORWARD } from "../PageTransition";
-
-type Destination = { href: string; label: string; Icon: LucideIcon };
-
-const LINKS: Destination[] = [
-  { href: "/", label: "Home", Icon: Home },
-  { href: "/review", label: "To check", Icon: ListChecks },
-  { href: "/ledger", label: "Ledger", Icon: BookOpen },
-];
-
-/** Which link a path belongs to: /ledger/certificates/1 is still the ledger. */
-function currentIndex(pathname: string): number {
-  const index = LINKS.findIndex(({ href }) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href),
-  );
-  return index;
-}
 
 /**
  * A floating pill at the bottom, within reach of a thumb. A pumpkin highlight slides to the
@@ -34,7 +18,7 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex justify-center px-gutter"
+      className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex justify-center px-gutter lg:hidden"
     >
       <ul
         className="relative grid grid-cols-3 rounded-full bg-foreground p-1.5 text-background shadow-overlay dark:border dark:border-border dark:bg-card dark:text-foreground"
@@ -52,7 +36,7 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
             viewTransitionName: "nav-highlight",
           }}
         />
-        {LINKS.map(({ href, label, Icon }, index) => {
+        {DESTINATIONS.map(({ href, label, Icon }, index) => {
           const here = index === current;
           return (
             <li key={href} className="relative">
@@ -76,7 +60,11 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
                   <Icon aria-hidden="true" className="size-icon" />
                   {label}
                 </span>
-                {href === "/review" && toCheck}
+                {href === "/review" && (
+                  <span className="absolute top-1 right-5 [--badge-ring:var(--foreground)] dark:[--badge-ring:var(--card)]">
+                    {toCheck}
+                  </span>
+                )}
               </Link>
             </li>
           );

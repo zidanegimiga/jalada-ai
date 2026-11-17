@@ -106,6 +106,8 @@
   --container-page: 28rem;
   /* Pages with two columns on wide screens, such as sign-in. */
   --container-wide: 72rem;
+  /* The page column next to the side rail on wide screens. */
+  --container-content: 44rem;
 
   /* Elevation: things that sit above the page, such as a sheet or a menu. Cards stay flat
    * and are set apart by their background. */
