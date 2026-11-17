@@ -11,6 +11,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ChipTabs } from "@/shared/components/ChipTabs";
 import { MonthPicker } from "@/shared/components/MonthPicker";
+import { SearchField } from "@/shared/components/SearchField";
+
+import { SEARCH_LIMIT } from "../../search";
 
 /** Each filter's chips; the empty value means no filter. */
 const CHOICES = {
@@ -78,7 +81,7 @@ function FilterControls({
   onClear: () => void;
   disabled?: boolean;
 }) {
-  const filtered = ["month", ...Object.keys(CHOICES)].some((name) =>
+  const filtered = ["q", "month", ...Object.keys(CHOICES)].some((name) =>
     params.get(name),
   );
   return (
@@ -86,6 +89,14 @@ function FilterControls({
       aria-label="Filters"
       className="flex flex-col gap-3 rounded-card border border-border bg-card p-3"
     >
+      <SearchField
+        label="Search the ledger"
+        placeholder="Search by name"
+        value={params.get("q") ?? ""}
+        onSearch={(words) => set("q", words)}
+        maxLength={SEARCH_LIMIT}
+        disabled={disabled}
+      />
       <div className="flex items-center gap-2">
         <MonthPicker
           label="Month"

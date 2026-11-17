@@ -12,10 +12,13 @@ import { LEDGER_COLUMNS, LedgerRow } from "../LedgerRow";
 export function LedgerList({
   entries,
   filtered = false,
+  search,
 }: {
   entries: Entry[];
-  /** Whether a month, direction or purpose filter is on. */
+  /** Whether a search, month, direction or purpose filter is on. */
   filtered?: boolean;
+  /** The words searched for, marked where they appear. */
+  search?: string;
 }) {
   if (entries.length === 0 && filtered) {
     return (
@@ -31,7 +34,11 @@ export function LedgerList({
           </Link>
         }
       >
-        <p>No confirmed entries fit these filters.</p>
+        <p>
+          {search
+            ? `No confirmed entries with “${search}” fit these filters.`
+            : "No confirmed entries fit these filters."}
+        </p>
       </EmptyState>
     );
   }
@@ -93,10 +100,10 @@ export function LedgerList({
                       href={`/ledger/certificates/${entry.id}`}
                       className="block transition-colors hover:bg-muted"
                     >
-                      <LedgerRow entry={entry} />
+                      <LedgerRow entry={entry} search={search} />
                     </Link>
                   ) : (
-                    <LedgerRow entry={entry} />
+                    <LedgerRow entry={entry} search={search} />
                   )}
                 </li>
               ))}

@@ -8,6 +8,8 @@ export type LedgerQuery = {
   month?: string;
   direction?: string;
   purpose?: string;
+  /** Words to find in who the money was with. */
+  q?: string;
   cursor?: string;
 };
 

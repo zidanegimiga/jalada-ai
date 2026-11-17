@@ -42,6 +42,28 @@ describe("LedgerList", () => {
   });
 });
 
+describe("LedgerList with a search", () => {
+  it("marks the searched words in each name", () => {
+    render(
+      <LedgerList
+        entries={[entry({ id: "s", counterparty: "MAMA MBOGA SHOP" })]}
+        filtered
+        search="mboga"
+      />,
+    );
+
+    expect(screen.getByText("MBOGA").tagName).toBe("MARK");
+  });
+
+  it("says which words found nothing", () => {
+    render(<LedgerList entries={[]} filtered search="otieno" />);
+
+    expect(
+      screen.getByText("No confirmed entries with “otieno” fit these filters."),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("LedgerList with transfers", () => {
   it("mutes a move between own accounts and says it is not counted", () => {
     render(

@@ -20,4 +20,10 @@ describe("ledgerSearch", () => {
 
     expect(search.toString()).toBe("direction=in&purpose=business&cursor=abc");
   });
+
+  it("sends the search trimmed, and no longer than the API reads", () => {
+    expect(ledgerSearch({ q: "  mboga " }).get("search")).toBe("mboga");
+    expect(ledgerSearch({ q: "x".repeat(90) }).get("search")).toHaveLength(80);
+    expect(ledgerSearch({ q: "   " }).has("search")).toBe(false);
+  });
 });

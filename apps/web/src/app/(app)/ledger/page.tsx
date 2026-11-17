@@ -54,8 +54,9 @@ async function Entries({ query }: { query: Promise<LedgerQuery> }) {
       <LedgerList
         entries={page.items}
         filtered={Boolean(
-          filters.month || filters.direction || filters.purpose,
+          filters.q || filters.month || filters.direction || filters.purpose,
         )}
+        search={filters.q}
       />
       {page.next_cursor && (
         <Link

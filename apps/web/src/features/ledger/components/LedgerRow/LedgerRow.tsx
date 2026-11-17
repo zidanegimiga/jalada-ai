@@ -52,7 +52,29 @@ function details(entry: Entry): string {
   return [...parts, ...rest].filter(Boolean).join(" · ");
 }
 
-export function LedgerRow({ entry }: { entry: Entry }) {
+/** The name with the searched words marked, wherever they appear and in any case. */
+function Marked({ text, search }: { text: string; search?: string }) {
+  const words = search?.trim();
+  const at = words ? text.toLowerCase().indexOf(words.toLowerCase()) : -1;
+  if (!words || at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className="rounded-[0.2rem] bg-(--flax) px-0.5 text-(--black)">
+        {text.slice(at, at + words.length)}
+      </mark>
+      {text.slice(at + words.length)}
+    </>
+  );
+}
+
+export function LedgerRow({
+  entry,
+  search,
+}: {
+  entry: Entry;
+  search?: string;
+}) {
   const isIn = entry.direction === "in";
   const counted = !entry.linked_certificate_id;
   const transfer = isTransfer(entry);
@@ -68,7 +90,7 @@ export function LedgerRow({ entry }: { entry: Entry }) {
           transfer && "text-muted-foreground",
         )}
       >
-        {entry.counterparty ?? "Unknown"}
+        <Marked text={entry.counterparty ?? "Unknown"} search={search} />
       </span>
       <span
         title={purpose(entry)}

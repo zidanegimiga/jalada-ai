@@ -1,5 +1,8 @@
 import type { LedgerQuery } from "./types";
 
+/** The API reads up to this many characters of a search. */
+export const SEARCH_LIMIT = 80;
+
 /** Turns the page's own filters (a month such as "2026-11") into the API's query. */
 export function ledgerSearch(query: LedgerQuery): URLSearchParams {
   const search = new URLSearchParams();
@@ -12,5 +15,7 @@ export function ledgerSearch(query: LedgerQuery): URLSearchParams {
   for (const key of ["direction", "purpose", "cursor"] as const) {
     if (query[key]) search.set(key, query[key]);
   }
+  const words = query.q?.trim().slice(0, SEARCH_LIMIT);
+  if (words) search.set("search", words);
   return search;
 }
