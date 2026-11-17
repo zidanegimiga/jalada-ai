@@ -9,14 +9,20 @@ import { EntryFacts } from "@/features/ledger/components/EntryFacts";
 import { EntryHeader } from "@/features/ledger/components/EntryHeader";
 import { EntryHistory } from "@/features/ledger/components/EntryHistory";
 import { getEntry } from "@/features/ledger/server/queries";
+import { EditEntry } from "@/features/review/components/EditEntry";
+import { getCategories } from "@/features/review/server/queries";
 
 async function Entry({ params }: { params: Promise<{ id: string }> }) {
-  const detail = await getEntry((await params).id);
+  const [detail, categories] = await Promise.all([
+    getEntry((await params).id),
+    getCategories(),
+  ]);
   if (!detail) notFound();
   return (
     <>
       <EntryHeader entry={detail.entry} />
       <EntryFacts entry={detail.entry} />
+      <EditEntry entry={detail.entry} categories={categories} />
       <EntryEvidence evidence={detail.evidence} />
       <EntryHistory history={detail.history} />
     </>

@@ -17,6 +17,7 @@ export function EntryDetailSkeleton() {
         </p>
       </FolderCard>
       <Skeleton className="h-28 rounded-card" />
+      <Skeleton className="h-12 rounded-full" />
       <Skeleton className="h-24 rounded-card" />
     </>
   );
