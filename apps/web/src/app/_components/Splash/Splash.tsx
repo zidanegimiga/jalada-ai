@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 
 import { SPLASH } from "./splash-config";
 import { SplashExit } from "./SplashExit";
-import "./Splash";
+import "./Splash.css";
 
 /**
  * Runs before the first paint. A visitor who has already seen the loading screen in this
