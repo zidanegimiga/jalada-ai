@@ -12,6 +12,7 @@ export default function SignUpPage() {
         text: "Already have an account?",
         linkLabel: "Sign in",
         href: "/signin",
+        destination: "Sign in",
       }}
     >
       <SignUpForm />

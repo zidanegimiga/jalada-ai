@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
 import { GoogleOption } from "../GoogleOption";
+import { HandoffLink } from "../Handoff";
 import { JourneyPanel } from "../JourneyPanel";
 
 const MODES = {
@@ -17,7 +17,12 @@ type AuthPageProps = {
   intro: string;
   notice?: ReactNode;
   children: ReactNode;
-  footer: { text: string; linkLabel: string; href: string };
+  footer: {
+    text: string;
+    linkLabel: string;
+    href: string;
+    destination: string;
+  };
 };
 
 /** Sign-in and sign-up: the form in a card, and the journey beside it on wide screens. */
@@ -54,14 +59,15 @@ export function AuthPage({
           </Suspense>
           {children}
         </div>
-        <p className="flex flex-wrap gap-x-2 border-t border-dashed border-border px-card py-5 sm:px-10">
+        <p className="flex flex-wrap items-center gap-x-2 border-t border-dashed border-border px-card py-3 sm:px-10">
           <span className="text-muted-foreground">{footer.text}</span>
-          <Link
+          <HandoffLink
             href={footer.href}
-            className="font-medium underline decoration-(--emphasis) decoration-2 underline-offset-4"
+            destination={footer.destination}
+            className="inline-flex min-h-tap items-center font-medium underline decoration-(--emphasis) decoration-2 underline-offset-4"
           >
             {footer.linkLabel}
-          </Link>
+          </HandoffLink>
         </p>
       </section>
       <JourneyPanel heading={MODES[mode].panel} />

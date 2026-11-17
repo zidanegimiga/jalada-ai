@@ -20,6 +20,7 @@ export default function SignInPage() {
         text: "New here?",
         linkLabel: "Create an account",
         href: "/signup",
+        destination: "Create account",
       }}
     >
       <SignInForm />
