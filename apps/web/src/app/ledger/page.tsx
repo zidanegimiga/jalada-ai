@@ -26,7 +26,12 @@ async function Entries({ query }: { query: Promise<LedgerQuery> }) {
   });
   return (
     <>
-      <LedgerList entries={page.items} />
+      <LedgerList
+        entries={page.items}
+        filtered={Boolean(
+          filters.month || filters.direction || filters.purpose,
+        )}
+      />
       {page.next_cursor && (
         <Link
           href={`/ledger?${next}`}

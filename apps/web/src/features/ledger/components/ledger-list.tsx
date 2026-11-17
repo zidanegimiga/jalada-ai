@@ -1,5 +1,8 @@
+import { BookOpen, SearchX } from "lucide-react";
 import Link from "next/link";
 
+import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Entry } from "@/features/review/types";
 import { formatDay, formatKsh } from "@/lib/format";
 
@@ -52,12 +55,51 @@ function Row({ entry }: { entry: Entry }) {
   );
 }
 
-export function LedgerList({ entries }: { entries: Entry[] }) {
+export function LedgerList({
+  entries,
+  filtered = false,
+}: {
+  entries: Entry[];
+  /** Whether a month, direction or purpose filter is on. */
+  filtered?: boolean;
+}) {
+  if (entries.length === 0 && filtered) {
+    return (
+      <EmptyState
+        Icon={SearchX}
+        title="Nothing matches"
+        action={
+          <Link
+            href="/ledger"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Show everything
+          </Link>
+        }
+      >
+        <p>No confirmed entries fit these filters.</p>
+      </EmptyState>
+    );
+  }
   if (entries.length === 0) {
     return (
-      <p className="text-lead text-muted-foreground">
-        Nothing confirmed here yet.
-      </p>
+      <EmptyState
+        Icon={BookOpen}
+        title="Your ledger is empty"
+        action={
+          <Link
+            href="/review"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Go to To check
+          </Link>
+        }
+      >
+        <p>
+          Entries appear here once you confirm them on To check. Each one keeps
+          the message or receipt it came from.
+        </p>
+      </EmptyState>
     );
   }
   return (

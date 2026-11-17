@@ -121,4 +121,22 @@ describe("LedgerFilters", () => {
       "false",
     );
   });
+
+  it("points a new user to To check when the ledger is empty", () => {
+    render(<LedgerList entries={[]} />);
+
+    expect(screen.getByText("Your ledger is empty")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Go to To check" }),
+    ).toHaveAttribute("href", "/review");
+  });
+
+  it("offers to clear the filters when nothing matches them", () => {
+    render(<LedgerList entries={[]} filtered />);
+
+    expect(screen.getByText("Nothing matches")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Show everything" }),
+    ).toHaveAttribute("href", "/ledger");
+  });
 });
