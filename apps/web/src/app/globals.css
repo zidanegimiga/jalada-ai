@@ -120,7 +120,8 @@
 /*
  * Palette: black, pumpkin, ivory and flax.
  * Text on pumpkin and flax is black, because white on pumpkin fails contrast.
- * Each colour is light-dark(light theme, dark theme). The theme follows the phone unless the
+ * Each colour is light-dark(light theme, dark theme). On light, the page is a deeper ivory
+ * and cards an ivory white, so cards stand off the page and borders show. The theme follows the phone unless the
  * person picks one, which sets data-theme on <html> (see ThemeScript).
  */
 :root {
@@ -131,24 +132,24 @@
   --ivory: #fefff6;
   --flax: #fdf2a0;
 
-  --background: light-dark(var(--ivory), #0c0c0a);
+  --background: light-dark(#f4f3e8, #0c0c0a);
   --foreground: light-dark(var(--black), var(--ivory));
-  --card: light-dark(#ffffff, #181816);
+  --card: light-dark(#fffffa, #181816);
   --card-foreground: light-dark(var(--black), var(--ivory));
-  --popover: light-dark(#ffffff, #181816);
+  --popover: light-dark(#fffffa, #181816);
   --popover-foreground: light-dark(var(--black), var(--ivory));
   --primary: var(--pumpkin);
   --primary-foreground: var(--black);
   --secondary: light-dark(var(--flax), #2e2a14);
   --secondary-foreground: light-dark(var(--black), var(--flax));
-  --muted: light-dark(#f1f2e6, #1f1f1c);
-  --muted-foreground: light-dark(#55574d, #b4b5a8);
+  --muted: light-dark(#e9e8d9, #1f1f1c);
+  --muted-foreground: light-dark(#4a4b41, #b4b5a8);
   --accent: light-dark(var(--flax), #2e2a14);
   --accent-foreground: light-dark(var(--black), var(--flax));
   --destructive: light-dark(#c62828, #ef6461);
   --money-in: light-dark(#2e7d4f, #63c08a);
-  --border: light-dark(#e4e5d8, #2d2d29);
-  --input: light-dark(#e4e5d8, #2d2d29);
+  --border: light-dark(#d6d5c2, #2d2d29);
+  --input: light-dark(#c9c8b3, #2d2d29);
   --ring: var(--pumpkin);
   /* The focus outline: a deeper pumpkin on light, because pumpkin itself is too light on ivory. */
   --focus: light-dark(#a84a17, var(--pumpkin));

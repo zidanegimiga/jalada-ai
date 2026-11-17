@@ -9,7 +9,7 @@ export const THEME_STORAGE_KEY = "jalada-theme";
 export const THEME_CHANGED = "jalada-theme-changed";
 
 /** The browser bar colour for each theme: the page background. */
-export const THEME_COLOURS = { light: "#fefff6", dark: "#0c0c0a" } as const;
+export const THEME_COLOURS = { light: "#f4f3e8", dark: "#0c0c0a" } as const;
 
 function isChoice(value: unknown): value is ThemeChoice {
   return THEME_CHOICES.includes(value as ThemeChoice);
