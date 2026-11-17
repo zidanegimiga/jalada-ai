@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 
+import { ActionButton } from "@/shared/components/ActionButton";
 import { Button } from "@/shared/components/Button";
 import { DatePicker } from "@/shared/components/DatePicker";
 import { FormField } from "@/features/auth/components/FormField";
@@ -101,9 +102,9 @@ export function EntryForm({
         }))}
         defaultValue={keptCategory || null}
       />
-      <Button type="submit" size="lg" disabled={busy}>
+      <ActionButton type="submit" busy={busy}>
         {busy ? "Saving..." : submitLabel}
-      </Button>
+      </ActionButton>
     </form>
   );
 }

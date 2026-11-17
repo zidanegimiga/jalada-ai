@@ -145,6 +145,10 @@
   /* Selected text: pumpkin with black text in both themes, instead of the browser's blue. */
   --selection: var(--pumpkin);
   --selection-foreground: var(--black);
+  /* Main action buttons turn this colour under the pointer: deep pumpkin on light, flax on dark. */
+  --action-hover: light-dark(#a84a17, var(--flax));
+  /* Its tile turns flax on light, where pumpkin would fade into the deeper pumpkin. */
+  --action-tile-hover: light-dark(var(--flax), var(--pumpkin));
   --radius: 1rem;
 }
 

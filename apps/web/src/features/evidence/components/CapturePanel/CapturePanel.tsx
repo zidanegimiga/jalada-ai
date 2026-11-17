@@ -3,6 +3,7 @@
 import { Camera, MessageSquareText } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { ActionButton } from "@/shared/components/ActionButton";
 import { Button, buttonVariants } from "@/shared/components/Button";
 import { Textarea } from "@/shared/components/Textarea";
 
@@ -62,9 +63,9 @@ export function CapturePanel() {
             className="text-foreground"
             required
           />
-          <Button type="submit" variant="secondary" size="lg" disabled={busy}>
+          <ActionButton type="submit" busy={busy}>
             Save message
-          </Button>
+          </ActionButton>
         </form>
       ) : (
         <Button

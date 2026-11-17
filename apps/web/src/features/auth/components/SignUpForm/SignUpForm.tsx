@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/shared/components/Button";
+import { ActionButton } from "@/shared/components/ActionButton";
 import { FormError } from "@/shared/components/FormError";
 
 import { signUp } from "../../api/auth.api";
@@ -29,9 +29,9 @@ export function SignUpForm() {
         At least 10 characters.
       </p>
       <FormError message={error} />
-      <Button type="submit" size="lg" disabled={pending}>
+      <ActionButton type="submit" busy={pending}>
         {pending ? "Creating account..." : "Create account"}
-      </Button>
+      </ActionButton>
     </form>
   );
 }

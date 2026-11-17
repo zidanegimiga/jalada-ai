@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/shared/components/Button";
+import { ActionButton } from "@/shared/components/ActionButton";
 import { FormError } from "@/shared/components/FormError";
 
 import { signIn } from "../../api/auth.api";
@@ -17,9 +17,9 @@ export function SignInForm() {
       <FormField label="Email" name="email" type="email" autoComplete="email" />
       <FormField label="Password" name="password" type="password" autoComplete="current-password" />
       <FormError message={error} />
-      <Button type="submit" size="lg" disabled={pending}>
+      <ActionButton type="submit" busy={pending}>
         {pending ? "Signing in..." : "Sign in"}
-      </Button>
+      </ActionButton>
     </form>
   );
 }

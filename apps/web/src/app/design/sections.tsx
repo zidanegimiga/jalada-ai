@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/Button";
 import { Input } from "@/shared/components/Input";
 import { Label } from "@/shared/components/Label";
 
+import { ControlSamples } from "./control-samples";
 import { COLOURS, ICONS, RADII, SHADOWS, SPACING, TYPE } from "./tokens";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -140,6 +141,7 @@ export function Components() {
       <p className="rounded-inset bg-secondary px-4 py-3 text-secondary-foreground">
         A note inside a card, such as a question about a payment.
       </p>
+      <ControlSamples />
     </Section>
   );
 }

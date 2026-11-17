@@ -3,7 +3,7 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 
-import { buttonVariants } from "@/shared/components/Button";
+import { ActionLink } from "@/shared/components/ActionButton";
 import { Select } from "@/shared/components/Select";
 
 /** Download one tax year (1 January to 31 December) as an Excel workbook for filing. */
@@ -37,14 +37,9 @@ export function ExportCard({
         value={String(year)}
         onValueChange={(next) => setYear(Number(next))}
       />
-      <a
-        href={`/v1/exports/${year}.xlsx`}
-        download
-        className={buttonVariants({ size: "lg" })}
-      >
-        <Download aria-hidden="true" />
+      <ActionLink href={`/v1/exports/${year}.xlsx`} download icon={Download}>
         Download {year} (Excel)
-      </a>
+      </ActionLink>
     </section>
   );
 }
