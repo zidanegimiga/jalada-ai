@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Spinner } from "@/shared/components/Spinner";
 import { buttonVariants } from "@/shared/components/Button";
 import { DeleteAccountForm } from "@/features/account/components/DeleteAccountForm";
+import { Preferences } from "@/features/account/components/Preferences";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
 
@@ -17,6 +18,7 @@ async function Account() {
         <p className="text-lead font-medium">{user.display_name}</p>
         <p className="text-muted-foreground">{user.email}</p>
       </section>
+      <Preferences />
       <section
         aria-labelledby="data-heading"
         className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"

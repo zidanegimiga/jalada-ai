@@ -2,6 +2,21 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* dark: classes follow the chosen theme, or the phone when nothing is chosen. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme="light"]),
+      :root:not([data-theme="light"]) *
+    ) {
+      @slot;
+    }
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -93,7 +108,8 @@
 /*
  * Palette: black, pumpkin, ivory and flax.
  * Text on pumpkin and flax is black, because white on pumpkin fails contrast.
- * The dark theme follows the phone's system setting.
+ * Each colour is light-dark(light theme, dark theme). The theme follows the phone unless the
+ * person picks one, which sets data-theme on <html> (see ThemeScript).
  */
 :root {
   color-scheme: light dark;
@@ -103,56 +119,47 @@
   --ivory: #fefff6;
   --flax: #fdf2a0;
 
-  --background: var(--ivory);
-  --foreground: var(--black);
-  --card: #ffffff;
-  --card-foreground: var(--black);
-  --popover: #ffffff;
-  --popover-foreground: var(--black);
+  --background: light-dark(var(--ivory), #0c0c0a);
+  --foreground: light-dark(var(--black), var(--ivory));
+  --card: light-dark(#ffffff, #181816);
+  --card-foreground: light-dark(var(--black), var(--ivory));
+  --popover: light-dark(#ffffff, #181816);
+  --popover-foreground: light-dark(var(--black), var(--ivory));
   --primary: var(--pumpkin);
   --primary-foreground: var(--black);
-  --secondary: var(--flax);
-  --secondary-foreground: var(--black);
-  --muted: #f1f2e6;
-  --muted-foreground: #55574d;
-  --accent: var(--flax);
-  --accent-foreground: var(--black);
-  --destructive: #c62828;
-  --money-in: #2e7d4f;
-  --border: #e4e5d8;
-  --input: #e4e5d8;
+  --secondary: light-dark(var(--flax), #2e2a14);
+  --secondary-foreground: light-dark(var(--black), var(--flax));
+  --muted: light-dark(#f1f2e6, #1f1f1c);
+  --muted-foreground: light-dark(#55574d, #b4b5a8);
+  --accent: light-dark(var(--flax), #2e2a14);
+  --accent-foreground: light-dark(var(--black), var(--flax));
+  --destructive: light-dark(#c62828, #ef6461);
+  --money-in: light-dark(#2e7d4f, #63c08a);
+  --border: light-dark(#e4e5d8, #2d2d29);
+  --input: light-dark(#e4e5d8, #2d2d29);
   --ring: var(--pumpkin);
-  /* The focus outline: a deeper pumpkin, because pumpkin itself is too light on ivory. */
-  --focus: #a84a17;
+  /* The focus outline: a deeper pumpkin on light, because pumpkin itself is too light on ivory. */
+  --focus: light-dark(#a84a17, var(--pumpkin));
   /* Selected text: pumpkin with black text in both themes, instead of the browser's blue. */
   --selection: var(--pumpkin);
   --selection-foreground: var(--black);
   --radius: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0c0a;
-    --foreground: var(--ivory);
-    --card: #181816;
-    --card-foreground: var(--ivory);
-    --popover: #181816;
-    --popover-foreground: var(--ivory);
-    --primary: var(--pumpkin);
-    --primary-foreground: var(--black);
-    --secondary: #2e2a14;
-    --secondary-foreground: var(--flax);
-    --muted: #1f1f1c;
-    --muted-foreground: #b4b5a8;
-    --accent: #2e2a14;
-    --accent-foreground: var(--flax);
-    --destructive: #ef6461;
-    --money-in: #63c08a;
-    --border: #2d2d29;
-    --input: #2d2d29;
-    --ring: var(--pumpkin);
-    --focus: var(--pumpkin);
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* While the theme switches, the new theme grows in a circle from the button (switchTheme)
+ * instead of the default cross-fade. */
+:root.theme-switching::view-transition-old(root),
+:root.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 @layer base {

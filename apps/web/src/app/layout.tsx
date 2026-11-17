@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
 
 import { Splash, SplashScript } from "@/app/_components/Splash";
+import { ThemeScript } from "@/app/_components/ThemeScript";
+import { THEME_COLOURS } from "@/shared/theme/theme";
 
 import "./globals.css";
 
@@ -20,15 +22,21 @@ export const metadata: Metadata = {
 // Colours the phone's browser bar to match the page in both themes.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fefff6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0c0a" },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLOURS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLOURS.dark },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${onest.variable} h-full antialiased`}>
+    // The scripts in <head> set data-theme and data-splash before React loads.
+    <html
+      lang="en"
+      className={`${onest.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <head>
+        <ThemeScript />
         <SplashScript />
       </head>
       <body className="min-h-full flex flex-col">
