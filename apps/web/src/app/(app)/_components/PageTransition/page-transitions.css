@@ -1,0 +1,76 @@
+/* Page changes inside the app. The header and the bottom bar are part of the root, which is
+ * swapped at once so they never move; only the page and the navigation highlight animate. */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.page-to-left) {
+  animation: page-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+  --page-shift: -12%;
+}
+
+::view-transition-old(.page-to-right) {
+  animation: page-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+  --page-shift: 12%;
+}
+
+::view-transition-new(.page-from-right) {
+  animation: page-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+  --page-shift: 16%;
+}
+
+::view-transition-new(.page-from-left) {
+  animation: page-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+  --page-shift: -16%;
+}
+
+::view-transition-old(.page-fade) {
+  animation: page-fade-out 200ms ease-in both;
+}
+
+::view-transition-new(.page-rise) {
+  animation: page-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+/* The pumpkin highlight in the bottom bar glides to the new page, with a little overshoot. */
+::view-transition-group(nav-highlight) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateX(var(--page-shift));
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--page-shift));
+  }
+}
+
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -7,6 +7,8 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/shared/styles/cn";
 
+import { NAV_BACK, NAV_FORWARD } from "../PageTransition";
+
 type Destination = { href: string; label: string; Icon: LucideIcon };
 
 const LINKS: Destination[] = [
@@ -44,7 +46,11 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
             "absolute inset-y-1.5 left-1.5 w-24 rounded-full bg-primary transition-[translate,opacity] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] motion-reduce:transition-none",
             current < 0 && "opacity-0",
           )}
-          style={{ translate: `calc(var(--current) * 100%) 0` }}
+          style={{
+            translate: `calc(var(--current) * 100%) 0`,
+            // Its own name, so a page change glides it to the new page.
+            viewTransitionName: "nav-highlight",
+          }}
         />
         {LINKS.map(({ href, label, Icon }, index) => {
           const here = index === current;
@@ -53,6 +59,7 @@ export function AppNav({ toCheck }: { toCheck?: ReactNode }) {
               <Link
                 href={href}
                 aria-current={here ? "page" : undefined}
+                transitionTypes={[index > current ? NAV_FORWARD : NAV_BACK]}
                 className={cn(
                   "group flex h-14 w-24 flex-col items-center justify-center gap-0.5 rounded-full text-tiny font-medium transition-[color,scale] duration-300 active:scale-95",
                   here && "text-primary-foreground",
