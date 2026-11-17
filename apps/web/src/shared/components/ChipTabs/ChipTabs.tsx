@@ -1,10 +1,11 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
 
 import { cn } from "@/shared/styles/cn";
 
-type Chip = { value: string; label: string };
+type Chip = { value: string; label: string; Icon?: LucideIcon };
 
 type ChipTabsProps = {
   /** Read out for the group, such as "Direction". */
@@ -61,12 +62,13 @@ export function ChipTabs({
             disabled={disabled}
             onClick={() => onChange(chip.value)}
             className={cn(
-              "relative min-h-tap shrink-0 rounded-full px-4 text-small font-medium whitespace-nowrap transition-colors duration-300",
+              "relative flex min-h-tap shrink-0 items-center gap-1.5 rounded-full px-4 text-small font-medium whitespace-nowrap transition-colors duration-300",
               active
                 ? "text-background"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
+            {chip.Icon && <chip.Icon aria-hidden="true" className="size-4" />}
             {chip.label}
           </button>
         );

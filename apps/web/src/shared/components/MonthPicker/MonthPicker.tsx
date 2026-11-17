@@ -1,7 +1,12 @@
 "use client";
 
 import { Popover } from "@base-ui/react/popover";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useId, useState } from "react";
 
 import { cn } from "@/shared/styles/cn";
@@ -37,6 +42,8 @@ type MonthPickerProps = {
   /** Shown when no month is picked. */
   emptyLabel?: string;
   disabled?: boolean;
+  /** A pill as wide as its words, for a filter bar. The label is kept for screen readers. */
+  compact?: boolean;
 };
 
 /** Picks one month, or none, from a grid that opens under the control. */
@@ -46,6 +53,7 @@ export function MonthPicker({
   onChange,
   emptyLabel = "All months",
   disabled,
+  compact = false,
 }: MonthPickerProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -58,20 +66,34 @@ export function MonthPicker({
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <div className="flex flex-col gap-2">
-        <label htmlFor={id} className={CONTROL_LABEL}>
+      <div className={cn("flex flex-col gap-2", compact && "w-fit")}>
+        <label htmlFor={id} className={compact ? "sr-only" : CONTROL_LABEL}>
           {label}
         </label>
-        <Popover.Trigger id={id} disabled={disabled} className={CONTROL}>
+        <Popover.Trigger
+          id={id}
+          disabled={disabled}
+          className={
+            compact
+              ? "flex min-h-tap items-center gap-2 rounded-full bg-foreground pr-3 pl-4 font-medium text-background transition-[scale,opacity] active:scale-[0.97] disabled:opacity-50"
+              : CONTROL
+          }
+        >
           <CalendarDays aria-hidden="true" className="size-icon shrink-0" />
           <span
             className={cn(
               "flex-1 truncate",
-              !picked && "text-muted-foreground",
+              !picked && !compact && "text-muted-foreground",
             )}
           >
             {picked ? LONG.format(picked) : emptyLabel}
           </span>
+          {compact && (
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 opacity-70 transition-transform in-data-popup-open:rotate-180"
+            />
+          )}
         </Popover.Trigger>
       </div>
       <Popover.Portal>

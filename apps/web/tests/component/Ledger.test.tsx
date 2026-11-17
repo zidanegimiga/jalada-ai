@@ -127,6 +127,21 @@ describe("LedgerFilters", () => {
     );
   });
 
+  it("clears every filter at once, and offers to only when something is filtered", () => {
+    query = "month=2026-11&direction=in&purpose=business";
+    const { unmount } = render(<LedgerFilters />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/ledger");
+    unmount();
+
+    query = "";
+    render(<LedgerFilters />);
+    expect(
+      screen.queryByRole("button", { name: "Clear filters" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("points a new user to To check when the ledger is empty", () => {
     render(<LedgerList entries={[]} />);
 
