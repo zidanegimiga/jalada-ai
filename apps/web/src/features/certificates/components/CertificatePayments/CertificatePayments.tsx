@@ -1,0 +1,113 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { Amount } from "@/shared/components/Amount";
+import { Button } from "@/shared/components/Button";
+import { FormError } from "@/shared/components/FormError";
+import { formatDay, formatKsh } from "@/shared/format/format";
+
+import { linkPayment, unlinkPayment } from "../../api/certificates.api";
+import type { Certificate } from "../../types";
+import { describe, PaymentRow } from "../PaymentRow";
+
+const LIST =
+  "flex flex-col divide-y divide-border rounded-card border border-border bg-card";
+
+/** Links a withholding certificate to the deposits that paid it, so income counts once. */
+export function CertificatePayments({ data }: { data: Certificate }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const { certificate, payments, suggestions } = data;
+
+  async function run(action: () => Promise<unknown>) {
+    setError(null);
+    try {
+      await action();
+      router.refresh();
+    } catch (caught) {
+      setError((caught as Error).message);
+    }
+  }
+
+  return (
+    <>
+      <section className="flex flex-col gap-1 rounded-card border border-border bg-card p-card">
+        <p className="text-amount">
+          <Amount cents={certificate.amount_cents ?? 0} />
+        </p>
+        <p className="text-muted-foreground">
+          {certificate.counterparty ?? "Unknown payer"}
+          {certificate.occurred_on
+            ? ` · ${formatDay(certificate.occurred_on)}`
+            : ""}
+        </p>
+        <p>
+          Tax withheld {formatKsh(certificate.tax_withheld_cents ?? 0)}, so they
+          would have paid you {formatKsh(data.expected_payment_cents)}.
+        </p>
+      </section>
+      <section aria-labelledby="linked-heading" className="flex flex-col gap-3">
+        <h2 id="linked-heading" className="text-title">
+          Payments for this certificate
+        </h2>
+        {payments.length === 0 ? (
+          <p className="text-muted-foreground">
+            None linked yet. Until you link the payment, the workbook counts
+            this income twice.
+          </p>
+        ) : (
+          <ul className={LIST}>
+            {payments.map((payment) => (
+              <PaymentRow
+                key={payment.id}
+                payment={payment}
+                action={
+                  <Button
+                    variant="outline"
+                    aria-label={`Unlink ${describe(payment)}`}
+                    onClick={() =>
+                      run(() => unlinkPayment(certificate.id, payment.id))
+                    }
+                  >
+                    Unlink
+                  </Button>
+                }
+              />
+            ))}
+          </ul>
+        )}
+      </section>
+      {suggestions.length > 0 && (
+        <section
+          aria-labelledby="suggested-heading"
+          className="flex flex-col gap-3"
+        >
+          <h2 id="suggested-heading" className="text-title">
+            Could be the payment
+          </h2>
+          <ul className={LIST}>
+            {suggestions.map((payment) => (
+              <PaymentRow
+                key={payment.id}
+                payment={payment}
+                action={
+                  <Button
+                    aria-label={`Link ${describe(payment)}`}
+                    onClick={() =>
+                      run(() => linkPayment(certificate.id, payment.id))
+                    }
+                  >
+                    Link
+                  </Button>
+                }
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+      <FormError message={error} />
+    </>
+  );
+}

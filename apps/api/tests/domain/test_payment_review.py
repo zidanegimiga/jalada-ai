@@ -11,6 +11,7 @@ from jalada.modules.ledger.domain.payment_review import ReviewProblem, confirmed
 from jalada.modules.ledger.domain.transactions import (
     EvidenceRole,
     Transaction,
+    TransactionKind,
     TransactionLine,
     TransactionStatus,
     from_entry,
@@ -85,3 +86,20 @@ def test_a_split_payment_is_changed_line_by_line() -> None:
         corrected(split, Correction(category="personal_food"))
     done = confirmed(split, NOW)
     assert [line.purpose for line in done.lines] == [Purpose.PERSONAL, Purpose.BUSINESS]
+
+
+def test_choosing_a_transfer_category_makes_it_a_transfer() -> None:
+    transfer = corrected(proposed(), Correction(category="own_transfer_out"))
+
+    assert transfer.kind == TransactionKind.TRANSFER
+    assert confirmed(transfer, NOW).kind == TransactionKind.TRANSFER
+
+
+def test_choosing_another_category_makes_a_transfer_a_payment_again() -> None:
+    transfer = replace(proposed("own_transfer_out"), kind=TransactionKind.TRANSFER)
+    moved = replace(transfer, to_account_id=uuid.uuid4())
+
+    payment = corrected(moved, Correction(category="personal_food"))
+
+    assert (payment.kind, payment.to_account_id) == (TransactionKind.PAYMENT, None)
+    assert corrected(moved, Correction(amount_cents=100)).kind == TransactionKind.TRANSFER

@@ -12,6 +12,15 @@ class LedgerFilter:
     direction: Direction | None = None
     purpose: Purpose | None = None
     category: str | None = None
+    # Words to find in who the money was with, in any case.
+    search: str | None = None
+
+
+def matches_search(counterparty: str | None, search: str | None) -> bool:
+    """Whether a counterparty holds the search words, ignoring case. No search matches all."""
+    if not search:
+        return True
+    return search.casefold() in (counterparty or "").casefold()
 
 
 @dataclass(frozen=True)
@@ -28,6 +37,26 @@ class Total:
     direction: Direction
     purpose: Purpose
     cents: int
+
+
+@dataclass(frozen=True)
+class CategoryTotal:
+    """Confirmed money in one direction and category. `category` is None for money that
+    was confirmed without one."""
+
+    direction: Direction
+    category: str | None
+    cents: int
+
+
+def combine(totals: list[CategoryTotal]) -> list[CategoryTotal]:
+    """Adds up totals from several sources by direction and category, largest first."""
+    sums: dict[tuple[Direction, str | None], int] = {}
+    for total in totals:
+        key = (total.direction, total.category)
+        sums[key] = sums.get(key, 0) + total.cents
+    combined = [CategoryTotal(d, c, cents) for (d, c), cents in sums.items() if cents]
+    return sorted(combined, key=lambda t: t.cents, reverse=True)
 
 
 @dataclass

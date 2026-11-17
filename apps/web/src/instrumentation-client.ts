@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { errorTrackingOptions } from "@/lib/error-tracking";
+import { errorTrackingOptions } from "@/shared/monitoring/error-tracking";
 
 Sentry.init({
   ...errorTrackingOptions(),

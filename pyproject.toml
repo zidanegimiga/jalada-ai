@@ -69,7 +69,7 @@ forbidden_modules = ["jalada.modules.*.application", "jalada.modules.*.adapters"
 name = "Inside a module, layers only depend downwards"
 type = "layers"
 containers = ["jalada.modules.accounts", "jalada.modules.evidence", "jalada.modules.pipeline", "jalada.modules.ledger", "jalada.modules.exports", "jalada.modules.telegram", "jalada.modules.health"]
-layers = ["(module)", "(api) | (adapters)", "(application)", "(domain)"]
+layers = ["(module) | (wiring)", "(api) | (adapters)", "(application)", "(domain)"]
 
 [[tool.importlinter.contracts]]
 name = "accounts does not use another module's adapters or routes"

@@ -1,0 +1,1 @@
+export { CertificatePayments } from "./CertificatePayments";

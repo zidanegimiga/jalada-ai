@@ -6,7 +6,7 @@ import uuid
 import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store
 from receipts import USER
-from transfers import AGAIN, OTHER_ACCOUNT, TO_BANK, Paste
+from transfers import AGAIN, FROM_BANK, FROM_BANK_AGAIN, OTHER_ACCOUNT, TO_BANK, Paste
 
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.own_accounts import OwnAccounts
@@ -124,3 +124,98 @@ def test_another_account_at_the_same_paybill_is_still_asked_about(
 
     asked = [item.ask_own_account for item in review.queue(USER)]
     assert asked == [False, True]
+
+
+def test_money_in_from_a_bank_is_asked_about(paste: Paste, review: EntryReview) -> None:
+    paste(FROM_BANK)
+
+    [item] = review.queue(USER)
+    assert item.ask_own_account
+
+
+def test_yes_makes_money_in_from_a_bank_a_transfer(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    payment_id = paste(FROM_BANK)
+
+    entry = own.say_mine(USER, payment_id)
+
+    assert entry.category == "own_transfer"
+    transfer = store.transactions[payment_id]
+    account = store.money_accounts[transfer.to_account_id] if transfer.to_account_id else None
+    assert transfer.kind == TransactionKind.TRANSFER
+    assert account is not None and account.name == "SAMPLE BANK 303030"
+    assert account.identifiers == {"sender": "sample bank 303030"}
+    review.confirm(USER, payment_id)
+
+    later = paste(FROM_BANK_AGAIN)
+
+    assert store.transactions[later].kind == TransactionKind.TRANSFER
+    assert store.transactions[later].to_account_id == account.id
+    [item] = review.queue(USER)
+    assert item.ready and not item.ask_own_account
+
+
+def test_choosing_a_transfer_category_under_change_makes_a_transfer(
+    paste: Paste, review: EntryReview, store: Store
+) -> None:
+    payment_id = paste(FROM_BANK)
+
+    review.confirm(USER, payment_id, Correction(category="own_transfer"))
+
+    assert store.transactions[payment_id].kind == TransactionKind.TRANSFER
+
+
+def test_a_waiting_transfer_shows_its_account(
+    paste: Paste, own: OwnAccounts, review: EntryReview
+) -> None:
+    own.say_mine(USER, paste(TO_BANK))
+
+    [item] = review.queue(USER)
+    assert item.own_account == "SAMPLE BANK PAYBILL ending 6789"
+
+
+def test_taking_back_yes_asks_again(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    first, again = paste(TO_BANK), paste(AGAIN)
+    own.say_mine(USER, first)
+
+    entry = own.take_back(USER, first)
+
+    assert entry.category is None
+    payments = [store.transactions[t] for t in (first, again)]
+    assert [(p.kind, p.to_account_id) for p in payments] == [(TransactionKind.PAYMENT, None)] * 2
+    assert [a.identifiers for a in store.money_accounts.values() if a.user_id == USER] == [{}]
+    assert [(i.ask_own_account, i.own_account) for i in review.queue(USER)] == [(True, None)] * 2
+    later = paste(TO_BANK.replace("UK6CC1CC11", "UK6CC1CC19"))
+    assert store.transactions[later].kind == TransactionKind.PAYMENT
+
+
+def test_a_confirmed_transfer_stays_when_another_is_taken_back(
+    paste: Paste, own: OwnAccounts, store: Store, review: EntryReview
+) -> None:
+    first = paste(TO_BANK)
+    own.say_mine(USER, first)
+    review.confirm(USER, first)
+    later = paste(AGAIN)
+
+    own.take_back(USER, later)
+
+    assert store.transactions[first].kind == TransactionKind.TRANSFER
+    assert store.transactions[later].kind == TransactionKind.PAYMENT
+
+
+def test_only_a_waiting_transfer_can_be_taken_back(
+    paste: Paste, own: OwnAccounts, review: EntryReview
+) -> None:
+    payment_id = paste(TO_BANK)
+
+    with pytest.raises(InvalidEntry):
+        own.take_back(USER, payment_id)
+    own.say_mine(USER, payment_id)
+    with pytest.raises(EntryNotFound):
+        own.take_back(uuid.uuid4(), payment_id)
+    review.confirm(USER, payment_id)
+    with pytest.raises(InvalidEntry):
+        own.take_back(USER, payment_id)

@@ -9,7 +9,13 @@ from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+    matches_search,
+)
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import (
@@ -86,6 +92,19 @@ class FakeEntries:
                 sums[key] = sums.get(key, 0) + (e.amount_cents or 0)
         return [Total(m, d, p, cents) for (m, d, p), cents in sums.items()]
 
+    def category_totals(
+        self, start: date, end: date, kind: EntryKind | None = None
+    ) -> list[CategoryTotal]:
+        sums: dict[tuple[Direction, str | None], int] = {}
+        for e in self._mine():
+            if e.id in self._linked_payments or kind not in (None, e.kind):
+                continue
+            day = e.occurred_on
+            if e.status == EntryStatus.CONFIRMED and day and start <= day <= end:
+                key = (e.direction or Direction.OUT, e.category)
+                sums[key] = sums.get(key, 0) + (e.amount_cents or 0)
+        return [CategoryTotal(d, c, cents) for (d, c), cents in sums.items()]
+
     def has_certificate_serial(self, serial: str) -> bool:
         return any(e.certificate_serial == serial for e in self._mine())
 
@@ -112,6 +131,7 @@ def _keeps(filters: LedgerFilter, entry: Entry) -> bool:
         or (filters.direction and entry.direction != filters.direction)
         or (filters.purpose and entry.purpose != filters.purpose)
         or (filters.category and entry.category != filters.category)
+        or not matches_search(entry.counterparty, filters.search)
     )
 
 
@@ -122,6 +142,8 @@ def _keeps_transaction(filters: LedgerFilter, t: Transaction) -> bool:
     ):
         return False
     if filters.direction and t.direction != filters.direction:
+        return False
+    if not matches_search(t.counterparty, filters.search):
         return False
     return any(
         (not filters.purpose or line.purpose == filters.purpose)
@@ -161,6 +183,11 @@ class FakeMoneyAccounts:
         if account.user_id != self._user_id:
             raise PermissionError("Account belongs to another user")
         assert account.name not in {a.name for a in self.all()}, "the database refuses it"
+        self.rows[account.id] = account
+
+    def update(self, account: MoneyAccount) -> None:
+        if account.id not in {a.id for a in self.all()}:
+            raise LookupError("No such account for this user")
         self.rows[account.id] = account
 
 
@@ -264,6 +291,20 @@ class FakeTransactions:
                 key = (day.month, t.direction or Direction.OUT, line.purpose)
                 sums[key] = sums.get(key, 0) + (line.amount_cents or 0)
         return [Total(m, d, p, cents) for (m, d, p), cents in sums.items()]
+
+    def category_totals(self, start: date, end: date) -> list[CategoryTotal]:
+        sums: dict[tuple[Direction, str | None], int] = {}
+        for t in self.rows.values():
+            day = t.occurred_on
+            mine = t.user_id == self._user_id and t.id not in self._linked_payments
+            if t.kind == TransactionKind.TRANSFER or not mine or not day:
+                continue
+            if t.status != TransactionStatus.CONFIRMED or not start <= day <= end:
+                continue
+            for line in t.lines:
+                key = (t.direction or Direction.OUT, line.category)
+                sums[key] = sums.get(key, 0) + (line.amount_cents or 0)
+        return [CategoryTotal(d, c, cents) for (d, c), cents in sums.items()]
 
     def update(self, transaction: Transaction) -> None:
         old = self.get(transaction.id)

@@ -12,8 +12,13 @@ from jalada.modules.ledger.api.schemas.ledger import (
     all_categories,
     decode_position,
 )
+from jalada.modules.ledger.api.schemas.summary import (
+    CategoryTotalResponse,
+    CategoryTotalsResponse,
+)
 from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.ledger.domain.ledger import LedgerFilter
+from jalada.shared.errors import InvalidEntry
 
 router = APIRouter(tags=["ledger"])
 
@@ -27,10 +32,13 @@ def read_ledger(
     direction: Direction | None = None,
     purpose: Purpose | None = None,
     category: str | None = None,
+    search: Annotated[str | None, Query(max_length=80)] = None,
     cursor: str | None = None,
 ) -> LedgerResponse:
-    """Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page."""
-    filters = LedgerFilter(start, end, direction, purpose, category)
+    """Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.
+    `search` finds words in who the money was with."""
+    words = search.strip() if search else None
+    filters = LedgerFilter(start, end, direction, purpose, category, words or None)
     after = decode_position(cursor) if cursor else None
     return LedgerResponse.from_page(services.ledger.page(user.id, filters, after))
 
@@ -43,6 +51,20 @@ def read_monthly_summary(
 ) -> YearResponse:
     months = services.ledger.year(user.id, year)
     return YearResponse(year=year, months=[MonthResponse.from_summary(m) for m in months])
+
+
+@router.get("/v1/summary/categories")
+def read_category_totals(
+    user: CurrentUser,
+    services: ServicesDependency,
+    start: Annotated[date, Query(alias="from")],
+    end: Annotated[date, Query(alias="to")],
+) -> CategoryTotalsResponse:
+    """Confirmed money in and out per category between two dates, both included."""
+    if end < start:
+        raise InvalidEntry("The end date is before the start date.")
+    totals = services.ledger.categories(user.id, start, end)
+    return CategoryTotalsResponse(totals=[CategoryTotalResponse.from_total(t) for t in totals])
 
 
 @router.get("/v1/categories")

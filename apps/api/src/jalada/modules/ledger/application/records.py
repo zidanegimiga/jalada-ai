@@ -6,7 +6,13 @@ from datetime import date
 from uuid import UUID
 
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+    combine,
+)
 from jalada.modules.ledger.domain.transactions import as_entry
 from jalada.unit_of_work import UnitOfWork
 
@@ -32,6 +38,13 @@ def monthly_totals(work: UnitOfWork, user_id: UUID, year: int) -> list[Total]:
     """Confirmed money in and out per month, direction and purpose."""
     payments = work.transactions_for(user_id).monthly_totals(year)
     return payments + work.entries_for(user_id).monthly_totals(year, CERTIFICATE)
+
+
+def category_totals(work: UnitOfWork, user_id: UUID, start: date, end: date) -> list[CategoryTotal]:
+    """Confirmed money in and out per category between two dates, largest first."""
+    payments = work.transactions_for(user_id).category_totals(start, end)
+    certificates = work.entries_for(user_id).category_totals(start, end, CERTIFICATE)
+    return combine(payments + certificates)
 
 
 def payment(work: UnitOfWork, user_id: UUID, payment_id: UUID) -> Entry | None:

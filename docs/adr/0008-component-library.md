@@ -10,7 +10,7 @@ Decision 0005 chose Tailwind and rejected component kits such as Material UI, be
 ## Options considered
 1. **Build every component by hand on Tailwind.** Full control, but slow, and accessibility is ours to get right each time.
 2. **A packaged kit such as Material UI or Chakra UI.** Fast to start, but the downloads are large and restyling them to our look means fighting their defaults.
-3. **shadcn/ui.** Not installed as a package. Its command line tool copies each component's source into `src/components/ui/`, styled with Tailwind and built on an accessible primitives library. We own and edit the code, and only the components we add are shipped.
+3. **shadcn/ui.** Not installed as a package. Its command line tool copies each component's source into `src/shared/components/`, styled with Tailwind and built on an accessible primitives library. We own and edit the code, and only the components we add are shipped.
 
 For the primitives under shadcn:
 1. **Radix UI.** The long-standing choice, but its development has slowed.

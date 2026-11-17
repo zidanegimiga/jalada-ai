@@ -47,7 +47,7 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(
-      page.getByRole("heading", { name: "Hello, Journey Test" }),
+      page.getByRole("heading", { name: "Hello, Journey" }),
     ).toBeVisible();
   });
 
@@ -67,9 +67,8 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
     await expect(page.getByText("KSh 150.00")).toBeVisible();
     await expect(page.getByText("JANE WANJIKU")).toBeVisible();
     await page.getByRole("button", { name: "Change" }).click();
-    await page
-      .getByLabel("What it was for")
-      .selectOption({ label: "Family support given" });
+    await page.getByRole("combobox", { name: "What it was for" }).click();
+    await page.getByRole("option", { name: "Family support given" }).click();
     await page.getByRole("button", { name: "Save and confirm" }).click();
     await expect(page.getByText("KSh 150.00")).toBeHidden();
   });
@@ -82,7 +81,8 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
   });
 
   await test.step("download the year's workbook", async () => {
-    await page.getByLabel("Year").selectOption(String(message.year));
+    await page.getByRole("combobox", { name: "Year" }).click();
+    await page.getByRole("option", { name: String(message.year) }).click();
     const downloading = page.waitForEvent("download");
     await page
       .getByRole("link", { name: `Download ${message.year} (Excel)` })
@@ -96,7 +96,7 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
   });
 
   await test.step("delete the account", async () => {
-    await page.getByRole("link", { name: "Account", exact: true }).click();
+    await page.getByRole("link", { name: /^Account for/ }).click();
     await page.getByLabel(`Type ${email} to confirm`).fill(email);
     await page.getByRole("button", { name: "Delete my account" }).click();
     await expect(page).toHaveURL(/\/signup$/);

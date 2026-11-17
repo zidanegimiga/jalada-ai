@@ -9,7 +9,12 @@ from jalada.modules.ledger.domain.categories import Purpose
 if TYPE_CHECKING:
     pass
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
-from jalada.modules.ledger.domain.ledger import LedgerFilter, LedgerPosition, Total
+from jalada.modules.ledger.domain.ledger import (
+    CategoryTotal,
+    LedgerFilter,
+    LedgerPosition,
+    Total,
+)
 from jalada.modules.ledger.domain.money_accounts import MoneyAccount
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion
 from jalada.modules.ledger.domain.transactions import Transaction
@@ -41,6 +46,9 @@ class EntryRepository(Protocol):
         kind: EntryKind | None = None,
     ) -> list[Entry]: ...
     def monthly_totals(self, year: int, kind: EntryKind | None = None) -> list[Total]: ...
+    def category_totals(
+        self, start: date, end: date, kind: EntryKind | None = None
+    ) -> list[CategoryTotal]: ...
     def all(self) -> list[Entry]: ...
     def revisions(self) -> list[Revision]: ...
     def has_certificate_serial(self, serial: str) -> bool: ...
@@ -67,6 +75,9 @@ class MoneyAccountRepository(Protocol):
 
     def all(self) -> list[MoneyAccount]: ...
     def add(self, account: MoneyAccount) -> None: ...
+    def update(self, account: MoneyAccount) -> None:
+        """Saves a new name or identifiers for an account the user already has."""
+        ...
 
 
 class TransactionRepository(Protocol):
@@ -114,6 +125,12 @@ class TransactionRepository(Protocol):
     def monthly_totals(self, year: int) -> list[Total]:
         """Confirmed lines per month, direction and purpose. Payments linked to a
         certificate are left out: the certificate's gross amount counts them."""
+        ...
+
+    def category_totals(self, start: date, end: date) -> list[CategoryTotal]:
+        """Confirmed lines per direction and category between two dates, both included.
+        Transfers and payments linked to a certificate are left out, as in the monthly
+        totals."""
         ...
 
     def update(self, transaction: Transaction) -> None:

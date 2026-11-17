@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 from samples import CERTIFICATE, MPESA_SENT
-from transfers import TO_BANK
+from transfers import FROM_BANK, TO_BANK
 
 from jalada.modules.ledger.domain.categories import Purpose
 from jalada.modules.pipeline.domain.certificates import parse_certificate
@@ -109,3 +109,12 @@ def test_a_payment_to_an_own_account_is_a_transfer() -> None:
 
     assert (classification.category, classification.source) == ("own_transfer_out", "own_account")
     assert classify(extraction, {}, []).category is None
+
+
+def test_money_in_from_an_own_account_is_a_transfer() -> None:
+    extraction = parse_mpesa(FROM_BANK)
+    assert extraction is not None
+
+    classification = classify(extraction, {}, [{"sender": "sample bank 303030"}])
+
+    assert (classification.category, classification.source) == ("own_transfer", "own_account")

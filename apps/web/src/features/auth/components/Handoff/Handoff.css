@@ -1,0 +1,76 @@
+/* The hand-off between sign-in and sign-up: columns rise to cover the page, a dot crosses a
+ * dashed line under the destination's name, then the columns lift away to show it. */
+
+.handoff-column {
+  transform: translateY(100%);
+}
+
+.handoff-column:nth-child(even) {
+  background: #141412;
+}
+
+[data-phase="covering"] .handoff-column {
+  animation: handoff-rise 480ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: calc(var(--column) * 45ms);
+}
+
+[data-phase="revealing"] .handoff-column {
+  transform: none;
+  animation: handoff-lift 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: calc(var(--column) * 45ms);
+}
+
+.handoff-centre {
+  opacity: 0;
+}
+
+[data-phase="covering"] .handoff-centre {
+  animation: handoff-fade-in 300ms ease-out 260ms forwards;
+}
+
+[data-phase="revealing"] .handoff-centre {
+  opacity: 1;
+  animation: handoff-fade-out 200ms ease-in forwards;
+}
+
+.handoff-dot {
+  left: 0;
+}
+
+[data-phase="covering"] .handoff-dot {
+  animation: handoff-travel 850ms cubic-bezier(0.65, 0, 0.35, 1) 200ms forwards;
+}
+
+[data-phase="revealing"] .handoff-dot {
+  left: 100%;
+}
+
+@keyframes handoff-rise {
+  to {
+    transform: none;
+  }
+}
+
+@keyframes handoff-lift {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes handoff-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes handoff-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes handoff-travel {
+  to {
+    left: 100%;
+  }
+}

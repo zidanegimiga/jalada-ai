@@ -215,3 +215,18 @@ def test_saying_a_paybill_account_is_mine(client: TestClient, store: Store, past
     client.cookies.clear()
     sign_up(client, "other@example.com")
     assert client.post(f"/v1/payments/{item['entry']['id']}/own-account").status_code == 404
+
+
+def test_taking_back_a_paybill_account(client: TestClient, store: Store, paste: Paste) -> None:
+    sign_up(client)
+    [user_id] = store.users
+    payment_id = paste(TO_BANK, user=user_id)
+    client.post(f"/v1/payments/{payment_id}/own-account")
+    [item] = client.get("/v1/review").json()["items"]
+    assert item["own_account"] == "SAMPLE BANK PAYBILL ending 6789"
+
+    response = client.post(f"/v1/payments/{payment_id}/own-account/undo")
+
+    assert response.status_code == 200
+    assert response.json()["category"] is None
+    assert client.post(f"/v1/payments/{payment_id}/own-account/undo").status_code == 422

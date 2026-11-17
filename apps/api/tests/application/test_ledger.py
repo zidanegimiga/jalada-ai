@@ -103,3 +103,52 @@ def test_the_month_view_counts_transaction_lines(ledger: Ledger, store: Store) -
     april = ledger.year(USER, 2026)[3]
 
     assert april.money_out == {Purpose.PERSONAL: 10_000, Purpose.BUSINESS: 5_000}
+
+
+def test_categories_add_up_money_in_and_out_largest_first(ledger: Ledger) -> None:
+    january = ledger.categories(USER, date(2026, 1, 1), date(2026, 1, 31))
+
+    assert [(t.direction, t.category, t.cents) for t in january] == [
+        (Direction.IN, "consultancy_fees", 4_000_000),
+        (Direction.IN, "family_support", 500_000),
+        (Direction.OUT, "business_airtime_data", 25_000),
+    ]
+
+
+def test_categories_count_split_lines_and_leave_out_linked_payments(
+    ledger: Ledger, store: Store
+) -> None:
+    entry = confirmed_entry(USER, date(2026, 4, 1), 15_000, "out", "personal_food")
+    split = (
+        TransactionLine(10_000, "personal_food", Purpose.PERSONAL),
+        TransactionLine(5_000, "business_stock", Purpose.BUSINESS),
+    )
+    store.transactions[entry.id] = replace(from_entry(entry, None, EvidenceRole.OTHER), lines=split)
+    cert = certificate(USER, date(2026, 4, 3), 4_000_000, 200_000, "CLIENT")
+    paid = deposit(USER, date(2026, 4, 5), 3_800_000, "CLIENT")
+    store.save_entries(cert, paid)
+    store.certificate_payments[paid.id] = (USER, cert.id)
+
+    april = {
+        t.category: t.cents for t in ledger.categories(USER, date(2026, 4, 1), date(2026, 4, 30))
+    }
+
+    assert april["personal_food"] == 10_000 and april["business_stock"] == 5_000
+    assert sum(april.values()) == 15_000 + 4_000_000, "the deposit is counted on its certificate"
+
+
+def test_search_finds_who_the_money_was_with_in_any_case(ledger: Ledger, store: Store) -> None:
+    store.save_entries(
+        replace(
+            confirmed_entry(USER, date(2026, 5, 2), 640_00, "out", "personal_food"),
+            counterparty="MAMA MBOGA SHOP",
+        ),
+        replace(
+            confirmed_entry(USER, date(2026, 5, 3), 900_00, "out", "personal_food"),
+            counterparty="JANE WANJIKU",
+        ),
+    )
+
+    found = ledger.page(USER, LedgerFilter(search="mboga")).entries
+
+    assert [e.counterparty for e in found] == ["MAMA MBOGA SHOP"]

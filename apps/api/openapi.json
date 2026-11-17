@@ -41,6 +41,57 @@
         "title": "CategoryResponse",
         "type": "object"
       },
+      "CategoryTotalResponse": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "cents": {
+            "title": "Cents",
+            "type": "integer"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "direction",
+          "category",
+          "name",
+          "cents"
+        ],
+        "title": "CategoryTotalResponse",
+        "type": "object"
+      },
+      "CategoryTotalsResponse": {
+        "description": "Totals per category between two dates, largest first.",
+        "properties": {
+          "totals": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryTotalResponse"
+            },
+            "title": "Totals",
+            "type": "array"
+          }
+        },
+        "required": [
+          "totals"
+        ],
+        "title": "CategoryTotalsResponse",
+        "type": "object"
+      },
       "CertificateResponse": {
         "properties": {
           "certificate": {
@@ -772,6 +823,17 @@
                 "type": "null"
               }
             ]
+          },
+          "own_account": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Own Account"
           },
           "ready": {
             "default": false,
@@ -1651,7 +1713,7 @@
     },
     "/v1/entries": {
       "get": {
-        "description": "Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.",
+        "description": "Confirmed entries, newest first. Pass `next_cursor` back as `cursor` for the next page.\n`search` finds words in who the money was with.",
         "operationId": "read_ledger_v1_entries_get",
         "parameters": [
           {
@@ -1734,6 +1796,23 @@
                 }
               ],
               "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
             }
           },
           {
@@ -2548,6 +2627,66 @@
         ]
       }
     },
+    "/v1/payments/{entry_id}/own-account/undo": {
+      "post": {
+        "description": "The account is not the user's after all. Returns the payment, with what it was for\nstill to choose.",
+        "operationId": "take_back_the_account_v1_payments__entry_id__own_account_undo_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Take Back The Account",
+        "tags": [
+          "review"
+        ]
+      }
+    },
     "/v1/receipts/{entry_id}/paid": {
       "post": {
         "description": "For a receipt whose payment never arrived. Returns the payment, which still needs\nconfirming.",
@@ -2897,6 +3036,76 @@
         "summary": "Undo Suggestion",
         "tags": [
           "review"
+        ]
+      }
+    },
+    "/v1/summary/categories": {
+      "get": {
+        "description": "Confirmed money in and out per category between two dates, both included.",
+        "operationId": "read_category_totals_v1_summary_categories_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryTotalsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Category Totals",
+        "tags": [
+          "ledger"
         ]
       }
     },

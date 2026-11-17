@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/shared/components/Button";
 
 /**
  * Shown when a page fails to load or render. The error is reported, and the person can
@@ -22,9 +22,9 @@ export default function PageError({
   }, [error]);
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 px-4 py-8">
-      <h1 className="text-3xl font-bold">Something went wrong</h1>
-      <p className="text-lg text-muted-foreground">
+    <main className="mx-auto flex w-full max-w-page flex-1 flex-col justify-center gap-4 px-gutter py-8">
+      <h1 className="text-display">Something went wrong</h1>
+      <p className="text-lead text-muted-foreground">
         This page did not load. Your records are safe. If it keeps happening,
         the app may be waking up after a quiet spell: wait a moment and try
         again.
@@ -39,7 +39,7 @@ export default function PageError({
         Go home
       </Link>
       {error.digest && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-small text-muted-foreground">
           Reference: <span className="font-mono">{error.digest}</span>
         </p>
       )}

@@ -1,0 +1,1 @@
+export { LinkedReceipt } from "./LinkedReceipt";

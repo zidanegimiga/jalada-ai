@@ -13,6 +13,7 @@ from jalada.modules.ledger.domain.ready import ready_to_confirm
 from jalada.modules.ledger.domain.suggestions import MatchSuggestion, SuggestionStatus
 from jalada.modules.ledger.domain.transactions import (
     Transaction,
+    TransactionKind,
     as_entry,
     candidate_as_entry,
 )
@@ -48,6 +49,8 @@ class ReviewItem:
     ready: bool = False
     # True when the payment went to a paybill that may be the user's own account.
     ask_own_account: bool = False
+    # The user's account a waiting transfer went to or came from, which they can take back.
+    own_account: str | None = None
 
 
 def review_queue(work: UnitOfWork, user_id: UUID, limit: int, now: datetime) -> list[ReviewItem]:
@@ -84,7 +87,15 @@ def _payment_item(
         linked_receipt=linked,
         ready=ready,
         ask_own_account=match is None and _ask_own_account(work, payment),
+        own_account=_own_account(work, payment),
     )
+
+
+def _own_account(work: UnitOfWork, payment: Transaction) -> str | None:
+    if payment.kind != TransactionKind.TRANSFER or payment.to_account_id is None:
+        return None
+    accounts = work.money_accounts_for(payment.user_id).all()
+    return next((a.name for a in accounts if a.id == payment.to_account_id), None)
 
 
 def _ask_own_account(work: UnitOfWork, payment: Transaction) -> bool:

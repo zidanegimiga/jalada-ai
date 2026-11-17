@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from jalada.modules.evidence.domain.evidence import EvidenceKind
 from jalada.modules.ledger.domain.categories import CATEGORIES, Purpose
 from jalada.modules.ledger.domain.entries import counterparty_key
-from jalada.modules.ledger.domain.transfers import OWN_TRANSFER_OUT, paybill
+from jalada.modules.ledger.domain.transfers import TRANSFER_CATEGORIES, identifiers
 from jalada.modules.pipeline.domain.extraction import Classification, Extraction
 
 
@@ -26,12 +26,13 @@ def classify(
     preferences: dict[str, Preference],
     own_accounts: Sequence[dict[str, str]] = (),
 ) -> Classification:
-    """A transfer to an account the user said is theirs first, then the user's own past
+    """A transfer to or from an account the user said is theirs first, then the user's own past
     choice, then shared rules. Never decides what is taxable. `own_accounts` holds how
     messages name each of the user's accounts."""
-    sent_to = paybill(extraction.direction, extraction.counterparty, extraction.reference)
-    if sent_to and sent_to in own_accounts:
-        return Classification(Purpose.PERSONAL, OWN_TRANSFER_OUT, 0.95, "own_account")
+    other = identifiers(extraction.direction, extraction.counterparty, extraction.reference)
+    if other and other in own_accounts and extraction.direction:
+        category = TRANSFER_CATEGORIES[extraction.direction]
+        return Classification(Purpose.PERSONAL, category, 0.95, "own_account")
     if extraction.counterparty:
         preference = preferences.get(counterparty_key(extraction.counterparty))
         if preference and preference.category in CATEGORIES:

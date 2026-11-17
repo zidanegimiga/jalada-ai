@@ -1,0 +1,1 @@
+export { OwnAccountNote } from "./OwnAccountNote";

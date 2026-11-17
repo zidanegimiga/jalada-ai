@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 from test_ledger_storage import make_entry, setup_evidence
 
-from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.ledger import CategoryTotal
 from jalada.modules.ledger.domain.money_accounts import (
     MoneyAccount,
     MoneyAccountKind,
@@ -82,6 +83,15 @@ def test_updating_replaces_the_lines_and_keeps_every_link(
     assert found.status == TransactionStatus.CONFIRMED
     assert found.lines == split
     assert found.evidence == (*transaction.evidence, receipt_link)
+    day = transaction.occurred_on
+    assert day is not None
+    with SqlUnitOfWork(session_factory) as work:
+        totals = work.transactions_for(transaction.user_id).category_totals(day, day)
+    direction = transaction.direction or Direction.OUT
+    assert sorted(totals, key=lambda t: t.cents) == [
+        CategoryTotal(direction, "business_stock", 5000),
+        CategoryTotal(direction, "personal_food", 10000),
+    ]
 
 
 def test_payment_codes_are_unique_per_user(session_factory: sessionmaker[DbSession]) -> None:
