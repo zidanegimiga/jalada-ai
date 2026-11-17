@@ -29,7 +29,7 @@ export function JourneyPanel({ heading }: { heading: string }) {
           />
         ))}
       </div>
-      <p className="flex items-center gap-2 font-mono text-tiny tracking-widest uppercase opacity-70">
+      <p className="flex items-center gap-2 font-mono text-tiny tracking-wide uppercase opacity-70">
         <span
           aria-hidden="true"
           className="size-1.5 rounded-full bg-(--pumpkin)"
@@ -55,7 +55,7 @@ export function JourneyPanel({ heading }: { heading: string }) {
         ))}
       </ol>
       <div className="mt-auto flex flex-col gap-2 rounded-inset border border-white/10 bg-white/5 p-5">
-        <p className="font-mono text-tiny tracking-widest uppercase opacity-70">
+        <p className="font-mono text-tiny tracking-wide uppercase opacity-70">
           Private by design
         </p>
         <p className="text-small opacity-85">

@@ -39,10 +39,10 @@ export function AuthPage({
     <main className="mx-auto grid w-full max-w-wide flex-1 gap-4 px-gutter pb-8 lg:grid-cols-[1.1fr_1fr] lg:gap-5">
       <section className="flex flex-col rounded-card border border-border bg-card motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
         <div className="flex items-center justify-between border-b border-dashed border-border px-card py-4 sm:px-10">
-          <p className="font-mono text-tiny tracking-widest text-muted-foreground uppercase">
+          <p className="font-mono text-tiny tracking-wide text-muted-foreground uppercase">
             Jalada AI
           </p>
-          <p className="rounded-control bg-foreground px-2 py-1 font-mono text-tiny font-bold tracking-widest text-background uppercase">
+          <p className="rounded-control bg-foreground px-2 py-1 font-mono text-tiny font-bold tracking-wide text-background uppercase">
             {MODES[mode].tag}
           </p>
         </div>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Onest } from "next/font/google";
+import { Martian_Mono, Onest } from "next/font/google";
 
 import { ClickSounds } from "@/app/_components/ClickSounds";
 import { Splash, SplashScript } from "@/app/_components/Splash";
@@ -12,6 +12,12 @@ const onest = Onest({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+});
+
+// Labels, step numbers and tags: a wide mono with some character, one variable file.
+const martian = Martian_Mono({
+  variable: "--font-label",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // The scripts in <head> set data-theme and data-splash before React loads.
     <html
       lang="en"
-      className={`${onest.variable} h-full antialiased`}
+      className={`${onest.variable} ${martian.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

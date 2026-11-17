@@ -13,7 +13,7 @@ export function AuthHeader() {
       >
         <Brand />
       </Link>
-      <p className="hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 font-mono text-tiny tracking-widest text-muted-foreground uppercase sm:flex">
+      <p className="hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase sm:flex">
         <span
           aria-hidden="true"
           className="size-1.5 rounded-full bg-primary motion-safe:animate-pulse"

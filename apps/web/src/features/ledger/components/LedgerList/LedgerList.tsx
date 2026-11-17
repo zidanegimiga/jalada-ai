@@ -64,7 +64,7 @@ export function LedgerList({
           aria-labelledby={`month-${group.key}`}
           className="flex flex-col gap-2"
         >
-          <div className="flex items-baseline justify-between px-1 font-mono text-tiny tracking-widest text-muted-foreground uppercase">
+          <div className="flex items-baseline justify-between px-1 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
             <h2 id={`month-${group.key}`}>{group.label}</h2>
             <p>
               {group.entries.length === 1
@@ -77,7 +77,7 @@ export function LedgerList({
               aria-hidden="true"
               className={cn(
                 LEDGER_COLUMNS,
-                "hidden border-b border-border bg-muted py-2.5 font-mono text-tiny tracking-widest text-muted-foreground uppercase lg:grid",
+                "hidden border-b border-border bg-muted py-2.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase lg:grid",
               )}
             >
               <span>Date</span>

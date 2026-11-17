@@ -76,7 +76,7 @@ function Cover({ phase, label }: { phase: Phase; label: string }) {
         />
       ))}
       <div className="handoff-centre absolute inset-0 flex flex-col items-center justify-center gap-4 px-gutter text-(--ivory)">
-        <p className="flex items-center gap-2 font-mono text-tiny tracking-widest uppercase opacity-70">
+        <p className="flex items-center gap-2 font-mono text-tiny tracking-wide uppercase opacity-70">
           <Image
             src="/mark.webp"
             alt=""

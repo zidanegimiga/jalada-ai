@@ -22,6 +22,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-sans);
+  /* font-mono is the label face from layout.tsx, so one line changes it everywhere. */
+  --font-mono: var(--font-label), ui-monospace, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);

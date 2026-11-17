@@ -48,7 +48,7 @@ export function FolderCard({
       <div className="flex items-end">
         <p
           className={cn(
-            "rounded-t-inset bg-(--folder) pt-2 pr-4 pb-1 pl-card font-mono text-tiny tracking-widest uppercase",
+            "rounded-t-inset bg-(--folder) pt-2 pr-4 pb-1 pl-card font-mono text-tiny tracking-wide uppercase",
             style.tab,
           )}
         >

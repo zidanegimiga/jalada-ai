@@ -24,7 +24,7 @@ export function AuthField({
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline gap-3 font-mono text-tiny tracking-widest text-muted-foreground uppercase">
+      <div className="flex items-baseline gap-3 font-mono text-tiny tracking-wide text-muted-foreground uppercase">
         <span aria-hidden="true" className="font-bold text-(--emphasis)">
           {number}
         </span>

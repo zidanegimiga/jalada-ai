@@ -45,7 +45,7 @@ export function TelegramCard({
         <>
           <p>
             Your code is{" "}
-            <strong className="font-mono text-amount tracking-widest">
+            <strong className="font-mono text-amount tracking-wide">
               {code.code}
             </strong>
             . It works for 10 minutes.
