@@ -1,6 +1,10 @@
+import { CheckCheck } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { ReviewList } from "@/features/review/components/review-list";
 import {
@@ -15,9 +19,20 @@ async function ReviewQueue() {
   ]);
   if (items.length === 0) {
     return (
-      <p className="text-lead text-muted-foreground">
-        All caught up. Nothing is waiting for you.
-      </p>
+      <EmptyState
+        Icon={CheckCheck}
+        title="All caught up"
+        action={
+          <Link href="/" className={buttonVariants({ variant: "outline" })}>
+            Add a message or receipt
+          </Link>
+        }
+      >
+        <p>
+          When Jalada AI reads something and is not sure of it, it waits here
+          for you to confirm or change.
+        </p>
+      </EmptyState>
     );
   }
   return <ReviewList items={items} categories={categories} />;
