@@ -2,10 +2,19 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { EntryForm } from "@/features/review/components/EntryForm";
+import { chooseOption } from "../support/choose";
 import { CATEGORIES, entry } from "../support/review-fixtures";
 
-function options() {
-  return screen.getAllByRole("option").map((option) => option.textContent);
+/** The categories on offer: opens the list, reads it and closes it again. */
+async function options() {
+  const select = screen.getByRole("combobox", { name: "What it was for" });
+  fireEvent.click(select);
+  const found = (await screen.findAllByRole("option")).map(
+    (option) => option.textContent,
+  );
+  fireEvent.keyDown(select, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("option")).toBeNull());
+  return found;
 }
 
 describe("EntryForm", () => {
@@ -21,12 +30,12 @@ describe("EntryForm", () => {
 
     expect(screen.getByLabelText("Amount (KSh)")).toHaveValue("150.00");
     expect(screen.getByLabelText("Date")).toHaveValue("2026-11-04");
-    expect(screen.getByLabelText("What it was for")).toHaveValue(
-      "personal_food",
-    );
+    expect(
+      screen.getByRole("combobox", { name: "What it was for" }),
+    ).toHaveTextContent("Food");
   });
 
-  it("only offers categories for the chosen direction", () => {
+  it("only offers categories for the chosen direction", async () => {
     render(
       <EntryForm
         entry={null}
@@ -36,11 +45,11 @@ describe("EntryForm", () => {
       />,
     );
 
-    expect(options()).toEqual(["Choose one", "Food", "Stock and supplies"]);
+    expect(await options()).toEqual(["Food", "Stock and supplies"]);
 
     fireEvent.click(screen.getByRole("button", { name: "Money in" }));
 
-    expect(options()).toEqual(["Choose one", "Salary"]);
+    expect(await options()).toEqual(["Salary"]);
     expect(screen.getByRole("button", { name: "Money in" })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -61,9 +70,7 @@ describe("EntryForm", () => {
     fireEvent.change(screen.getByLabelText("Amount (KSh)"), {
       target: { value: "KSh 1,250.00 " },
     });
-    fireEvent.change(screen.getByLabelText("What it was for"), {
-      target: { value: "business_stock" },
-    });
+    await chooseOption("What it was for", "Stock and supplies");
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());

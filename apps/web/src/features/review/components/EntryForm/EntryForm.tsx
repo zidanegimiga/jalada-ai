@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/features/auth/components/FormField";
-import { Label } from "@/shared/components/Label";
+import { Select } from "@/shared/components/Select";
 import { centsToInput } from "@/shared/format/format";
 
 import type { Category, Entry, EntryValues } from "../../types";
@@ -91,26 +91,17 @@ export function EntryForm({
         maxLength={200}
         defaultValue={entry?.counterparty ?? ""}
       />
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={`${id}-category`}>What it was for</Label>
-        <select
-          id={`${id}-category`}
-          name="category"
-          required
-          defaultValue={keptCategory ?? ""}
-          key={direction}
-          className="h-12 rounded-control border border-input bg-card px-4 text-body"
-        >
-          <option value="" disabled>
-            Choose one
-          </option>
-          {choices.map((category) => (
-            <option key={category.slug} value={category.slug}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        key={direction}
+        label="What it was for"
+        name="category"
+        required
+        options={choices.map((category) => ({
+          value: category.slug,
+          label: category.name,
+        }))}
+        defaultValue={keptCategory || null}
+      />
       <Button type="submit" size="lg" disabled={busy}>
         {busy ? "Saving..." : submitLabel}
       </Button>

@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { buttonVariants } from "@/shared/components/Button";
-import { Label } from "@/shared/components/Label";
+import { Select } from "@/shared/components/Select";
 
 /** Download one tax year (1 January to 31 December) as an Excel workbook for filing. */
 export function ExportCard({
@@ -28,19 +28,15 @@ export function ExportCard({
       <p className="text-muted-foreground">
         Confirmed entries for one year, grouped the way iTax asks for them.
       </p>
-      <Label htmlFor="export-year">Year</Label>
-      <select
-        id="export-year"
-        value={year}
-        onChange={(event) => setYear(Number(event.target.value))}
-        className="h-12 rounded-control border border-input bg-card px-4 text-body"
-      >
-        {years.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+      <Select
+        label="Year"
+        options={years.map((option) => ({
+          value: String(option),
+          label: String(option),
+        }))}
+        value={String(year)}
+        onValueChange={(next) => setYear(Number(next))}
+      />
       <a
         href={`/v1/exports/${year}.xlsx`}
         download

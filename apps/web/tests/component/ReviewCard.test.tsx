@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewCard } from "@/features/review/components/ReviewCard";
+import { chooseOption } from "../support/choose";
 import { CATEGORIES, entry, item, matchItem } from "../support/review-fixtures";
 
 const router = { refresh: vi.fn() };
@@ -108,9 +109,7 @@ describe("ReviewCard", () => {
     });
     render(<ReviewCard item={item(null)} categories={CATEGORIES} />);
 
-    fireEvent.change(screen.getByLabelText("What it was for"), {
-      target: { value: "personal_food" },
-    });
+    await chooseOption("What it was for", "Food");
     fireEvent.submit(screen.getByRole("button", { name: "Add to ledger" }));
 
     await waitFor(() =>
