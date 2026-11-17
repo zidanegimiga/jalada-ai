@@ -4,8 +4,8 @@ import { Suspense } from "react";
 
 import { buttonVariants } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
-import { Spinner } from "@/shared/components/Spinner";
 import { ReviewList } from "@/features/review/components/ReviewList";
+import { ReviewListSkeleton } from "@/features/review/components/ReviewListSkeleton";
 import {
   getCategories,
   getReviewQueue,
@@ -41,7 +41,7 @@ export default function ReviewPage() {
   return (
     <>
       <h1 className="text-display">To check</h1>
-      <Suspense fallback={<Spinner />}>
+      <Suspense fallback={<ReviewListSkeleton />}>
         <ReviewQueue />
       </Suspense>
     </>

@@ -1,1 +1,1 @@
-export { TelegramCard } from "./TelegramCard";
+export { TelegramCard, TelegramCardSkeleton } from "./TelegramCard";

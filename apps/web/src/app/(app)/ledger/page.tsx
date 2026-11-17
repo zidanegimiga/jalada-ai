@@ -2,12 +2,16 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { Spinner } from "@/shared/components/Spinner";
 import { buttonVariants } from "@/shared/components/Button";
 import { ExportCard } from "@/features/export/components/ExportCard";
+import { ExportCardSkeleton } from "@/features/export/components/ExportCardSkeleton";
 import { defaultExportYear } from "@/features/export/default-year";
-import { LedgerFilters } from "@/features/ledger/components/LedgerFilters";
+import {
+  LedgerFilters,
+  LedgerFiltersSkeleton,
+} from "@/features/ledger/components/LedgerFilters";
 import { LedgerList } from "@/features/ledger/components/LedgerList";
+import { LedgerListSkeleton } from "@/features/ledger/components/LedgerListSkeleton";
 import { getLedger, getYear } from "@/features/ledger/server/queries";
 import type { LedgerQuery } from "@/features/ledger/types";
 
@@ -55,13 +59,13 @@ export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
   return (
     <>
       <h1 className="text-display">Ledger</h1>
-      <Suspense fallback={<div className="h-56" />}>
+      <Suspense fallback={<ExportCardSkeleton />}>
         <Export />
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<LedgerFiltersSkeleton />}>
         <LedgerFilters />
       </Suspense>
-      <Suspense fallback={<Spinner />}>
+      <Suspense fallback={<LedgerListSkeleton />}>
         <Entries query={searchParams as Promise<LedgerQuery>} />
       </Suspense>
     </>

@@ -15,3 +15,18 @@ export function Skeleton({ className }: { className?: string }) {
     />
   );
 }
+
+/**
+ * A bar standing in for words inside a text element. The element's own line height sets the
+ * height, so `<p className="text-total"><SkeletonText /></p>` is exactly as tall as a total.
+ */
+export function SkeletonText({ className }: { className?: string }) {
+  return (
+    <Skeleton
+      className={cn(
+        "inline-block h-[0.8em] w-24 rounded-full align-[-0.1em]",
+        className,
+      )}
+    />
+  );
+}

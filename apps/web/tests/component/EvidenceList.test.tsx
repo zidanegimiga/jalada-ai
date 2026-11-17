@@ -33,7 +33,9 @@ describe("EvidenceList", () => {
     const { rerender } = render(
       <EvidenceList items={[]} telegram="unlinked" />,
     );
-    expect(screen.getByText(/once you link it above/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/once you link it on the Account page/),
+    ).toBeInTheDocument();
 
     rerender(<EvidenceList items={[]} telegram="linked" />);
     expect(screen.getByText(/bot on Telegram/)).toBeInTheDocument();

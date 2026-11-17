@@ -17,7 +17,9 @@ describe("TelegramCard", () => {
   it("says so once Telegram is linked", () => {
     render(<TelegramCard available linked />);
 
-    expect(screen.getByText(/Telegram is linked/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Linked. Send receipts to the bot/),
+    ).toBeInTheDocument();
   });
 
   it("gets a code and a link that opens the bot", async () => {

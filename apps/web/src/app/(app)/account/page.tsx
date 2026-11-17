@@ -2,23 +2,73 @@ import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { Spinner } from "@/shared/components/Spinner";
-import { buttonVariants } from "@/shared/components/Button";
 import { DeleteAccountForm } from "@/features/account/components/DeleteAccountForm";
 import { Preferences } from "@/features/account/components/Preferences";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
+import {
+  TelegramCard,
+  TelegramCardSkeleton,
+} from "@/features/telegram/components/TelegramCard";
+import { getTelegramStatus } from "@/features/telegram/server/get-telegram-status";
+import { Avatar } from "@/shared/components/Avatar";
+import { buttonVariants } from "@/shared/components/Button";
+import { Skeleton, SkeletonText } from "@/shared/components/Skeleton";
 
-async function Account() {
+const IDENTITY =
+  "flex items-center gap-4 rounded-card border border-border bg-card p-card";
+
+async function Identity() {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
   return (
+    <section aria-label="You" className={IDENTITY}>
+      <Avatar name={user.display_name} className="size-14 text-lead" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className="truncate text-lead font-medium">{user.display_name}</p>
+        <p className="truncate text-muted-foreground">{user.email}</p>
+      </div>
+    </section>
+  );
+}
+
+function IdentitySkeleton() {
+  return (
+    <section aria-label="You" aria-busy="true" className={IDENTITY}>
+      <Skeleton className="size-14 shrink-0 rounded-full" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className="text-lead">
+          <SkeletonText className="w-36" />
+        </p>
+        <p>
+          <SkeletonText className="w-48" />
+        </p>
+      </div>
+    </section>
+  );
+}
+
+async function DeleteAccount() {
+  const user = await getCurrentUser();
+  return user ? <DeleteAccountForm email={user.email} /> : null;
+}
+
+async function Telegram() {
+  const status = await getTelegramStatus();
+  return <TelegramCard available={status.available} linked={status.linked} />;
+}
+
+export default function AccountPage() {
+  return (
     <>
-      <section className="flex flex-col gap-1">
-        <p className="text-lead font-medium">{user.display_name}</p>
-        <p className="text-muted-foreground">{user.email}</p>
-      </section>
+      <h1 className="text-display">Account</h1>
+      <Suspense fallback={<IdentitySkeleton />}>
+        <Identity />
+      </Suspense>
       <Preferences />
+      <Suspense fallback={<TelegramCardSkeleton />}>
+        <Telegram />
+      </Suspense>
       <section
         aria-labelledby="data-heading"
         className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
@@ -39,6 +89,7 @@ async function Account() {
           Download my data
         </a>
       </section>
+      <SignOutButton />
       <section
         aria-labelledby="delete-heading"
         className="flex flex-col gap-3 rounded-card border border-destructive/40 bg-card p-card"
@@ -51,20 +102,10 @@ async function Account() {
           you sent. It cannot be undone. Download your data first if you want a
           copy.
         </p>
-        <DeleteAccountForm email={user.email} />
+        <Suspense fallback={<Skeleton className="h-40" />}>
+          <DeleteAccount />
+        </Suspense>
       </section>
-      <SignOutButton />
-    </>
-  );
-}
-
-export default function AccountPage() {
-  return (
-    <>
-      <h1 className="text-display">Account</h1>
-      <Suspense fallback={<Spinner />}>
-        <Account />
-      </Suspense>
     </>
   );
 }

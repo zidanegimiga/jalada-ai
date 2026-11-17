@@ -32,6 +32,29 @@ export function LedgerFilters() {
     router.replace(`${pathname}?${next}`);
   }
 
+  return <FilterControls params={params} onChange={set} />;
+}
+
+/** The same controls, held still while the address is read, so the page does not move. */
+export function LedgerFiltersSkeleton() {
+  return (
+    <FilterControls
+      params={new URLSearchParams()}
+      onChange={() => {}}
+      disabled
+    />
+  );
+}
+
+function FilterControls({
+  params,
+  onChange: set,
+  disabled = false,
+}: {
+  params: URLSearchParams;
+  onChange: (name: string, value: string) => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -41,6 +64,7 @@ export function LedgerFilters() {
           type="month"
           value={params.get("month") ?? ""}
           onChange={(e) => set("month", e.target.value)}
+          disabled={disabled}
           className="h-12 rounded-control border border-input bg-card px-4 text-body"
         />
       </div>
@@ -58,6 +82,7 @@ export function LedgerFilters() {
                 key={label}
                 type="button"
                 aria-pressed={active}
+                disabled={disabled}
                 onClick={() => set(name, value)}
                 className={buttonVariants({
                   variant: active ? "default" : "outline",

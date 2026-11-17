@@ -93,7 +93,7 @@ test("every page meets WCAG 2.2 AA, with thumb-sized targets", async ({
   await page.getByLabel("Password").fill(crypto.randomUUID());
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(
-    page.getByRole("heading", { name: "Hello, Access Test" }),
+    page.getByRole("heading", { name: "Hello, Access" }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Paste M-Pesa message" }).click();

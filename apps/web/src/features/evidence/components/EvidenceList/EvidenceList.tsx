@@ -42,7 +42,8 @@ export type TelegramState = "off" | "unlinked" | "linked";
 
 const TELEGRAM_TIP: Record<TelegramState, string | null> = {
   off: null,
-  unlinked: "You can also send them from Telegram once you link it above.",
+  unlinked:
+    "You can also send them from Telegram once you link it on the Account page.",
   linked: "You can also send them to the Jalada AI bot on Telegram.",
 };
 

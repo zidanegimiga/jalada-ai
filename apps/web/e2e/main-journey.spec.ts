@@ -47,7 +47,7 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(
-      page.getByRole("heading", { name: "Hello, Journey Test" }),
+      page.getByRole("heading", { name: "Hello, Journey" }),
     ).toBeVisible();
   });
 
