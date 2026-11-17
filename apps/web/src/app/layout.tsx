@@ -9,6 +9,7 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: "Jalada AI",
   description: "Money records for people without an accountant.",
 };

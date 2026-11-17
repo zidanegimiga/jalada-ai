@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   env: {
     APP_VERSION: process.env.COMMIT_REF ?? "development",
     APP_ENVIRONMENT: process.env.CONTEXT ?? "development",
+    // Netlify sets URL to the site's main address. Links to the sharing image use it.
+    SITE_URL: process.env.URL ?? "http://localhost:3000",
   },
   // Stop next dev from writing an AGENTS.md file into the app.
   agentRules: false,
