@@ -1,26 +1,12 @@
-import Link from "next/link";
-
-import { buttonVariants } from "@/shared/components/Button";
-
 import { AppNav } from "../AppNav";
-import { Brand } from "@/shared/components/Brand";
-import { ThemeToggle } from "@/shared/components/ThemeToggle";
+import { AppHeader } from "../AppHeader";
 
-/** The frame around every signed-in screen: name, account link, and the bottom navigation. */
+/** The frame around every signed-in screen: the top bar, the page, and the navigation. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-section px-gutter pt-8 pb-28">
-        <header className="flex items-center gap-2">
-          <Brand />
-          <ThemeToggle className="ml-auto" />
-          <Link
-            href="/account"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Account
-          </Link>
-        </header>
+      <AppHeader />
+      <main className="mx-auto flex w-full max-w-page flex-1 flex-col gap-section px-gutter pt-6 pb-32">
         {children}
       </main>
       <AppNav />

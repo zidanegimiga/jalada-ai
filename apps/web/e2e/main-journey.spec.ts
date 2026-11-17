@@ -96,7 +96,7 @@ test("sign up, record a payment, confirm it, export the year and delete the acco
   });
 
   await test.step("delete the account", async () => {
-    await page.getByRole("link", { name: "Account", exact: true }).click();
+    await page.getByRole("link", { name: /^Account for/ }).click();
     await page.getByLabel(`Type ${email} to confirm`).fill(email);
     await page.getByRole("button", { name: "Delete my account" }).click();
     await expect(page).toHaveURL(/\/signup$/);
