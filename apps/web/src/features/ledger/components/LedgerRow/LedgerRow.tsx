@@ -1,3 +1,5 @@
+import { ArrowLeftRight } from "lucide-react";
+
 import type { Entry } from "@/features/review/types";
 import { formatDay, formatKsh } from "@/shared/format/format";
 import { cn } from "@/shared/styles/cn";
@@ -8,6 +10,18 @@ import { cn } from "@/shared/styles/cn";
  */
 export const LEDGER_COLUMNS =
   "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 px-4 lg:grid-cols-[6rem_minmax(0,1fr)_minmax(0,10rem)_8rem] lg:px-5";
+
+/**
+ * The categories that make a payment a move between the person's own accounts. Such money is
+ * neither in nor out, so the totals and charts leave it out (as the API's transfers do).
+ */
+const TRANSFER_CATEGORIES = new Set(["own_transfer", "own_transfer_out"]);
+
+export function isTransfer(entry: Entry): boolean {
+  return TRANSFER_CATEGORIES.has(entry.category ?? "");
+}
+
+const NOT_COUNTED = "Not counted in totals";
 
 /** What it was for, and how a certificate and its payments relate. */
 function purpose(entry: Entry): string {
@@ -23,6 +37,7 @@ function purpose(entry: Entry): string {
   }
   const parts = [entry.category_name ?? ""];
   if (entry.linked_certificate_id) parts.push("Counted on its certificate");
+  if (isTransfer(entry)) parts.push(NOT_COUNTED);
   return parts.filter(Boolean).join(" · ");
 }
 
@@ -40,6 +55,7 @@ function details(entry: Entry): string {
 export function LedgerRow({ entry }: { entry: Entry }) {
   const isIn = entry.direction === "in";
   const counted = !entry.linked_certificate_id;
+  const transfer = isTransfer(entry);
   return (
     <div className={cn(LEDGER_COLUMNS, "py-4 lg:py-3.5")}>
       <span className="hidden text-small text-muted-foreground tabular-nums lg:block">
@@ -47,7 +63,10 @@ export function LedgerRow({ entry }: { entry: Entry }) {
       </span>
       <span
         title={entry.counterparty ?? undefined}
-        className="truncate font-medium"
+        className={cn(
+          "truncate font-medium",
+          transfer && "text-muted-foreground",
+        )}
       >
         {entry.counterparty ?? "Unknown"}
       </span>
@@ -57,15 +76,22 @@ export function LedgerRow({ entry }: { entry: Entry }) {
       >
         {purpose(entry)}
       </span>
-      <span
-        className={cn(
-          "justify-self-end font-bold whitespace-nowrap tabular-nums",
-          isIn && counted && "text-money-in",
-        )}
-      >
-        {isIn ? "+" : "−"}
-        {formatKsh(entry.amount_cents ?? 0)}
-      </span>
+      {transfer ? (
+        <span className="flex items-center gap-1.5 justify-self-end font-medium whitespace-nowrap text-muted-foreground tabular-nums">
+          <ArrowLeftRight aria-hidden="true" className="size-4" />
+          {formatKsh(entry.amount_cents ?? 0)}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            "justify-self-end font-bold whitespace-nowrap tabular-nums",
+            isIn && counted && "text-money-in",
+          )}
+        >
+          {isIn ? "+" : "−"}
+          {formatKsh(entry.amount_cents ?? 0)}
+        </span>
+      )}
       <span className="col-span-2 text-small text-muted-foreground lg:hidden">
         {details(entry)}
       </span>

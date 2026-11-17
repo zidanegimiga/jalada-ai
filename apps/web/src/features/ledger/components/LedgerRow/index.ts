@@ -1,1 +1,1 @@
-export { LEDGER_COLUMNS, LedgerRow } from "./LedgerRow";
+export { isTransfer, LEDGER_COLUMNS, LedgerRow } from "./LedgerRow";

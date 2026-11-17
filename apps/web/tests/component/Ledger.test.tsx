@@ -42,6 +42,36 @@ describe("LedgerList", () => {
   });
 });
 
+describe("LedgerList with transfers", () => {
+  it("mutes a move between own accounts and says it is not counted", () => {
+    render(
+      <LedgerList
+        entries={[
+          entry({
+            id: "t",
+            direction: "out",
+            amount_cents: 145000,
+            counterparty: "SAMPLE BANK",
+            category: "own_transfer_out",
+            category_name: "Transfer to own account",
+            category_suggested: false,
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("KSh 1,450.00")).toHaveClass(
+      "text-muted-foreground",
+    );
+    expect(screen.queryByText("−KSh 1,450.00")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Transfer to own account · 4 Nov 2026 · Not counted in totals",
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("LedgerList with certificates", () => {
   it("links certificates to their page and marks payments counted through them", () => {
     render(
