@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { ExportCard } from "@/features/export/components/ExportCard";
 
 describe("ExportCard", () => {
-  it("offers last year first, because that is the return being filed", () => {
-    render(<ExportCard currentYear={2026} />);
+  it("offers the default year first", () => {
+    render(<ExportCard currentYear={2026} defaultYear={2025} />);
 
     expect(screen.getByLabelText("Year")).toHaveValue("2025");
     expect(
@@ -14,7 +14,7 @@ describe("ExportCard", () => {
   });
 
   it("downloads the chosen year", () => {
-    render(<ExportCard currentYear={2026} />);
+    render(<ExportCard currentYear={2026} defaultYear={2025} />);
 
     fireEvent.change(screen.getByLabelText("Year"), {
       target: { value: "2026" },

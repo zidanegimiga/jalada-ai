@@ -7,10 +7,15 @@ import { buttonVariants } from "@/shared/components/Button";
 import { Label } from "@/shared/components/Label";
 
 /** Download one tax year (1 January to 31 December) as an Excel workbook for filing. */
-export function ExportCard({ currentYear }: { currentYear: number }) {
+export function ExportCard({
+  currentYear,
+  defaultYear,
+}: {
+  currentYear: number;
+  defaultYear: number;
+}) {
   const years = [currentYear, currentYear - 1, currentYear - 2];
-  // Returns are filed for last year, so that is the usual choice.
-  const [year, setYear] = useState(currentYear - 1);
+  const [year, setYear] = useState(defaultYear);
 
   return (
     <section

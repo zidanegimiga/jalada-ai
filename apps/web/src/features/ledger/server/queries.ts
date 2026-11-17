@@ -10,12 +10,17 @@ export async function getLedger(query: LedgerQuery): Promise<LedgerPage> {
   return page ?? { items: [], next_cursor: null };
 }
 
+/** Totals for each month of a year, January first. Empty when the API cannot be reached. */
+export async function getYear(year: number): Promise<Month[]> {
+  const summary = await apiGet<{ months: Month[] }>(
+    `/v1/summary/monthly?year=${year}`,
+  );
+  return summary?.months ?? [];
+}
+
 export async function getMonth(
   year: number,
   month: number,
 ): Promise<Month | null> {
-  const summary = await apiGet<{ months: Month[] }>(
-    `/v1/summary/monthly?year=${year}`,
-  );
-  return summary?.months[month - 1] ?? null;
+  return (await getYear(year))[month - 1] ?? null;
 }
