@@ -2,7 +2,6 @@
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import timedelta
 from functools import partial
 
 from fastapi import FastAPI
@@ -21,33 +20,20 @@ from jalada.core.health import QUICK, DatabaseCheck, StorageCheck
 from jalada.core.jobs.runner import JobRunner, background_jobs
 from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
-from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
-from jalada.modules.accounts.adapters.argon2_hasher import Argon2PasswordHasher
-from jalada.modules.accounts.adapters.google import GoogleOpenIdClient
-from jalada.modules.accounts.application.account_deletion import AccountDeletion
-from jalada.modules.accounts.application.account_export import AccountExport
-from jalada.modules.accounts.application.authentication import Authenticator
-from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
-from jalada.modules.evidence.application.evidence_capture import (
-    PROCESS_EVIDENCE_JOB,
-    EvidenceCapture,
-)
-from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
-from jalada.modules.exports.application.tax_year_export import TaxYearExport
-from jalada.modules.ledger.application.certificate_payments import CertificatePayments
-from jalada.modules.ledger.application.entry_review import EntryReview
-from jalada.modules.ledger.application.how_paid import HowPaid
-from jalada.modules.ledger.application.ledger import Ledger
-from jalada.modules.ledger.application.match_review import MatchReview
+from jalada.modules.accounts.wiring import GoogleClient, build_accounts
+from jalada.modules.evidence.application.evidence_capture import PROCESS_EVIDENCE_JOB
+from jalada.modules.evidence.wiring import build_evidence
+from jalada.modules.exports.wiring import build_tax_year_export
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
-from jalada.modules.ledger.application.own_accounts import OwnAccounts
-from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
-from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
-from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
+from jalada.modules.ledger.wiring import build_ledger
+from jalada.modules.pipeline.wiring import build_evidence_processor
 from jalada.modules.telegram.adapters.telegram_bot import TelegramBot
-from jalada.modules.telegram.application.telegram_capture import TelegramCapture
-from jalada.modules.telegram.application.telegram_linking import TelegramLinking
-from jalada.modules.telegram.application.telegram_notifier import TelegramNotifier
+from jalada.modules.telegram.wiring import (
+    build_telegram_bot,
+    build_telegram_capture,
+    build_telegram_linking,
+    build_telegram_notifier,
+)
 from jalada.services import Services
 from jalada.shared.http.rate_limit import RateLimiter
 from jalada.sql_unit_of_work import SqlUnitOfWork, create_database_engine
@@ -60,40 +46,39 @@ def build_services(settings: Settings) -> Services:
     unit_of_work = partial(SqlUnitOfWork, sessionmaker(engine))
     clock = SystemClock()
     store = build_evidence_store(settings)
-    authenticator = Authenticator(
-        unit_of_work=unit_of_work,
-        hasher=Argon2PasswordHasher(),
-        clock=clock,
-        session_lifetime=timedelta(days=settings.session_days),
+    accounts = build_accounts(
+        unit_of_work,
+        clock,
+        store,
+        session_days=settings.session_days,
         on_user_created=[open_default_accounts],
+        google=google_client(settings),
     )
-    evidence = EvidenceCapture(unit_of_work=unit_of_work, store=store, clock=clock)
+    ledger = build_ledger(unit_of_work, clock)
+    evidence = build_evidence(unit_of_work, store, clock)
     sign_in_limiter = RateLimiter("5/minute")
     upload_limiter = RateLimiter("60/hour")
-    telegram_linking = TelegramLinking(unit_of_work, clock)
+    telegram_linking = build_telegram_linking(unit_of_work, clock)
     return Services(
-        authenticator=authenticator,
+        authenticator=accounts.authenticator,
         sign_in_limiter=sign_in_limiter,
         evidence=evidence,
         upload_limiter=upload_limiter,
-        review=EntryReview(unit_of_work, clock),
-        matches=MatchReview(unit_of_work, clock),
-        how_paid=HowPaid(unit_of_work, clock),
-        own_accounts=OwnAccounts(unit_of_work, clock),
-        ledger=Ledger(unit_of_work),
-        certificate_payments=CertificatePayments(unit_of_work, clock),
-        tax_year_export=TaxYearExport(
-            unit_of_work,
-            ExcelWorkbookWriter(),
-            clock,
-            evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file",
+        review=ledger.review,
+        matches=ledger.matches,
+        how_paid=ledger.how_paid,
+        own_accounts=ledger.own_accounts,
+        ledger=ledger.ledger,
+        certificate_payments=ledger.certificate_payments,
+        tax_year_export=build_tax_year_export(
+            unit_of_work, clock, evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file"
         ),
         telegram_linking=telegram_linking,
-        account_export=AccountExport(unit_of_work, store, ZipAccountArchive()),
-        account_deletion=AccountDeletion(unit_of_work, store),
-        google_sign_in=build_google_sign_in(settings, authenticator),
+        account_export=accounts.account_export,
+        account_deletion=accounts.account_deletion,
+        google_sign_in=accounts.google_sign_in,
         telegram_capture=build_telegram_capture(
-            settings, telegram_linking, evidence, sign_in_limiter, upload_limiter
+            telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
         health_checks=[
             DatabaseCheck(engine),
@@ -102,35 +87,21 @@ def build_services(settings: Settings) -> Services:
     )
 
 
-def build_telegram_capture(
-    settings: Settings,
-    linking: TelegramLinking,
-    evidence: EvidenceCapture,
-    link_limiter: RateLimiter,
-    upload_limiter: RateLimiter,
-) -> TelegramCapture | None:
-    bot = build_telegram_bot(settings)
-    if bot is None:
-        return None
-    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter)
-
-
-def build_telegram_bot(settings: Settings) -> TelegramBot | None:
-    """The bot, when both its token and its username are set."""
-    if not (settings.telegram_bot_token and settings.telegram_bot_username):
-        return None
-    return TelegramBot(settings.telegram_bot_token.get_secret_value())
-
-
-def build_google_sign_in(settings: Settings, authenticator: Authenticator) -> GoogleSignIn | None:
+def google_client(settings: Settings) -> GoogleClient | None:
     if not (settings.google_client_id and settings.google_client_secret):
         return None
-    google = GoogleOpenIdClient(
+    return GoogleClient(
         client_id=settings.google_client_id,
         client_secret=settings.google_client_secret.get_secret_value(),
         redirect_uri=f"{settings.public_url}/v1/auth/google/callback",
     )
-    return GoogleSignIn(google, authenticator)
+
+
+def telegram_bot(settings: Settings) -> TelegramBot | None:
+    token = settings.telegram_bot_token
+    return build_telegram_bot(
+        token.get_secret_value() if token else None, settings.telegram_bot_username
+    )
 
 
 def build_api() -> FastAPI:
@@ -156,24 +127,19 @@ def jobs_in_background(settings: Settings) -> Lifespan:
 def build_job_runner(settings: Settings) -> JobRunner:
     """The worker's job loop: the pipeline, with replies on Telegram when the bot is on."""
     session_factory = sessionmaker(create_database_engine(settings.database_url))
+
+    def unit_of_work() -> SqlUnitOfWork:
+        return SqlUnitOfWork(session_factory)
+
     clock = SystemClock()
-    bot = build_telegram_bot(settings)
-    notifier = (
-        TelegramNotifier(
-            lambda: SqlUnitOfWork(session_factory), bot, f"{settings.public_url}/review"
-        )
-        if bot
-        else None
-    )
-    processor = EvidenceProcessor(
-        unit_of_work=lambda: SqlUnitOfWork(session_factory),
+    processor = build_evidence_processor(
+        unit_of_work,
         store=build_evidence_store(settings),
-        reader=EvidenceTextReader(TesseractOcr()),
         clock=clock,
         budget=build_budget(settings),
         model=build_language_model(settings),
-        notifier=notifier,
+        notifier=build_telegram_notifier(
+            unit_of_work, telegram_bot(settings), f"{settings.public_url}/review"
+        ),
     )
-    return JobRunner(
-        lambda: SqlUnitOfWork(session_factory), {PROCESS_EVIDENCE_JOB: processor}, clock
-    )
+    return JobRunner(unit_of_work, {PROCESS_EVIDENCE_JOB: processor}, clock)
