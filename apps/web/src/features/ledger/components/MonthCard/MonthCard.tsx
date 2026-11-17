@@ -1,3 +1,4 @@
+import { Amount } from "@/shared/components/Amount";
 import { formatKsh } from "@/shared/format/format";
 
 import type { Month } from "../../types";
@@ -20,8 +21,8 @@ function Row({
   return (
     <div className="flex flex-col gap-1">
       <p className="text-small opacity-80">{label}</p>
-      <p className="text-total tabular-nums">
-        {formatKsh(business + personal)}
+      <p className="text-total">
+        <Amount cents={business + personal} fadeCents />
       </p>
       <p className="text-small tabular-nums opacity-80">
         Business {formatKsh(business)} · Personal {formatKsh(personal)}

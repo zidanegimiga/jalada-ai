@@ -55,7 +55,7 @@ export function ReviewCard({
         <div className="flex flex-col gap-1">
           <p className="text-amount">
             {entry?.amount_cents ? (
-              <Amount cents={entry.amount_cents} />
+              <Amount cents={entry.amount_cents} fadeCents />
             ) : (
               "Amount not read"
             )}
