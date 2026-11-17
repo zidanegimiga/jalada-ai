@@ -6,7 +6,16 @@ import { createCn } from "cn/config";
  * text-primary-foreground when a size token comes after it.
  */
 export const TOKENS = {
-  text: ["small", "body", "lead", "title", "amount", "total", "display"],
+  text: [
+    "tiny",
+    "small",
+    "body",
+    "lead",
+    "title",
+    "amount",
+    "total",
+    "display",
+  ],
   radius: ["card", "inset", "control"],
   spacing: ["gutter", "card", "section", "tap", "icon", "icon-lg"],
   container: ["page"],

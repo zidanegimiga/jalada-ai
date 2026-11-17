@@ -53,8 +53,10 @@
  * The /design page shows each of them.
  */
 @theme {
-  /* Type: seven steps, each with its line height. Titles and figures are bold and set a
+  /* Type: eight steps, each with its line height. Titles and figures are bold and set a
    * little tighter, which is the heading treatment. */
+  --text-tiny: 0.75rem;
+  --text-tiny--line-height: 1rem;
   --text-small: 0.875rem;
   --text-small--line-height: 1.25rem;
   --text-body: 1rem;

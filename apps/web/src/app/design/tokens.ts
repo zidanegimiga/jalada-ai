@@ -60,6 +60,12 @@ export const TYPE = [
     use: "Details under a name",
     sample: "Food · 4 Nov 2026",
   },
+  {
+    name: "tiny",
+    className: "text-tiny",
+    use: "Counts on badges",
+    sample: "12",
+  },
 ] as const;
 
 export const RADII = [
