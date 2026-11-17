@@ -1,18 +1,18 @@
 import { Input } from "@/shared/components/Input";
 import { Label } from "@/shared/components/Label";
 
-type FormFieldProps = React.ComponentProps<"input"> & {
+type TextFieldProps = React.ComponentProps<"input"> & {
   label: string;
   name: string;
 };
 
 /** A labelled input. Pass `id` when the same form can appear more than once on a page. */
-export function FormField({
+export function TextField({
   label,
   name,
   id = name,
   ...inputProps
-}: FormFieldProps) {
+}: TextFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>

@@ -2,9 +2,9 @@
 
 import { ActionButton } from "@/shared/components/ActionButton";
 import { FormError } from "@/shared/components/FormError";
+import { TextField } from "@/shared/components/TextField";
 
 import { signUp } from "../../api/auth.api";
-import { FormField } from "../FormField";
 import { useAuthSubmit } from "../../hooks/useAuthSubmit";
 
 export function SignUpForm() {
@@ -14,9 +14,9 @@ export function SignUpForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <FormField label="Your name" name="name" autoComplete="name" maxLength={80} />
-      <FormField label="Email" name="email" type="email" autoComplete="email" />
-      <FormField
+      <TextField label="Your name" name="name" autoComplete="name" maxLength={80} />
+      <TextField label="Email" name="email" type="email" autoComplete="email" />
+      <TextField
         label="Password"
         name="password"
         type="password"

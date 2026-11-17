@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { ActionButton } from "@/shared/components/ActionButton";
 import { Button } from "@/shared/components/Button";
 import { DatePicker } from "@/shared/components/DatePicker";
-import { FormField } from "@/features/auth/components/FormField";
+import { TextField } from "@/shared/components/TextField";
 import { Select } from "@/shared/components/Select";
 import { centsToInput } from "@/shared/format/format";
 
@@ -69,7 +69,7 @@ export function EntryForm({
           </Button>
         ))}
       </div>
-      <FormField
+      <TextField
         label="Amount (KSh)"
         name="amount"
         id={`${id}-amount`}
@@ -84,7 +84,7 @@ export function EntryForm({
         name="occurred_on"
         defaultValue={entry?.occurred_on ?? ""}
       />
-      <FormField
+      <TextField
         label="Paid to or received from"
         name="counterparty"
         id={`${id}-counterparty`}
