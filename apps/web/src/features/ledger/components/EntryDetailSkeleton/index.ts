@@ -1,0 +1,1 @@
+export { EntryDetailSkeleton } from "./EntryDetailSkeleton";

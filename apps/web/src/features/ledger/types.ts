@@ -14,3 +14,7 @@ export type LedgerQuery = {
 };
 
 export type CategoryTotal = Schema<"CategoryTotalResponse">;
+
+export type EntryDetail = Schema<"EntryDetailResponse">;
+export type LinkedEvidence = Schema<"LinkedEvidenceResponse">;
+export type HistoryItem = Schema<"HistoryItemResponse">;

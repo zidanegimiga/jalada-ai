@@ -1,9 +1,11 @@
 from datetime import date
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Query
 
 from jalada.dependencies import CurrentUser, ServicesDependency
+from jalada.modules.ledger.api.schemas.detail import EntryDetailResponse
 from jalada.modules.ledger.api.schemas.ledger import (
     CategoryResponse,
     LedgerResponse,
@@ -41,6 +43,14 @@ def read_ledger(
     filters = LedgerFilter(start, end, direction, purpose, category, words or None)
     after = decode_position(cursor) if cursor else None
     return LedgerResponse.from_page(services.ledger.page(user.id, filters, after))
+
+
+@router.get("/v1/entries/{entry_id}")
+def read_entry(
+    entry_id: UUID, user: CurrentUser, services: ServicesDependency
+) -> EntryDetailResponse:
+    """One payment, the evidence linked to it, and what happened to it, oldest first."""
+    return EntryDetailResponse.from_detail(services.ledger.detail(user.id, entry_id))
 
 
 @router.get("/v1/summary/monthly")

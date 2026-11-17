@@ -138,3 +138,25 @@ def test_ledger_search_comes_from_the_query(client: TestClient, store: Store) ->
 
     assert [i["counterparty"] for i in found["items"]] == ["PETER OTIENO"]
     assert too_long.status_code == 422
+
+
+def test_an_entry_shows_with_its_history(client: TestClient, store: Store) -> None:
+    user = signed_in_user(client, store)
+    entry = confirmed_entry(user, date(2026, 1, 5), 4_000_000, "in", "consultancy_fees")
+    store.save_entries(entry)
+
+    detail = client.get(f"/v1/entries/{entry.id}").json()
+
+    assert detail["entry"]["id"] == str(entry.id)
+    assert detail["entry"]["category_name"] == "Consultancy or freelance fees"
+    assert detail["history"] == []
+
+
+def test_an_unknown_entry_is_not_found(client: TestClient, store: Store) -> None:
+    signed_in_user(client, store)
+
+    assert client.get(f"/v1/entries/{uuid.uuid4()}").status_code == 404
+
+
+def test_an_entry_needs_a_session(client: TestClient) -> None:
+    assert client.get(f"/v1/entries/{uuid.uuid4()}").status_code == 401

@@ -1,0 +1,1 @@
+export { EntryFacts } from "./EntryFacts";

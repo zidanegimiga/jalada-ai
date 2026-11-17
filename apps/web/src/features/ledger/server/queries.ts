@@ -3,7 +3,13 @@ import "server-only";
 import { apiGet } from "@/shared/api/server-api";
 
 import { ledgerSearch } from "../search";
-import type { CategoryTotal, LedgerPage, LedgerQuery, Month } from "../types";
+import type {
+  CategoryTotal,
+  EntryDetail,
+  LedgerPage,
+  LedgerQuery,
+  Month,
+} from "../types";
 
 export async function getLedger(query: LedgerQuery): Promise<LedgerPage> {
   const page = await apiGet<LedgerPage>(`/v1/entries?${ledgerSearch(query)}`);
@@ -16,6 +22,11 @@ export async function getYear(year: number): Promise<Month[]> {
     `/v1/summary/monthly?year=${year}`,
   );
   return summary?.months ?? [];
+}
+
+/** One payment with its evidence and history. Null when it is not one of the user's. */
+export function getEntry(id: string): Promise<EntryDetail | null> {
+  return apiGet<EntryDetail>(`/v1/entries/${encodeURIComponent(id)}`);
 }
 
 /** Confirmed money per category between two "YYYY-MM-DD" dates, largest first. */
