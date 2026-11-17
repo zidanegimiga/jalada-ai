@@ -124,6 +124,9 @@
   --ring: var(--pumpkin);
   /* The focus outline: a deeper pumpkin, because pumpkin itself is too light on ivory. */
   --focus: #a84a17;
+  /* Selected text: pumpkin with black text in both themes, instead of the browser's blue. */
+  --selection: var(--pumpkin);
+  --selection-foreground: var(--black);
   --radius: 1rem;
 }
 
@@ -155,6 +158,10 @@
 @layer base {
   * {
     @apply border-border;
+  }
+  ::selection {
+    background-color: var(--selection);
+    color: var(--selection-foreground);
   }
   /* One focus outline for links, buttons and fields, seen from the keyboard. */
   :focus-visible {

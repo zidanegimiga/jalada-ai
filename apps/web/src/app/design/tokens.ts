@@ -13,6 +13,7 @@ export const COLOURS = [
   "destructive",
   "money-in",
   "focus",
+  "selection",
 ] as const;
 
 // Class names are written out in full, so Tailwind generates each of them.
