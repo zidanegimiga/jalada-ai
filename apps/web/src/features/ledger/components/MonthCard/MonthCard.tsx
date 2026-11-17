@@ -1,4 +1,5 @@
 import { Amount } from "@/shared/components/Amount";
+import { FolderCard } from "@/shared/components/FolderCard";
 import { formatKsh } from "@/shared/format/format";
 
 import type { Month } from "../../types";
@@ -34,10 +35,7 @@ function Row({
 /** The month at a glance, in the style of a balance card. Only confirmed entries count. */
 export function MonthCard({ year, month }: { year: number; month: Month }) {
   return (
-    <section
-      aria-label="This month"
-      className="flex flex-col gap-5 rounded-card bg-foreground p-card text-background dark:border dark:border-border dark:bg-card dark:text-card-foreground"
-    >
+    <FolderCard tab="This month" aria-label="This month">
       <h2 className="text-lead font-medium">
         {monthName.format(new Date(Date.UTC(year, month.month - 1, 1)))}
       </h2>
@@ -51,6 +49,6 @@ export function MonthCard({ year, month }: { year: number; month: Month }) {
         business={month.out_business_cents}
         personal={month.out_personal_cents}
       />
-    </section>
+    </FolderCard>
   );
 }

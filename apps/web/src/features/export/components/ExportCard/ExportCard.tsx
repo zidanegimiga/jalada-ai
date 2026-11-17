@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { ActionLink } from "@/shared/components/ActionButton";
+import { FolderCard } from "@/shared/components/FolderCard";
 import { Select } from "@/shared/components/Select";
 
 /** Download one tax year (1 January to 31 December) as an Excel workbook for filing. */
@@ -18,14 +19,16 @@ export function ExportCard({
   const [year, setYear] = useState(defaultYear);
 
   return (
-    <section
+    <FolderCard
+      tab="Tax return"
+      tone="flax"
       aria-labelledby="export-heading"
-      className="flex flex-col gap-3 rounded-card border border-border bg-card p-card"
+      className="gap-3"
     >
       <h2 id="export-heading" className="text-title">
         For your tax return
       </h2>
-      <p className="text-muted-foreground">
+      <p className="opacity-75">
         Confirmed entries for one year, grouped the way iTax asks for them.
       </p>
       <Select
@@ -40,6 +43,6 @@ export function ExportCard({
       <ActionLink href={`/v1/exports/${year}.xlsx`} download icon={Download}>
         Download {year} (Excel)
       </ActionLink>
-    </section>
+    </FolderCard>
   );
 }
