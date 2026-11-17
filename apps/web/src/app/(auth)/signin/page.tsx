@@ -7,7 +7,10 @@ import { SignInNotice } from "@/features/auth/components/SignInNotice";
 export default function SignInPage() {
   return (
     <AuthPage
-      title="Welcome back"
+      mode="signin"
+      title="Welcome"
+      emphasis="back."
+      intro="Sign in to your money records."
       notice={
         <Suspense>
           <SignInNotice />

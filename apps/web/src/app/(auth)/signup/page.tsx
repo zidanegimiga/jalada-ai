@@ -4,7 +4,10 @@ import { SignUpForm } from "@/features/auth/components/SignUpForm";
 export default function SignUpPage() {
   return (
     <AuthPage
-      title="Create your account"
+      mode="signup"
+      title="Start your"
+      emphasis="records."
+      intro="Keep every M-Pesa message and receipt in one ledger, ready for your tax return."
       footer={{
         text: "Already have an account?",
         linkLabel: "Sign in",

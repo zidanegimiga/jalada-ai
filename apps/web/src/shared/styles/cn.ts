@@ -15,10 +15,11 @@ export const TOKENS = {
     "amount",
     "total",
     "display",
+    "hero",
   ],
   radius: ["card", "inset", "control"],
   spacing: ["gutter", "card", "section", "tap", "icon", "icon-lg"],
-  container: ["page"],
+  container: ["page", "wide"],
   shadow: ["raised", "overlay"],
 };
 

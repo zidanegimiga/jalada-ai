@@ -1,0 +1,33 @@
+/* The steps light up one after another, and the last one is filled in pumpkin.
+ * The global reduced-motion rule makes this instant. */
+
+.journey-step {
+  animation: journey-light 500ms ease-out both;
+  animation-delay: calc(550ms + var(--step) * 200ms);
+}
+
+.journey-step:last-child .journey-number {
+  animation: journey-arrive 500ms ease-out both;
+  animation-delay: calc(550ms + var(--step) * 200ms);
+}
+
+@keyframes journey-light {
+  from {
+    /* Dimmed, never so far that the words fall below 4.5:1 on black. */
+    opacity: 0.7;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes journey-arrive {
+  to {
+    background-color: var(--pumpkin);
+    border-color: var(--pumpkin);
+    color: var(--black);
+    box-shadow: 0 0 0 6px rgb(235 113 46 / 0.2);
+  }
+}

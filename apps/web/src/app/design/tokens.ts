@@ -14,10 +14,17 @@ export const COLOURS = [
   "money-in",
   "focus",
   "selection",
+  "emphasis",
 ] as const;
 
 // Class names are written out in full, so Tailwind generates each of them.
 export const TYPE = [
+  {
+    name: "hero",
+    className: "text-hero",
+    use: "Sign-in headlines on wide screens",
+    sample: "Welcome back.",
+  },
   {
     name: "display",
     className: "text-display",
