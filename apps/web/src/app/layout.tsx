@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
+
+import { Splash, SplashScript } from "@/components/splash/splash";
+
 import "./globals.css";
 
 const onest = Onest({
@@ -25,7 +28,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${onest.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <SplashScript />
+      </head>
+      <body className="min-h-full flex flex-col">
+        <Splash />
+        {children}
+      </body>
     </html>
   );
 }
