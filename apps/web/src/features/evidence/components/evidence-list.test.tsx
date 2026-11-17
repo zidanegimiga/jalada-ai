@@ -21,10 +21,22 @@ function item(overrides: Partial<EvidenceItem>): EvidenceItem {
 }
 
 describe("EvidenceList", () => {
-  it("invites the first upload when empty", () => {
+  it("explains the first steps when empty", () => {
     render(<EvidenceList items={[]} />);
 
-    expect(screen.getByText(/Nothing yet/)).toBeInTheDocument();
+    expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.queryByText(/Telegram/)).not.toBeInTheDocument();
+  });
+
+  it("mentions Telegram when the bot is on", () => {
+    const { rerender } = render(
+      <EvidenceList items={[]} telegram="unlinked" />,
+    );
+    expect(screen.getByText(/once you link it above/)).toBeInTheDocument();
+
+    rerender(<EvidenceList items={[]} telegram="linked" />);
+    expect(screen.getByText(/bot on Telegram/)).toBeInTheDocument();
   });
 
   it("names each item by type and shows a plain-language status", () => {

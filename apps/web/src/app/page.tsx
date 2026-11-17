@@ -62,10 +62,18 @@ async function Telegram() {
 }
 
 async function RecentEvidence() {
-  const items = await getRecentEvidence();
+  const [items, telegram] = await Promise.all([
+    getRecentEvidence(),
+    getTelegramStatus(),
+  ]);
+  const state = !telegram.available
+    ? "off"
+    : telegram.linked
+      ? "linked"
+      : "unlinked";
   return (
     <>
-      <EvidenceList items={items} />
+      <EvidenceList items={items} telegram={state} />
       <RefreshWhileReading
         waiting={items.filter(isStillReading).map((item) => item.id)}
       />

@@ -1,4 +1,11 @@
-import { FileText, Image as ImageIcon, MessageSquareText } from "lucide-react";
+import {
+  FileText,
+  Image as ImageIcon,
+  Inbox,
+  MessageSquareText,
+} from "lucide-react";
+
+import { EmptyState } from "@/components/ui/empty-state";
 
 import type { EvidenceItem } from "../api";
 import { PutBack } from "./put-back";
@@ -30,12 +37,35 @@ const dateFormat = new Intl.DateTimeFormat("en-KE", {
   timeStyle: "short",
 });
 
-export function EvidenceList({ items }: { items: EvidenceItem[] }) {
+/** Whether the Telegram bot is on for this site, and linked to this user. */
+export type TelegramState = "off" | "unlinked" | "linked";
+
+const TELEGRAM_TIP: Record<TelegramState, string | null> = {
+  off: null,
+  unlinked: "You can also send them from Telegram once you link it above.",
+  linked: "You can also send them to the Jalada AI bot on Telegram.",
+};
+
+export function EvidenceList({
+  items,
+  telegram = "off",
+}: {
+  items: EvidenceItem[];
+  telegram?: TelegramState;
+}) {
   if (items.length === 0) {
+    const tip = TELEGRAM_TIP[telegram];
     return (
-      <p className="text-muted-foreground">
-        Nothing yet. Add a receipt or an M-Pesa message.
-      </p>
+      <EmptyState Icon={Inbox} title="Nothing here yet">
+        <ol className="flex list-decimal flex-col gap-1 pl-5 text-left">
+          <li>Paste an M-Pesa message or add a photo of a receipt above.</li>
+          <li>
+            Jalada AI reads it. Anything it is unsure of waits on To check.
+          </li>
+          <li>Once you confirm it, it goes into your ledger.</li>
+        </ol>
+        {tip && <p>{tip}</p>}
+      </EmptyState>
     );
   }
   return (
