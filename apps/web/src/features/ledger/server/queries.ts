@@ -3,7 +3,7 @@ import "server-only";
 import { apiGet } from "@/shared/api/server-api";
 
 import { ledgerSearch } from "../search";
-import type { LedgerPage, LedgerQuery, Month } from "../types";
+import type { CategoryTotal, LedgerPage, LedgerQuery, Month } from "../types";
 
 export async function getLedger(query: LedgerQuery): Promise<LedgerPage> {
   const page = await apiGet<LedgerPage>(`/v1/entries?${ledgerSearch(query)}`);
@@ -16,6 +16,18 @@ export async function getYear(year: number): Promise<Month[]> {
     `/v1/summary/monthly?year=${year}`,
   );
   return summary?.months ?? [];
+}
+
+/** Confirmed money per category between two "YYYY-MM-DD" dates, largest first. */
+export async function getCategoryTotals(
+  from: string,
+  to: string,
+): Promise<CategoryTotal[]> {
+  const params = new URLSearchParams({ from, to });
+  const found = await apiGet<{ totals: CategoryTotal[] }>(
+    `/v1/summary/categories?${params}`,
+  );
+  return found?.totals ?? [];
 }
 
 export async function getMonth(

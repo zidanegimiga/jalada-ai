@@ -60,7 +60,7 @@ async function Telegram() {
 
 export default function AccountPage() {
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-content flex-col gap-section">
       <h1 className="text-display">Account</h1>
       <Suspense fallback={<IdentitySkeleton />}>
         <Identity />
@@ -106,6 +106,6 @@ export default function AccountPage() {
           <DeleteAccount />
         </Suspense>
       </section>
-    </>
+    </div>
   );
 }

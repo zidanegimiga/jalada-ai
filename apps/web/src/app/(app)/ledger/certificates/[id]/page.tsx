@@ -18,14 +18,16 @@ export default function CertificatePage({
   params,
 }: PageProps<"/ledger/certificates/[id]">) {
   return (
-    <Suspense>
-      <Link href="/ledger" className="underline underline-offset-4">
-        Back to the ledger
-      </Link>
-      <h1 className="text-display">Withholding certificate</h1>
-      <Suspense fallback={<Spinner />}>
-        <Details params={params} />
+    <div className="mx-auto flex w-full max-w-content flex-col gap-section">
+      <Suspense>
+        <Link href="/ledger" className="underline underline-offset-4">
+          Back to the ledger
+        </Link>
+        <h1 className="text-display">Withholding certificate</h1>
+        <Suspense fallback={<Spinner />}>
+          <Details params={params} />
+        </Suspense>
       </Suspense>
-    </Suspense>
+    </div>
   );
 }

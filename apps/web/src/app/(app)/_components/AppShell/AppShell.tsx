@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
       <div className="flex flex-1 flex-col">
         <AppHeader />
-        <main className="mx-auto flex w-full max-w-page flex-1 flex-col px-gutter pt-6 pb-32 lg:max-w-content lg:pt-10 lg:pb-16">
+        <main className="mx-auto flex w-full max-w-page flex-1 flex-col px-gutter pt-6 pb-32 lg:max-w-content lg:pt-10 lg:pb-16 xl:max-w-wide">
           <PageTransition>
             <div className="flex flex-col gap-section">{children}</div>
           </PageTransition>

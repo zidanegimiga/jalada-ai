@@ -9,18 +9,7 @@ import { getMonth } from "@/features/ledger/server/queries";
 import type { Month } from "@/features/ledger/types";
 import { getReviewQueue } from "@/features/review/server/queries";
 import { SkeletonText } from "@/shared/components/Skeleton";
-
-/** Today's year and month in Kenya, whatever time zone the server runs in. */
-function nairobiMonth(): [number, number] {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Africa/Nairobi",
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(new Date());
-  const value = (type: string) =>
-    Number(parts.find((part) => part.type === type)?.value);
-  return [value("year"), value("month")];
-}
+import { nairobiMonth } from "@/shared/format/nairobi";
 
 function emptyMonth(month: number): Month {
   return {
@@ -63,7 +52,7 @@ function Waiting({ count }: { count: number }) {
 export async function HomeOverview() {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
-  const [year, month] = nairobiMonth();
+  const { year, month } = nairobiMonth();
   const [summary, waiting] = await Promise.all([
     getMonth(year, month),
     getReviewQueue(),

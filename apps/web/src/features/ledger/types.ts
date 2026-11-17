@@ -10,3 +10,5 @@ export type LedgerQuery = {
   purpose?: string;
   cursor?: string;
 };
+
+export type CategoryTotal = Schema<"CategoryTotalResponse">;

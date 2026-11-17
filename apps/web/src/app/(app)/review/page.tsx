@@ -39,11 +39,11 @@ async function ReviewQueue() {
 
 export default function ReviewPage() {
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-content flex-col gap-section">
       <h1 className="text-display">To check</h1>
       <Suspense fallback={<ReviewListSkeleton />}>
         <ReviewQueue />
       </Suspense>
-    </>
+    </div>
   );
 }

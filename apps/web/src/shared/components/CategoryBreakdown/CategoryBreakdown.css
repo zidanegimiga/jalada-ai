@@ -1,0 +1,12 @@
+/* Each bar slides out to its share, one after another. Reduced motion makes it instant. */
+
+.category-bar {
+  animation: category-grow 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--row) * 70ms + 100ms);
+}
+
+@keyframes category-grow {
+  from {
+    width: 0;
+  }
+}
