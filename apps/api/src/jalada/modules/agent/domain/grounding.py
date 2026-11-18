@@ -9,6 +9,8 @@ import re
 from collections.abc import Iterable
 from decimal import Decimal, InvalidOperation
 
+# Ids hold digits that could match an amount by chance, so they are removed first.
+ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
 NUMBER = re.compile(r"(?<![\w.])(?:(ksh|kes)\s*\.?\s*)?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?", re.I)
 
 
@@ -27,7 +29,7 @@ def amounts(text: str) -> set[Decimal]:
 def numbers(text: str) -> set[Decimal]:
     """Every number in some text, small ones included, to check amounts against."""
     found: set[Decimal] = set()
-    for _, whole, fraction in NUMBER.findall(text):
+    for _, whole, fraction in NUMBER.findall(ID.sub(" ", text)):
         value = _number(whole.replace(",", "") + fraction)
         if value is not None:
             found.add(value)

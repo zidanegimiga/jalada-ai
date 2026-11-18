@@ -31,3 +31,9 @@ def test_dates_in_the_answer_match_dates_in_the_records() -> None:
 
 def test_an_answer_with_no_amounts_needs_no_records() -> None:
     assert ungrounded("I could not find any payments to KPLC.", []) == []
+
+
+def test_digits_inside_an_id_do_not_count_as_an_amount() -> None:
+    result = '{"id": "0f3a2b1c-4500-4d2e-9f00-123456789abc", "total": "120.00"}'
+
+    assert ungrounded("You paid Ksh 4,500.", [result]) == [Decimal(4500)]
