@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { AskLayout } from "@/features/agent/components/AskLayout";
 import { ChatPanel } from "@/features/agent/components/ChatPanel";
 import { getThread, getThreads } from "@/features/agent/server/queries";
+import { ConsentChoice } from "@/features/consent/components/ConsentChoice";
+import { getModelConsent } from "@/features/consent/server/get-model-consent";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { Skeleton } from "@/shared/components/Skeleton";
 
@@ -11,9 +13,10 @@ type AskSearch = Promise<{ thread?: string }>;
 
 async function Conversation({ search }: { search: AskSearch }) {
   const { thread: threadId } = await search;
-  const [threads, thread] = await Promise.all([
+  const [threads, thread, consent] = await Promise.all([
     getThreads(),
     threadId ? getThread(threadId) : null,
+    getModelConsent(),
   ]);
   if (threads === null) {
     return (
@@ -27,8 +30,15 @@ async function Conversation({ search }: { search: AskSearch }) {
   }
   return (
     <AskLayout threads={threads} current={thread?.id ?? null}>
-      {/* A new key starts a fresh conversation when the address changes. */}
-      <ChatPanel key={thread?.id ?? "new"} initial={thread} />
+      {consent.required && !consent.given ? (
+        // Nothing goes to a model until the person agrees (decision 0026).
+        <div className="flex flex-1 flex-col justify-center">
+          <ConsentChoice consent={consent} place="ask" />
+        </div>
+      ) : (
+        // A new key starts a fresh conversation when the address changes.
+        <ChatPanel key={thread?.id ?? "new"} initial={thread} />
+      )}
     </AskLayout>
   );
 }
