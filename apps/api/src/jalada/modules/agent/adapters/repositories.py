@@ -15,6 +15,7 @@ from jalada.modules.agent.adapters.tables import (
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Role, Thread
 from jalada.modules.agent.domain.proposals import ActionKind, ActionStatus, ProposedAction
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelUsage
 
@@ -107,6 +108,7 @@ class SqlAgentRuns:
                 user_id=run.user_id,
                 thread_id=run.thread_id,
                 outcome=run.outcome,
+                route=run.route,
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
                 cost_usd=usage.cost_usd,
@@ -161,6 +163,7 @@ class SqlAgentRuns:
             ),
             started_at=row.started_at,
             finished_at=row.finished_at,
+            route=Route(row.route),
         )
 
 

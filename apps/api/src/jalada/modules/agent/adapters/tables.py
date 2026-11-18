@@ -46,6 +46,8 @@ class AgentRunRow(Base):
         ForeignKey("agent_threads.id", ondelete="CASCADE"), index=True
     )
     outcome: Mapped[str] = mapped_column(String(20))
+    # fast or deep: which chain answered, to compare what each costs.
+    route: Mapped[str] = mapped_column(String(10), server_default="fast")
     input_tokens: Mapped[int] = mapped_column(Integer)
     output_tokens: Mapped[int] = mapped_column(Integer)
     cost_usd: Mapped[Any] = mapped_column(Numeric(10, 6))

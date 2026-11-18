@@ -25,6 +25,7 @@ from jalada.modules.agent.domain.actions import ToolCall
 from jalada.modules.agent.domain.grounding import promises_a_change, ungrounded
 from jalada.modules.agent.domain.policy import refusal_for
 from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import AgentStep, Budget, Outcome, StepKind, TurnResult
 from jalada.modules.pipeline.domain.model import LanguageModel, ModelFailed, ModelUsage
 
@@ -63,8 +64,10 @@ class LangGraphRunner:
         tools: ToolRegistry,
         budget: Budget,
         checkpointer: BaseCheckpointSaver[str] | None = None,
+        deep: LanguageModel | None = None,
     ) -> None:
-        self._model = model
+        # The fast chain answers lookups; the deep one, when set, answers the harder questions.
+        self._models = {Route.FAST: model, Route.DEEP: deep or model}
         self._tools = tools
         self._budget = budget
         self._checkpointer = checkpointer
@@ -113,13 +116,14 @@ class LangGraphRunner:
             return {"outcome": Outcome.OUT_OF_BUDGET, "text": OUT_OF_BUDGET}
         content = turn_content(turn.question, turn.history, work, turn.today, turn.earlier)
         runtime.stream_writer(Progress(Stage.THINKING))
+        model = self._models[turn.route]
         started = perf_counter()
         try:
-            reply = self._model.complete(self._instructions, content, NEXT_STEP_SCHEMA)
+            reply = model.complete(self._instructions, content, NEXT_STEP_SCHEMA)
         except ModelFailed:
-            step = _model_step(self._model.name, "failed", started, ModelUsage())
+            step = _model_step(model.name, "failed", started, ModelUsage())
             return {"steps": [*steps, step], "outcome": Outcome.FAILED, "text": FAILED}
-        answered_by = reply.answered_by or self._model.name
+        answered_by = reply.answered_by or model.name
         try:
             decision = read_decision(reply.data, self._tools)
         except Unusable as problem:

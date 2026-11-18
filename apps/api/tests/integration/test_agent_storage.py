@@ -10,6 +10,7 @@ from jalada.modules.accounts.domain.users import User
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Role, Thread
 from jalada.modules.agent.domain.proposals import ActionKind, ActionStatus, ProposedAction
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelUsage
 from jalada.sql_unit_of_work import SqlUnitOfWork
@@ -100,7 +101,14 @@ def test_a_run_keeps_its_steps_in_order_and_adds_up_its_cost(
         ),
     )
     run = AgentRun(
-        uuid.uuid4(), user, thread.id, Outcome.ANSWERED, steps, NOW, NOW + timedelta(seconds=1)
+        uuid.uuid4(),
+        user,
+        thread.id,
+        Outcome.ANSWERED,
+        steps,
+        NOW,
+        NOW + timedelta(seconds=1),
+        Route.DEEP,
     )
     with SqlUnitOfWork(session_factory) as work:
         work.agent_runs.add(run)

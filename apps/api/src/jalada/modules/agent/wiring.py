@@ -57,11 +57,15 @@ def build_conversations(
     database_url: str,
     tools: Iterable[Tool[Any]] = (),
     tracer: TurnTracer | None = None,
+    deep_model: LanguageModel | None = None,
 ) -> Conversations | None:
-    """The assistant, when it has a model to run on."""
+    """The assistant, when it has a model to run on. `model` answers single lookups and
+    `deep_model`, when given, the harder questions."""
     if model is None:
         return None
-    runner = LangGraphRunner(model, ToolRegistry(tools), budget, postgres_checkpoints(database_url))
+    runner = LangGraphRunner(
+        model, ToolRegistry(tools), budget, postgres_checkpoints(database_url), deep_model
+    )
     return Conversations(unit_of_work, runner, clock, tracer=tracer)
 
 

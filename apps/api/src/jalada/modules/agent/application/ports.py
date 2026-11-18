@@ -6,6 +6,7 @@ from uuid import UUID
 from jalada.modules.agent.domain.conversation import Message, Thread
 from jalada.modules.agent.domain.progress import OnProgress, ignore
 from jalada.modules.agent.domain.proposals import ProposedAction
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import AgentStep, Outcome, TurnResult
 
 
@@ -20,6 +21,7 @@ class AgentRun:
     steps: tuple[AgentStep, ...]
     started_at: datetime
     finished_at: datetime
+    route: Route = Route.FAST
 
 
 class ThreadRepository(Protocol):
@@ -80,6 +82,8 @@ class TurnRequest:
     thread_id: UUID | None = None
     # Questions asked before `history`, condensed: see earlier_questions.
     earlier: tuple[str, ...] = ()
+    # Which models answer: see route_for.
+    route: Route = Route.FAST
 
 
 class AgentRunner(Protocol):

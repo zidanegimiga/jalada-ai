@@ -42,13 +42,16 @@ def build_evidence_store(settings: Settings) -> EvidenceStore:
     return EncryptedS3EvidenceStore(build_s3_client(settings), settings.storage_bucket, ciphers)
 
 
-def build_language_model(settings: Settings) -> LanguageModel | None:
-    """The models named in JALADA_MODEL_CHAIN, as one chain that falls back in order.
+def build_language_model(
+    settings: Settings, names: list[str] | None = None
+) -> LanguageModel | None:
+    """The models named in JALADA_MODEL_CHAIN, or in `names`, as one chain that falls back
+    in order.
 
     None when no model is named. Any setting that cannot work stops startup with a
     ModelSetupError saying which one.
     """
-    names = settings.model_chain_names
+    names = settings.model_chain_names if names is None else names
     if not names:
         return None
     try:

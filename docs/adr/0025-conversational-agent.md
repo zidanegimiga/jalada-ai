@@ -40,10 +40,10 @@ For conversation memory: LangGraph's Postgres checkpointer, our own tables, or a
 
 **Memory.**
 - LangGraph's Postgres checkpointer holds graph state while a turn runs, and is cleared when it ends. The graph does not pause for the person: a confirmed change needs nothing from the model, so ending the turn is simpler and leaves less to go wrong.
-- The messages a person sees live in our own `agent_threads` and `agent_messages` tables, managed by Alembic. The last turns are sent verbatim and older ones as a rolling summary within a token budget.
+- The messages a person sees live in our own `agent_threads` and `agent_messages` tables, managed by Alembic. The last 10 messages are sent in full. Before them, the person's earlier questions are listed, shortened, without the answers; this is done in code rather than by a model, so it costs nothing, and a figure from an old answer is looked up again rather than repeated unchecked.
 - Long-term memory is what the app already knows, such as counterparty categories and preferences, looked up by tools when needed rather than packed into every prompt.
 
-**Routing by rules.** A small rule picks a fast chain for lookups and a deeper chain for multi-step questions, from `JALADA_AGENT_CHAIN_FAST` and `JALADA_AGENT_CHAIN_DEEP`, both made of catalogue names.
+**Routing by rules.** A small rule picks a fast chain for lookups and a deeper chain for multi-step questions, from `JALADA_AGENT_CHAIN_FAST` and `JALADA_AGENT_CHAIN_DEEP`, both made of catalogue names. Fast falls back to `JALADA_MODEL_CHAIN` and deep to fast. Comparisons, trends, reasons, long questions and several questions at once go deep. Each run records its route, so the cost of each shows in `agent_runs`. Answers are not streamed word by word: the figure check needs the whole answer before it is shown, and progress is streamed instead.
 
 **Streaming over server-sent events**: `step`, `tool`, `answer`, `action` and `done`, with small payloads. Telegram and later WhatsApp are adapters behind a `Channel` port.
 

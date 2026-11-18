@@ -20,6 +20,7 @@ from jalada.modules.agent.domain.conversation import (
 )
 from jalada.modules.agent.domain.progress import OnProgress, ignore
 from jalada.modules.agent.domain.proposals import ProposedAction
+from jalada.modules.agent.domain.routing import route_for
 from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
@@ -117,6 +118,7 @@ class Conversations:
             started.date(),
             thread.id,
             earlier_questions(older),
+            route_for(question),
         )
         result = self._runner.run(request, on_progress)
 
@@ -128,7 +130,14 @@ class Conversations:
             actions = tuple(work.agent_actions_for(user_id).for_run(run_id))
             threads.touch(thread.id, finished)
             run = AgentRun(
-                run_id, user_id, thread.id, result.outcome, result.steps, started, finished
+                run_id,
+                user_id,
+                thread.id,
+                result.outcome,
+                result.steps,
+                started,
+                finished,
+                request.route,
             )
             work.agent_runs.add(run)
             work.commit()

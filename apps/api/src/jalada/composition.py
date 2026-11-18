@@ -127,7 +127,7 @@ def assistant(
     return build_conversations(
         unit_of_work,
         clock,
-        build_language_model(settings),
+        build_language_model(settings, settings.agent_fast_names),
         build_agent_budget(settings),
         settings.database_url,
         build_lookups(
@@ -140,6 +140,12 @@ def assistant(
             settings.agent_traces_url,
             headers.get_secret_value() if (headers := settings.agent_traces_headers) else None,
             settings.version,
+        ),
+        # The same chain when deep is not set apart, so both routes share one set of breakers.
+        (
+            build_language_model(settings, settings.agent_deep_names)
+            if settings.agent_deep_names != settings.agent_fast_names
+            else None
         ),
     )
 

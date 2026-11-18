@@ -8,6 +8,7 @@ from fakes.agent import CannedRunner
 from jalada.modules.agent.application.conversations import HISTORY_MESSAGES, Conversations
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import MAX_MESSAGE_LENGTH, Role
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 
@@ -139,3 +140,14 @@ def test_questions_older_than_the_window_are_remembered_without_their_answers(
     # 14 messages before the 8th question: the last 10 start at question 2.
     assert request.earlier == ("question 0", "question 1")
     assert [m.text for m in request.history][0] == "question 2"
+
+
+def test_each_turn_is_routed_and_the_route_is_kept(store: Store) -> None:
+    runner = CannedRunner()
+    asking = conversations(store, runner)
+
+    asking.ask(USER, "How much did I pay KPLC?")
+    asking.ask(USER, "Compare my July and August spending.")
+
+    assert [r.route for r in runner.requests] == [Route.FAST, Route.DEEP]
+    assert [r.route for r in store.agent_runs] == [Route.FAST, Route.DEEP]

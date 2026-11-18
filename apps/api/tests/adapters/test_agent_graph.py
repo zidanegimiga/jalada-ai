@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -18,6 +19,7 @@ from jalada.modules.agent.application.ports import TurnRequest
 from jalada.modules.agent.application.tools import ToolRegistry
 from jalada.modules.agent.domain.policy import TAX_ADVICE
 from jalada.modules.agent.domain.progress import Progress, Stage
+from jalada.modules.agent.domain.routing import Route
 from jalada.modules.agent.domain.run import Budget, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelFailed
 
@@ -152,6 +154,19 @@ def test_an_answer_that_promises_a_change_nobody_suggested_is_sent_back_then_wit
 
     assert (result.outcome, result.text) == (Outcome.WITHHELD, NO_CHANGE)
     assert "no suggest_ tool suggested one" in model.calls[1]["content"]
+
+
+def test_a_deep_question_goes_to_the_deep_models() -> None:
+    fast = ScriptedModel(answer("fast answer"))
+    deep = ScriptedModel(answer("deep answer"))
+    runner = LangGraphRunner(fast, ToolRegistry([TotalPaid(TOTALS)]), Budget(), deep=deep)
+    turn = TurnRequest(uuid.uuid4(), ME, "Compare July and August?", (), date(2026, 11, 18))
+
+    lookup = runner.run(turn)
+    harder = runner.run(replace(turn, route=Route.DEEP))
+
+    assert (lookup.text, harder.text) == ("fast answer", "deep answer")
+    assert (len(fast.calls), len(deep.calls)) == (1, 1)
 
 
 def test_tax_advice_is_refused_without_asking_a_model() -> None:

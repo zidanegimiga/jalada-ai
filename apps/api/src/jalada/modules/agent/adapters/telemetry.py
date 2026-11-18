@@ -49,6 +49,7 @@ class OpenTelemetryTracer:
                 "gen_ai.conversation.id": str(run.thread_id),
                 "jalada.run.id": str(run.id),
                 "jalada.outcome": run.outcome,
+                "jalada.route": run.route,
                 "gen_ai.usage.input_tokens": usage.input_tokens,
                 "gen_ai.usage.output_tokens": usage.output_tokens,
                 "jalada.cost_usd": float(usage.cost_usd),
