@@ -1,0 +1,21 @@
+{
+  "name": "internet-bill",
+  "lines": [
+    "NYOTA NET LIMITED",
+    "Monthly invoice INV-88213",
+    "Period: November 2026",
+    "Home fibre 40Mbps   3,999.00",
+    "Amount paid        3,999.00",
+    "Paid on 02/11/2026"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 399900,
+      "occurred_on": "2026-11-02",
+      "direction": "out",
+      "counterparty": "NYOTA NET LIMITED"
+    },
+    "outcome": "needs_review"
+  }
+}

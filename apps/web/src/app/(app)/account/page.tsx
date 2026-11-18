@@ -1,8 +1,11 @@
 import { Download } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { DeleteAccountForm } from "@/features/account/components/DeleteAccountForm";
+import { ConsentChoice } from "@/features/consent/components/ConsentChoice";
+import { getModelConsent } from "@/features/consent/server/get-model-consent";
 import { Preferences } from "@/features/account/components/Preferences";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
@@ -53,6 +56,10 @@ async function DeleteAccount() {
   return user ? <DeleteAccountForm email={user.email} /> : null;
 }
 
+async function AccountConsent() {
+  return <ConsentChoice consent={await getModelConsent()} place="account" />;
+}
+
 async function Telegram() {
   const status = await getTelegramStatus();
   return <TelegramCard available={status.available} linked={status.linked} />;
@@ -66,6 +73,9 @@ export default function AccountPage() {
         <Identity />
       </Suspense>
       <Preferences />
+      <Suspense>
+        <AccountConsent />
+      </Suspense>
       <Suspense fallback={<TelegramCardSkeleton />}>
         <Telegram />
       </Suspense>
@@ -88,6 +98,12 @@ export default function AccountPage() {
           <Download aria-hidden="true" />
           Download my data
         </a>
+        <Link
+          href="/privacy"
+          className="inline-flex min-h-tap items-center self-start underline underline-offset-4"
+        >
+          Read the privacy notice
+        </Link>
       </section>
       <SignOutButton />
       <section

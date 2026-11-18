@@ -1,0 +1,22 @@
+{
+  "name": "fuel-receipt",
+  "lines": [
+    "SAFIRI FUEL STATION",
+    "Ngong Road",
+    "Date 2026-08-21 07:55",
+    "Diesel 30.00 L x 171.50",
+    "Amount  KES 5,145.00",
+    "Card: ****4421",
+    "Thank you"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 514500,
+      "occurred_on": "2026-08-21",
+      "direction": "out",
+      "counterparty": "SAFIRI FUEL STATION"
+    },
+    "outcome": "needs_review"
+  }
+}

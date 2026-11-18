@@ -34,3 +34,16 @@ class SessionRow(Base):
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ModelConsentRow(Base):
+    """A person's agreement to have their records read by the model provider (decision 0026)."""
+
+    __tablename__ = "model_consents"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    # The provider notice agreed to, word for word, so a new provider asks again.
+    notice: Mapped[str] = mapped_column(String(500))
+    given_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

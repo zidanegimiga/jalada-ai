@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from jalada.core.error_tracking import start_error_tracking
 from jalada.core.settings import Settings
 from jalada.core.storage.client import create_s3_client
+from jalada.modules.agent.domain.run import Budget as AgentBudget
 from jalada.modules.evidence.adapters.cipher import EvidenceCipher
 from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
 from jalada.modules.evidence.application.ports import EvidenceStore
@@ -41,13 +42,16 @@ def build_evidence_store(settings: Settings) -> EvidenceStore:
     return EncryptedS3EvidenceStore(build_s3_client(settings), settings.storage_bucket, ciphers)
 
 
-def build_language_model(settings: Settings) -> LanguageModel | None:
-    """The models named in JALADA_MODEL_CHAIN, as one chain that falls back in order.
+def build_language_model(
+    settings: Settings, names: list[str] | None = None
+) -> LanguageModel | None:
+    """The models named in JALADA_MODEL_CHAIN, or in `names`, as one chain that falls back
+    in order.
 
     None when no model is named. Any setting that cannot work stops startup with a
     ModelSetupError saying which one.
     """
-    names = settings.model_chain_names
+    names = settings.model_chain_names if names is None else names
     if not names:
         return None
     try:
@@ -66,6 +70,14 @@ def build_language_model(settings: Settings) -> LanguageModel | None:
             raise ModelSetupError(f"JALADA_MODEL_CHAIN names {name!r}, not in the catalogue")
         links.append(ChainLink(profile, build_model(profile, accounts)))
     return ModelChain(links)
+
+
+def build_agent_budget(settings: Settings) -> AgentBudget:
+    return AgentBudget(
+        max_steps=settings.agent_max_steps,
+        max_tokens=settings.agent_max_tokens,
+        max_cost_usd=settings.agent_max_cost_usd,
+    )
 
 
 def build_budget(settings: Settings) -> Budget:

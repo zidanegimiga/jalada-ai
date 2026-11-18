@@ -9,8 +9,22 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.core.jobs.ports import JobQueue
 from jalada.core.jobs.queue import SqlJobQueue
-from jalada.modules.accounts.adapters.repositories import SqlSessionRepository, SqlUserRepository
-from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.accounts.adapters.repositories import (
+    SqlModelConsents,
+    SqlSessionRepository,
+    SqlUserRepository,
+)
+from jalada.modules.accounts.application.ports import (
+    ModelConsents,
+    SessionRepository,
+    UserRepository,
+)
+from jalada.modules.agent.adapters.repositories import SqlActions, SqlAgentRuns, SqlThreads
+from jalada.modules.agent.application.ports import (
+    ActionRepository,
+    AgentRunRepository,
+    ThreadRepository,
+)
 from jalada.modules.evidence.adapters.repository import SqlEvidenceRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.adapters.audit_trail import SqlAuditTrail
@@ -48,9 +62,11 @@ class SqlUnitOfWork:
         self._db = self._session_factory()
         self.users: UserRepository = SqlUserRepository(self._db)
         self.sessions: SessionRepository = SqlSessionRepository(self._db)
+        self.model_consents: ModelConsents = SqlModelConsents(self._db)
         self.jobs: JobQueue = SqlJobQueue(self._db, lambda: datetime.now(UTC))
         self.runs: RunRepository = SqlRunRepository(self._db)
         self.telegram: TelegramLinks = SqlTelegramLinks(self._db)
+        self.agent_runs: AgentRunRepository = SqlAgentRuns(self._db)
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
@@ -76,6 +92,12 @@ class SqlUnitOfWork:
 
     def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository:
         return SqlMatchSuggestions(self._db, user_id)
+
+    def agent_threads_for(self, user_id: UUID) -> ThreadRepository:
+        return SqlThreads(self._db, user_id)
+
+    def agent_actions_for(self, user_id: UUID) -> ActionRepository:
+        return SqlActions(self._db, user_id)
 
     def __exit__(
         self,

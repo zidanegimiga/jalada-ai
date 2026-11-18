@@ -21,6 +21,7 @@ RECEIPT = {
     "amount_ksh": "250.00",
     "counterparty": "SAMPLE SHOP",
     "confidence": 0.9,
+    "readable": True,
 }
 DEFAULT_BUDGET = Budget()
 STOCK = {"purpose": "business", "category": "business_stock", "confidence": 0.9}

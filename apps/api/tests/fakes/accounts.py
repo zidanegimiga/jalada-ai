@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import UUID
 
 from jalada.modules.accounts.application.ports import UserCredentials
+from jalada.modules.accounts.domain.consent import ModelConsent
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 
@@ -99,3 +100,17 @@ class FakeTelegramLinks:
         self.links.pop(user_id, None)
         for code in [h for h, (owner, _) in self.codes.items() if owner == user_id]:
             del self.codes[code]
+
+
+class FakeModelConsents:
+    def __init__(self, rows: dict[UUID, ModelConsent]) -> None:
+        self.rows = rows
+
+    def get(self, user_id: UUID) -> ModelConsent | None:
+        return self.rows.get(user_id)
+
+    def give(self, consent: ModelConsent) -> None:
+        self.rows[consent.user_id] = consent
+
+    def withdraw(self, user_id: UUID) -> None:
+        self.rows.pop(user_id, None)

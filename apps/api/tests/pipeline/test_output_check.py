@@ -8,6 +8,7 @@ GOOD = {
     "amount_ksh": "1,250.00",
     "counterparty": "SAMPLE SHOP",
     "confidence": 0.9,
+    "readable": True,
 }
 
 
@@ -31,3 +32,10 @@ def test_true_is_not_a_number() -> None:
     assert problems({**GOOD, "confidence": True}, EXTRACTION_SCHEMA) == [
         "answer.confidence has the wrong type"
     ]
+
+
+def test_an_answer_that_does_not_say_whether_it_could_read_is_refused() -> None:
+    answer = dict(GOOD)
+    del answer["readable"]
+
+    assert problems(answer, EXTRACTION_SCHEMA) == ["answer.readable is missing"]

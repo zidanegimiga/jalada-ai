@@ -1,0 +1,73 @@
+{
+  "name": "suggests-a-new-category",
+  "question": "My KPLC payment on 4 July 2026 was really workspace rent. Can you fix it?",
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other",
+      "id": "0d6b2f7e-6a1f-4d0e-9c1a-3f2b8e5a7c41"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "search_payments",
+      "arguments": "{\"counterparty\": \"KPLC\", \"start\": \"2026-07-04\", \"end\": \"2026-07-04\"}",
+      "answer": null
+    },
+    {
+      "action": "tool",
+      "tool": "suggest_category",
+      "arguments": "{\"id\": \"0d6b2f7e-6a1f-4d0e-9c1a-3f2b8e5a7c41\", \"category\": \"business_rent\"}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "I have suggested moving Ksh 2,500.00 to KPLC PREPAID on 4 July 2026 to Workspace rent. Tap Confirm to change it."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "search_payments",
+      "suggest_category"
+    ],
+    "outcome": "answered",
+    "suggests": 1,
+    "amounts": [
+      "2500.00"
+    ]
+  }
+}

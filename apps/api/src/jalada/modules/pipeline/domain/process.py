@@ -103,7 +103,8 @@ class _Run:
             if extraction:
                 return extraction, "rules", 1.0
         model = self._usable_model()
-        if model is None:
+        # With no text and no photo there is nothing to read, and a model asked anyway guesses.
+        if model is None or (not evidence.text and evidence.image is None):
             return None, "rules" if attempt == 1 else "model", 1.0
         try:
             extraction, sureness, reply = extract_with_model(

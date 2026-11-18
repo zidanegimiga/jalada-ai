@@ -56,3 +56,33 @@ def _id(item: dict[str, Any]) -> str | None:
 def _size(item: dict[str, Any]) -> int | None:
     value = item.get("file_size")
     return value if isinstance(value, int) else None
+
+
+@dataclass(frozen=True)
+class TelegramTap:
+    """A tap on one of the bot's buttons."""
+
+    telegram_user_id: int
+    chat_id: int
+    tap_id: str
+    data: str
+
+
+def read_tap(update: dict[str, Any]) -> TelegramTap | None:
+    tap = update.get("callback_query")
+    if not isinstance(tap, dict):
+        return None
+    sender, message = tap.get("from"), tap.get("message")
+    if not (isinstance(sender, dict) and isinstance(message, dict)):
+        return None
+    chat = message.get("chat")
+    user_id, tap_id, data = sender.get("id"), tap.get("id"), tap.get("data")
+    chat_id = chat.get("id") if isinstance(chat, dict) else None
+    if not (
+        isinstance(user_id, int)
+        and isinstance(chat_id, int)
+        and isinstance(tap_id, str)
+        and isinstance(data, str)
+    ):
+        return None
+    return TelegramTap(user_id, chat_id, tap_id, data)

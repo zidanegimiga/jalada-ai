@@ -50,6 +50,30 @@ class ConfirmationMismatch(ApplicationError):
     pass
 
 
+class AssistantOff(ApplicationError):
+    """The assistant is not switched on for this app."""
+
+
+class ThreadNotFound(ApplicationError):
+    """No such conversation for this person, including another person's."""
+
+
+class EmptyQuestion(ApplicationError):
+    pass
+
+
+class ConsentNeeded(ApplicationError):
+    """The person has not agreed to have a model read their records (decision 0026)."""
+
+
+class ActionNotFound(ApplicationError):
+    """No such suggested change for this person, including another person's."""
+
+
+class ActionClosed(ApplicationError):
+    """The suggested change was already confirmed or declined, or has expired."""
+
+
 class InvalidEntry(ApplicationError):
     """An entry cannot be confirmed as it stands. `reason` says why, for the user."""
 

@@ -1,0 +1,23 @@
+{
+  "name": "pharmacy-receipt",
+  "lines": [
+    "UZIMA CHEMISTS LTD",
+    "Receipt No. 004512",
+    "03 Oct 2026",
+    "Paracetamol 500mg   150.00",
+    "Vitamin C           420.00",
+    "Sub total           570.00",
+    "VAT incl.",
+    "TOTAL             570.00"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 57000,
+      "occurred_on": "2026-10-03",
+      "direction": "out",
+      "counterparty": "UZIMA CHEMISTS LTD"
+    },
+    "outcome": "needs_review"
+  }
+}

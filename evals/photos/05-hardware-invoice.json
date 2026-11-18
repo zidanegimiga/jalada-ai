@@ -1,0 +1,21 @@
+{
+  "name": "hardware-invoice",
+  "lines": [
+    "JENGA HARDWARE SUPPLIES",
+    "Cash sale",
+    "Date: 30/06/2026",
+    "Cement 50kg x 4    3,200.00",
+    "Nails 1kg            250.00",
+    "Total due      KSH 3,450.00"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 345000,
+      "occurred_on": "2026-06-30",
+      "direction": "out",
+      "counterparty": "JENGA HARDWARE SUPPLIES"
+    },
+    "outcome": "needs_review"
+  }
+}

@@ -23,6 +23,18 @@ class TelegramBot:
     def send(self, chat_id: int, text: str) -> None:
         self._call("sendMessage", {"chat_id": chat_id, "text": text})
 
+    def send_with_buttons(self, chat_id: int, text: str, buttons: list[tuple[str, str]]) -> None:
+        """A message with one row of buttons. Each is (label, data sent back when tapped)."""
+        keyboard = [[{"text": label, "callback_data": data} for label, data in buttons]]
+        self._call(
+            "sendMessage",
+            {"chat_id": chat_id, "text": text, "reply_markup": {"inline_keyboard": keyboard}},
+        )
+
+    def answer_tap(self, tap_id: str) -> None:
+        """Tells Telegram a button tap was received, so the button stops spinning."""
+        self._call("answerCallbackQuery", {"callback_query_id": tap_id})
+
     def download(self, file_id: str, max_bytes: int) -> bytes | None:
         """The file's bytes, or None when it is bigger than `max_bytes`."""
         info = self._call("getFile", {"file_id": file_id})
@@ -40,7 +52,13 @@ class TelegramBot:
 
     def set_webhook(self, url: str, secret: str) -> None:
         self._call(
-            "setWebhook", {"url": url, "secret_token": secret, "allowed_updates": ["message"]}
+            "setWebhook",
+            {
+                "url": url,
+                "secret_token": secret,
+                # Taps on the assistant's Confirm and Not now buttons arrive as callback queries.
+                "allowed_updates": ["message", "callback_query"],
+            },
         )
 
     def updates(self, offset: int, wait_seconds: int) -> list[dict[str, Any]]:

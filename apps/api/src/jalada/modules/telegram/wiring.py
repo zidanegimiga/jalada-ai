@@ -5,6 +5,7 @@ from collections.abc import Callable
 from jalada.core.ports import Clock, Limiter
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.telegram.adapters.telegram_bot import TelegramBot
+from jalada.modules.telegram.application.ports import ChatAssistant
 from jalada.modules.telegram.application.telegram_capture import TelegramCapture
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
 from jalada.modules.telegram.application.telegram_notifier import TelegramNotifier
@@ -28,10 +29,11 @@ def build_telegram_capture(
     evidence: EvidenceCapture,
     link_limiter: Limiter,
     upload_limiter: Limiter,
+    assistant: ChatAssistant | None = None,
 ) -> TelegramCapture | None:
     if bot is None:
         return None
-    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter)
+    return TelegramCapture(linking, evidence, bot, link_limiter, upload_limiter, assistant)
 
 
 def build_telegram_notifier(

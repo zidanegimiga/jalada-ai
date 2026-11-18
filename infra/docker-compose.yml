@@ -19,6 +19,14 @@ x-backend-environment: &backend-environment
   # use the graphics chip. Containers reach it at host.docker.internal.
   JALADA_MODEL_PROVIDERS: ${JALADA_MODEL_PROVIDERS:-{"ollama":{"base_url":"http://host.docker.internal:11434"}}}
   JALADA_EXTRA_MODELS: ${JALADA_EXTRA_MODELS:-}
+  JALADA_MODEL_PROVIDER_NOTICE: ${JALADA_MODEL_PROVIDER_NOTICE:-}
+  # The assistant (decision 0025). Runs on JALADA_MODEL_CHAIN; build web with ASSISTANT=on too.
+  JALADA_AGENT_ENABLED: ${JALADA_AGENT_ENABLED:-false}
+  JALADA_AGENT_CHAIN_FAST: ${JALADA_AGENT_CHAIN_FAST:-}
+  JALADA_AGENT_CHAIN_DEEP: ${JALADA_AGENT_CHAIN_DEEP:-}
+  JALADA_AGENT_QUESTIONS_PER_HOUR: ${JALADA_AGENT_QUESTIONS_PER_HOUR:-30}
+  JALADA_AGENT_TRACES_URL: ${JALADA_AGENT_TRACES_URL:-}
+  JALADA_AGENT_TRACES_HEADERS: ${JALADA_AGENT_TRACES_HEADERS:-}
   JALADA_TELEGRAM_BOT_TOKEN: ${JALADA_TELEGRAM_BOT_TOKEN:-}
   JALADA_TELEGRAM_BOT_USERNAME: ${JALADA_TELEGRAM_BOT_USERNAME:-}
   JALADA_TELEGRAM_WEBHOOK_SECRET: ${JALADA_TELEGRAM_WEBHOOK_SECRET:-}
@@ -102,6 +110,9 @@ services:
       context: ../apps/web
       args:
         API_URL: http://api:8000
+        # on with JALADA_AGENT_ENABLED=true, to show the Ask tab.
+        ASSISTANT: ${ASSISTANT:-off}
+        PRIVACY_CONTACT: ${PRIVACY_CONTACT:-}
     environment:
       API_URL: http://api:8000
     ports:

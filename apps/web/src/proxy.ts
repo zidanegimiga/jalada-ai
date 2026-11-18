@@ -2,12 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_COOKIE } from "@/shared/config/session-cookie";
 
-const PUBLIC_PATHS = ["/signin", "/signup"];
+const PUBLIC_PATHS = ["/signin", "/signup", "/privacy"];
 
 /** Sends visitors without a session cookie to sign in. The API still checks every request. */
 export function proxy(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.includes(request.nextUrl.pathname);
-  if (isPublic || request.cookies.has(SESSION_COOKIE)) return NextResponse.next();
+  if (isPublic || request.cookies.has(SESSION_COOKIE))
+    return NextResponse.next();
   return NextResponse.redirect(new URL("/signin", request.url));
 }
 

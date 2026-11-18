@@ -13,13 +13,16 @@ export function AuthHeader() {
       >
         <Brand />
       </Link>
-      <p className="hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase sm:flex">
+      <Link
+        href="/privacy"
+        className="hidden min-h-tap items-center gap-2 rounded-full border border-border px-3 py-1.5 font-mono text-tiny tracking-wide text-muted-foreground uppercase transition-colors hover:border-foreground/40 hover:text-foreground sm:flex"
+      >
         <span
           aria-hidden="true"
           className="size-1.5 rounded-full bg-primary motion-safe:animate-pulse"
         />
         Private · Encrypted
-      </p>
+      </Link>
       <ThemeToggle />
     </header>
   );

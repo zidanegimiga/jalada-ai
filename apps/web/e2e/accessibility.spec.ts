@@ -4,8 +4,9 @@ import { expect, test, type Page } from "@playwright/test";
 /** WCAG 2.2 at levels A and AA. */
 const STANDARD = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-const SIGNED_OUT = ["/signup", "/signin"];
-const SIGNED_IN = ["/", "/review", "/ledger", "/account", "/design"];
+const SIGNED_OUT = ["/signup", "/signin", "/privacy"];
+// /ask shows the conversation where the assistant is on, and a notice where it is not.
+const SIGNED_IN = ["/", "/review", "/ledger", "/ask", "/account", "/design"];
 
 /** The smallest a thumb target may be, in CSS pixels. WCAG asks for 24; phones need 44. */
 const TAP = 44;

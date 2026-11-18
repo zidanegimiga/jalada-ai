@@ -37,6 +37,7 @@ check:
 	uv run --directory apps/api pytest
 	uv run --directory apps/worker pytest
 	uv run python evals/run_evals.py
+	uv run python evals/agent/run_agent_evals.py
 	cd apps/web && npm run lint && npm run typecheck && npm test
 
 # Repository tests against the real database in docker compose.

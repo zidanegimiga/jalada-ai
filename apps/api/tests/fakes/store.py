@@ -6,7 +6,11 @@ from typing import Any
 from uuid import UUID
 
 from jalada.modules.accounts.application.ports import UserCredentials
+from jalada.modules.accounts.domain.consent import ModelConsent
 from jalada.modules.accounts.domain.sessions import Session
+from jalada.modules.agent.application.ports import AgentRun
+from jalada.modules.agent.domain.conversation import Message, Thread
+from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
@@ -38,12 +42,17 @@ class Store:
     # Jobs for the job runner: id to [job, status, run_after].
     queue: dict[int, list[Any]] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
+    model_consents: dict[UUID, ModelConsent] = field(default_factory=dict)
     # Payment id to (user id, certificate id).
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)
     money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)
     transactions: dict[UUID, Transaction] = field(default_factory=dict)
     audit_events: list[AuditEvent] = field(default_factory=list)
     suggestions: dict[UUID, MatchSuggestion] = field(default_factory=dict)
+    agent_threads: dict[UUID, Thread] = field(default_factory=dict)
+    agent_messages: list[tuple[UUID, Message]] = field(default_factory=list)
+    agent_runs: list[AgentRun] = field(default_factory=list)
+    agent_actions: dict[UUID, ProposedAction] = field(default_factory=dict)
 
     def save_entries(self, *entries: Entry) -> None:
         """Saves entries with the transactions that stand beside them, as the pipeline,

@@ -58,6 +58,8 @@ jobs:
       - run: uv run --directory apps/worker pytest
       - name: Pipeline evaluations
         run: uv run python evals/run_evals.py
+      - name: Assistant evaluations
+        run: uv run python evals/agent/run_agent_evals.py
 
   audit:
     runs-on: ubuntu-latest

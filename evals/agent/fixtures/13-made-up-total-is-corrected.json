@@ -1,0 +1,78 @@
+{
+  "name": "made-up-total-is-corrected",
+  "replay_only": true,
+  "question": "How much did I pay KPLC?",
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "search_payments",
+      "arguments": "{\"counterparty\": \"KPLC\"}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "You paid KPLC Ksh 4,500.00."
+    },
+    {
+      "action": "tool",
+      "tool": "add_up_payments",
+      "arguments": "{\"counterparty\": \"KPLC\"}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "You paid KPLC Ksh 4,500.00 in 2 payments."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "search_payments",
+      "add_up_payments"
+    ],
+    "outcome": "answered",
+    "amounts": [
+      "4500.00"
+    ]
+  }
+}

@@ -47,6 +47,27 @@ class Settings(BaseSettings):
     extra_models: str = ""
     # Set to true only for a provider whose terms exclude training on the data sent to it.
     model_allowed_for_real_data: bool = False
+    # Who reads people's records, where, and on what terms, as each person is asked to agree
+    # to it (decision 0026). Changing it asks everyone again. Required in production with a model.
+    model_provider_notice: str = Field(default="", max_length=500)
+    # The assistant that answers questions about a person's records (decision 0025).
+    agent_enabled: bool = False
+    # Catalogue names, like JALADA_MODEL_CHAIN, for the assistant's single lookups (fast) and
+    # for comparisons and harder questions (deep). Empty: fast uses JALADA_MODEL_CHAIN, and
+    # deep uses fast.
+    agent_chain_fast: str = ""
+    agent_chain_deep: str = ""
+    # Limits for one question to the assistant.
+    agent_max_steps: int = Field(default=6, ge=1, le=12)
+    agent_max_tokens: int = Field(default=16000, ge=0)
+    agent_max_cost_usd: Decimal = Field(default=Decimal("0.01"), ge=0)
+    # How many questions one person may ask in an hour.
+    agent_questions_per_hour: int = Field(default=30, ge=1, le=1000)
+    # Where the assistant's traces go, over OTLP/HTTP, such as Langfuse's or Grafana Cloud's
+    # traces address. Off when empty. Traces hold names, outcomes, tokens and times only.
+    agent_traces_url: str | None = None
+    # JSON of headers the endpoint needs, such as {"Authorization": "Basic ..."}.
+    agent_traces_headers: SecretStr | None = None
     # Telegram bot. Switched off unless the token and the bot's username are both set.
     telegram_bot_token: SecretStr | None = None
     telegram_bot_username: str | None = None
@@ -75,11 +96,26 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def check_model_settings(self) -> Self:
-        uses_model = bool(self.model_chain_names)
+        uses_model = bool(self.model_chain_names or self.agent_fast_names or self.agent_deep_names)
         if self.environment == "production" and uses_model and not self.model_allowed_for_real_data:
             raise ValueError(
                 "Real users' evidence may only go to a provider whose terms exclude training on "
                 "it (decision 0012). Set JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true once that is so."
+            )
+        if self.environment == "production" and uses_model and not self.model_provider_notice:
+            raise ValueError(
+                "People are asked before a model reads their records, and the question has to "
+                "name the provider (decision 0026). Set JALADA_MODEL_PROVIDER_NOTICE."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_agent_settings(self) -> Self:
+        # It runs on the model chain, so in production the rule above applies to it too.
+        if self.agent_enabled and not self.agent_fast_names:
+            raise ValueError(
+                "The assistant needs a model (decision 0025): set JALADA_MODEL_CHAIN or "
+                "JALADA_AGENT_CHAIN_FAST."
             )
         return self
 
@@ -90,7 +126,19 @@ class Settings(BaseSettings):
 
     @property
     def model_chain_names(self) -> list[str]:
-        return [name.strip() for name in self.model_chain.split(",") if name.strip()]
+        return _names(self.model_chain)
+
+    @property
+    def agent_fast_names(self) -> list[str]:
+        return _names(self.agent_chain_fast) or self.model_chain_names
+
+    @property
+    def agent_deep_names(self) -> list[str]:
+        return _names(self.agent_chain_deep) or self.agent_fast_names
+
+
+def _names(chain: str) -> list[str]:
+    return [name.strip() for name in chain.split(",") if name.strip()]
 
 
 def load_settings() -> Settings:

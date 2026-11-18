@@ -2,6 +2,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { AccountNotice } from "@/features/auth/components/AccountNotice";
+import { ConsentChoice } from "@/features/consent/components/ConsentChoice";
+import { getModelConsent } from "@/features/consent/server/get-model-consent";
 import { isStillReading } from "@/features/evidence/api/evidence.api";
 import { CapturePanel } from "@/features/evidence/components/CapturePanel";
 import { EvidenceList } from "@/features/evidence/components/EvidenceList";
@@ -39,6 +41,11 @@ async function RecentEvidence() {
   );
 }
 
+/** Asks once whether a model may read the person's records, when one is set up. */
+async function HomeConsent() {
+  return <ConsentChoice consent={await getModelConsent()} place="home" />;
+}
+
 /** The last six months up to this one, which may reach back into last year. */
 async function RecentMonths() {
   await connection();
@@ -61,6 +68,9 @@ export default function Home() {
     <>
       <Suspense>
         <AccountNotice />
+      </Suspense>
+      <Suspense>
+        <HomeConsent />
       </Suspense>
       <div className="flex flex-col gap-section xl:grid xl:grid-cols-2 xl:items-start">
         <div className="flex flex-col gap-section">

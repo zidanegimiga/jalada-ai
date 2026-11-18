@@ -29,6 +29,40 @@ def test_sending_a_message() -> None:
     assert json.loads(seen[0].content) == {"chat_id": 222, "text": "Got it."}
 
 
+def test_sending_a_message_with_buttons() -> None:
+    seen: list[httpx2.Request] = []
+
+    bot_with(lambda r: ok({}), seen).send_with_buttons(
+        222, "Move it to rent", [("Confirm", "agent:confirm:1"), ("Not now", "agent:decline:1")]
+    )
+
+    assert json.loads(seen[0].content)["reply_markup"] == {
+        "inline_keyboard": [
+            [
+                {"text": "Confirm", "callback_data": "agent:confirm:1"},
+                {"text": "Not now", "callback_data": "agent:decline:1"},
+            ]
+        ]
+    }
+
+
+def test_a_tap_is_answered_so_the_button_stops_spinning() -> None:
+    seen: list[httpx2.Request] = []
+
+    bot_with(lambda r: ok(True), seen).answer_tap("tap-1")
+
+    assert seen[0].url.path == f"/bot{TOKEN}/answerCallbackQuery"
+    assert json.loads(seen[0].content) == {"callback_query_id": "tap-1"}
+
+
+def test_the_webhook_also_receives_button_taps() -> None:
+    seen: list[httpx2.Request] = []
+
+    bot_with(lambda r: ok(True), seen).set_webhook("https://example.com/hook", "s")
+
+    assert json.loads(seen[0].content)["allowed_updates"] == ["message", "callback_query"]
+
+
 def test_downloading_a_file_in_two_steps() -> None:
     def handler(request: httpx2.Request) -> httpx2.Response:
         if request.url.path.endswith("/getFile"):

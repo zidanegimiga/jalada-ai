@@ -34,6 +34,14 @@ class TextReader(Protocol):
     def read(self, content_type: str, data: bytes) -> str | None: ...
 
 
+class PhotoCheck(Protocol):
+    """Whether a photo is fit to read at all, before any model sees it."""
+
+    def problem(self, data: bytes) -> str | None:
+        """Why the photo cannot be read, such as "too blurred", or None."""
+        ...
+
+
 class ProcessingNotifier(Protocol):
     """Tells the user what the pipeline made of their evidence."""
 

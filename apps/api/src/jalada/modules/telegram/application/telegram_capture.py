@@ -5,9 +5,14 @@ from uuid import UUID
 from jalada.core.ports import Limiter
 from jalada.modules.evidence.application.evidence_capture import Captured, EvidenceCapture
 from jalada.modules.evidence.domain.evidence import MAX_FILE_BYTES, EvidenceSource
-from jalada.modules.telegram.application.ports import ChatChannel
+from jalada.modules.telegram.application.ports import ChatAssistant, ChatChannel
 from jalada.modules.telegram.application.telegram_linking import TelegramLinking
-from jalada.modules.telegram.application.telegram_messages import TelegramMessage, read_message
+from jalada.modules.telegram.application.telegram_messages import (
+    TelegramMessage,
+    TelegramTap,
+    read_message,
+    read_tap,
+)
 from jalada.modules.telegram.domain.telegram import CODE_ALPHABET, CODE_LENGTH
 from jalada.shared.errors import EmptyEvidence, FileTooLarge, UnsupportedFile
 
@@ -25,7 +30,11 @@ REPLIES = {
     "unsupported": "I can read photos, PDFs and text messages. Try one of those.",
     "too_big": "That file is too big. Files can be up to 10 MB.",
     "too_many": "That is a lot at once. Wait a little and try again.",
+    "asking": "Looking into it...",
 }
+
+# Buttons under a suggested change send back "agent:confirm:<id>" or "agent:decline:<id>".
+TAP_PREFIX = "agent:"
 
 
 class TelegramCapture:
@@ -38,14 +47,21 @@ class TelegramCapture:
         bot: ChatChannel,
         link_limiter: Limiter,
         upload_limiter: Limiter,
+        assistant: ChatAssistant | None = None,
     ) -> None:
         self._linking = linking
         self._capture = capture
         self._bot = bot
         self._link_limiter = link_limiter
         self._upload_limiter = upload_limiter
+        # None unless the assistant is switched on: then every text is evidence, as before.
+        self._assistant = assistant
 
     def handle(self, update: dict[str, Any]) -> None:
+        tap = read_tap(update)
+        if tap is not None:
+            self._tapped(tap)
+            return
         message = read_message(update)
         if message is None:
             return
@@ -53,8 +69,40 @@ class TelegramCapture:
         code = _code_in(message.text)
         if code is not None or user_id is None:
             self._reply(message, self._link(message, code))
+        elif (question := self._question_in(message)) is not None:
+            self._reply(message, self._ask(message, user_id, question))
         else:
             self._reply(message, self._store(message, user_id))
+
+    def _question_in(self, message: TelegramMessage) -> str | None:
+        """A question for the assistant: text ending in "?" or starting with /ask. Anything
+        else, such as a forwarded M-Pesa message or a typed cash note, is evidence."""
+        if self._assistant is None or message.file_id or message.unsupported_file:
+            return None
+        text = (message.text or "").strip()
+        if text.startswith("/ask"):
+            return text.removeprefix("/ask").strip() or None
+        return text if text.endswith("?") else None
+
+    def _ask(self, message: TelegramMessage, user_id: UUID, question: str) -> str:
+        if self._assistant is None:
+            return "unsupported"
+        if not self._upload_limiter.allow(f"user:{user_id}"):
+            return "too_many"
+        self._assistant.queue(user_id, str(message.chat_id), question)
+        return "asking"
+
+    def _tapped(self, tap: TelegramTap) -> None:
+        try:
+            self._bot.answer_tap(tap.tap_id)
+        except Exception as error:
+            logger.warning("answering a Telegram tap failed with %s", type(error).__name__)
+        decision = _decision_in(tap.data)
+        user_id = self._linking.user_for(tap.telegram_user_id)
+        if self._assistant is None or decision is None or user_id is None:
+            return
+        confirm, action_id = decision
+        self._assistant.decide(user_id, str(tap.chat_id), action_id, confirm)
 
     def _link(self, message: TelegramMessage, code: str | None) -> str:
         if code is None:
@@ -94,6 +142,17 @@ class TelegramCapture:
             self._bot.send(message.chat_id, REPLIES[key])
         except Exception as error:
             logger.warning("replying on Telegram failed with %s", type(error).__name__)
+
+
+def _decision_in(data: str) -> tuple[bool, UUID] | None:
+    """(confirm, action id) from a button's data. Taps are untrusted: anything else is None."""
+    parts = data.split(":")
+    if len(parts) != 3 or f"{parts[0]}:" != TAP_PREFIX or parts[1] not in {"confirm", "decline"}:
+        return None
+    try:
+        return parts[1] == "confirm", UUID(parts[2])
+    except ValueError:
+        return None
 
 
 def _code_in(text: str | None) -> str | None:

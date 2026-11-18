@@ -29,6 +29,9 @@ from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
+from jalada.modules.accounts.application.model_consent import ConsentToModels
+from jalada.modules.agent.application.confirmations import ActionConfirmations
+from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.evidence.domain.evidence import EvidenceSource
 from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
@@ -145,6 +148,10 @@ def make_app(
         upload_rule: str = "100/minute",
         with_telegram: bool = True,
         health_checks: list[HealthCheck] | None = None,
+        assistant: Conversations | None = None,
+        assistant_rule: str = "100/minute",
+        assistant_actions: ActionConfirmations | None = None,
+        consent_notice: str | None = None,
     ) -> FastAPI:
         services = Services(
             authenticator=authenticator,
@@ -168,9 +175,15 @@ def make_app(
                 lambda: FakeUnitOfWork(store), evidence_store, ZipAccountArchive()
             ),
             account_deletion=AccountDeletion(lambda: FakeUnitOfWork(store), evidence_store),
+            model_consent=ConsentToModels(
+                lambda: FakeUnitOfWork(store), FixedClock(), consent_notice
+            ),
             telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
             health_checks=health_checks or [],
+            conversations=assistant,
+            assistant_limiter=RateLimiter(assistant_rule),
+            assistant_actions=assistant_actions,
         )
         return create_app(make_settings(environment), services)
 

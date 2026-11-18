@@ -1,0 +1,21 @@
+{
+  "name": "stationery-receipt",
+  "lines": [
+    "KALAMU BOOKSHOP",
+    "05/05/2026 11:20",
+    "A4 paper ream       650.00",
+    "Pens x10            200.00",
+    "Stapler             450.00",
+    "GRAND TOTAL      1,300.00"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 130000,
+      "occurred_on": "2026-05-05",
+      "direction": "out",
+      "counterparty": "KALAMU BOOKSHOP"
+    },
+    "outcome": "needs_review"
+  }
+}

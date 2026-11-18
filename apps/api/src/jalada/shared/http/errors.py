@@ -3,10 +3,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from jalada.shared.errors import (
+    ActionClosed,
+    ActionNotFound,
     ApplicationError,
+    AssistantOff,
     ConfirmationMismatch,
+    ConsentNeeded,
     EmailAlreadyRegistered,
     EmptyEvidence,
+    EmptyQuestion,
     EntryNotFound,
     EvidenceNotFound,
     FileTooLarge,
@@ -15,6 +20,7 @@ from jalada.shared.errors import (
     InvalidEntry,
     NotSignedIn,
     SuggestionNotFound,
+    ThreadNotFound,
     UnsupportedFile,
     WeakPassword,
 )
@@ -42,6 +48,20 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
         "Type your email exactly as it is on your account.",
     ),
     TooManyAttempts: (429, "too_many_attempts", "Too many attempts. Wait a minute and try again."),
+    AssistantOff: (404, "assistant_off", "The assistant is not available."),
+    ThreadNotFound: (404, "not_found", "That conversation does not exist."),
+    EmptyQuestion: (422, "empty", "Type a question first."),
+    ActionNotFound: (404, "not_found", "That suggested change does not exist."),
+    ConsentNeeded: (
+        403,
+        "consent_needed",
+        "Allow reading with AI on your Account page to ask about your records.",
+    ),
+    ActionClosed: (
+        409,
+        "already_decided",
+        "That change was already confirmed or declined, or it has expired. Ask again.",
+    ),
 }
 
 

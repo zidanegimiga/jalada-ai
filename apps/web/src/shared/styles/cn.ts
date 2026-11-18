@@ -20,7 +20,7 @@ export const TOKENS = {
   radius: ["card", "inset", "control"],
   spacing: ["gutter", "card", "section", "tap", "icon", "icon-lg"],
   container: ["page", "wide", "content"],
-  shadow: ["raised", "overlay"],
+  shadow: ["raised", "overlay", "float"],
 };
 
 /** Joins class names, letting later classes win over earlier ones of the same kind. */

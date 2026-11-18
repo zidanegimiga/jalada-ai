@@ -6,6 +6,7 @@ from uuid import UUID
 
 if TYPE_CHECKING:
     from jalada.modules.accounts.application.account_export import AccountData
+from jalada.modules.accounts.domain.consent import ModelConsent
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 from jalada.modules.evidence.domain.evidence import Evidence
@@ -36,6 +37,17 @@ class UserRepository(Protocol):
     def link_google(self, user_id: UUID, subject: str, verified_at: datetime) -> None: ...
     def remove_password(self, user_id: UUID) -> None: ...
     def delete(self, user_id: UUID) -> None: ...
+
+
+class ModelConsents(Protocol):
+    """Who has agreed to have their records read by the model provider."""
+
+    def get(self, user_id: UUID) -> ModelConsent | None: ...
+    def give(self, consent: ModelConsent) -> None:
+        """Records the agreement, replacing an earlier one to a different notice."""
+        ...
+
+    def withdraw(self, user_id: UUID) -> None: ...
 
 
 class SessionRepository(Protocol):

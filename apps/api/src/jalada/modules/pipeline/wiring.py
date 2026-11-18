@@ -1,10 +1,12 @@
 """Builds the pipeline module's use cases from the pieces the composition root shares."""
 
 from collections.abc import Callable
+from uuid import UUID
 
 from jalada.core.ports import Clock
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
+from jalada.modules.pipeline.adapters.text.photo_check import PillowPhotoCheck
 from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.application.ports import ProcessingNotifier
@@ -20,6 +22,7 @@ def build_evidence_processor(
     budget: Budget,
     model: LanguageModel | None,
     notifier: ProcessingNotifier | None,
+    may_use_model: Callable[[UUID], bool] = lambda _: True,
 ) -> EvidenceProcessor:
     return EvidenceProcessor(
         unit_of_work=unit_of_work,
@@ -29,4 +32,6 @@ def build_evidence_processor(
         budget=budget,
         model=model,
         notifier=notifier,
+        may_use_model=may_use_model,
+        photo_check=PillowPhotoCheck(),
     )
