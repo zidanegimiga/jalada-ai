@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from jalada.core.error_tracking import start_error_tracking
 from jalada.core.settings import Settings
 from jalada.core.storage.client import create_s3_client
+from jalada.modules.agent.domain.run import Budget as AgentBudget
 from jalada.modules.evidence.adapters.cipher import EvidenceCipher
 from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
 from jalada.modules.evidence.application.ports import EvidenceStore
@@ -66,6 +67,14 @@ def build_language_model(settings: Settings) -> LanguageModel | None:
             raise ModelSetupError(f"JALADA_MODEL_CHAIN names {name!r}, not in the catalogue")
         links.append(ChainLink(profile, build_model(profile, accounts)))
     return ModelChain(links)
+
+
+def build_agent_budget(settings: Settings) -> AgentBudget:
+    return AgentBudget(
+        max_steps=settings.agent_max_steps,
+        max_tokens=settings.agent_max_tokens,
+        max_cost_usd=settings.agent_max_cost_usd,
+    )
 
 
 def build_budget(settings: Settings) -> Budget:

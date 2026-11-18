@@ -5,6 +5,7 @@ from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
+from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
@@ -40,5 +41,7 @@ class Services:
     google_sign_in: GoogleSignIn | None = None
     # None when the Telegram bot is not configured.
     telegram_capture: TelegramCapture | None = None
+    # None unless the assistant is switched on (decision 0025).
+    conversations: Conversations | None = None
     # What /health/ready checks: the database and evidence storage.
     health_checks: list[HealthCheck] = field(default_factory=list)

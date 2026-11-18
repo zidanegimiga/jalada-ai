@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     model_allowed_for_real_data: bool = False
     # The assistant that answers questions about a person's records (decision 0025).
     agent_enabled: bool = False
+    # Limits for one question to the assistant.
+    agent_max_steps: int = Field(default=6, ge=1, le=12)
+    agent_max_tokens: int = Field(default=16000, ge=0)
+    agent_max_cost_usd: Decimal = Field(default=Decimal("0.01"), ge=0)
     # Telegram bot. Switched off unless the token and the bot's username are both set.
     telegram_bot_token: SecretStr | None = None
     telegram_bot_username: str | None = None
@@ -87,13 +91,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def check_agent_settings(self) -> Self:
-        cleared = self.model_allowed_for_real_data
-        if self.environment == "production" and self.agent_enabled and not cleared:
-            raise ValueError(
-                "The assistant sends people's records to a model, so it may only run on a "
-                "provider whose terms exclude training on them (decision 0025). Set "
-                "JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true once that is so."
-            )
+        # It runs on the model chain, so in production the rule above applies to it too.
+        if self.agent_enabled and not self.model_chain_names:
+            raise ValueError("The assistant needs a model (decision 0025): set JALADA_MODEL_CHAIN.")
         return self
 
     @property

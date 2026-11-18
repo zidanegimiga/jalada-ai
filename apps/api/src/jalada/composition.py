@@ -1,6 +1,6 @@
 """Composition root: the one place where settings and adapters are wired together."""
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from functools import partial
 
@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.app import Lifespan, create_app
 from jalada.builders import (
+    build_agent_budget,
     build_budget,
     build_evidence_store,
     build_language_model,
@@ -21,6 +22,8 @@ from jalada.core.jobs.runner import JobRunner, background_jobs
 from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
+from jalada.modules.agent.application.conversations import Conversations
+from jalada.modules.agent.wiring import build_conversations
 from jalada.modules.evidence.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.modules.evidence.wiring import build_evidence
 from jalada.modules.exports.wiring import build_tax_year_export
@@ -80,10 +83,25 @@ def build_services(settings: Settings) -> Services:
         telegram_capture=build_telegram_capture(
             telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
+        conversations=assistant(settings, unit_of_work, clock),
         health_checks=[
             DatabaseCheck(engine),
             StorageCheck(build_s3_client(settings, QUICK), settings.storage_bucket),
         ],
+    )
+
+
+def assistant(
+    settings: Settings, unit_of_work: Callable[[], SqlUnitOfWork], clock: SystemClock
+) -> Conversations | None:
+    if not settings.agent_enabled:
+        return None
+    return build_conversations(
+        unit_of_work,
+        clock,
+        build_language_model(settings),
+        build_agent_budget(settings),
+        settings.database_url,
     )
 
 
