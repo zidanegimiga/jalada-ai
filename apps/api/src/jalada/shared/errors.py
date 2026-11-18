@@ -50,6 +50,18 @@ class ConfirmationMismatch(ApplicationError):
     pass
 
 
+class AssistantOff(ApplicationError):
+    """The assistant is not switched on for this app."""
+
+
+class ThreadNotFound(ApplicationError):
+    """No such conversation for this person, including another person's."""
+
+
+class EmptyQuestion(ApplicationError):
+    pass
+
+
 class InvalidEntry(ApplicationError):
     """An entry cannot be confirmed as it stands. `reason` says why, for the user."""
 

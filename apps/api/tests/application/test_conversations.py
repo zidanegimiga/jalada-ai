@@ -1,17 +1,14 @@
 import uuid
+from datetime import timedelta
 
 import pytest
 from fakes import FakeUnitOfWork, FixedClock, Store
 from fakes.agent import CannedRunner
 
-from jalada.modules.agent.application.conversations import (
-    HISTORY_MESSAGES,
-    Conversations,
-    EmptyQuestion,
-    ThreadNotFound,
-)
+from jalada.modules.agent.application.conversations import HISTORY_MESSAGES, Conversations
 from jalada.modules.agent.domain.conversation import MAX_MESSAGE_LENGTH, Role
 from jalada.modules.agent.domain.run import Outcome
+from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 
 USER = uuid.uuid4()
 OTHER = uuid.uuid4()
@@ -87,3 +84,27 @@ def test_an_empty_question_is_refused_and_a_long_one_is_cut(store: Store) -> Non
     asking.ask(USER, "x" * (MAX_MESSAGE_LENGTH + 50))
 
     assert len(runner.requests[0].question) == MAX_MESSAGE_LENGTH
+
+
+def test_threads_list_the_latest_first_and_open_with_their_messages(store: Store) -> None:
+    clock = FixedClock()
+    asking = Conversations(lambda: FakeUnitOfWork(store), CannedRunner(), clock)
+    first = asking.ask(USER, "KPLC?").thread_id
+    clock.current += timedelta(minutes=5)
+    second = asking.ask(USER, "Rent?").thread_id
+    asking.ask(OTHER, "Not mine")
+
+    assert [t.id for t in asking.threads(USER)] == [second, first]
+    view = asking.thread(USER, first)
+    assert [(m.role, m.text) for m in view.messages] == [
+        (Role.PERSON, "KPLC?"),
+        (Role.ASSISTANT, "You paid Ksh 4,500."),
+    ]
+
+
+def test_another_persons_thread_cannot_be_opened(store: Store) -> None:
+    asking = conversations(store, CannedRunner())
+    theirs = asking.ask(OTHER, "Rent?").thread_id
+
+    with pytest.raises(ThreadNotFound):
+        asking.thread(USER, theirs)

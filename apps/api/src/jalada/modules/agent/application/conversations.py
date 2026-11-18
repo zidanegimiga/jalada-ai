@@ -12,18 +12,13 @@ from jalada.modules.agent.domain.conversation import (
     title_from,
 )
 from jalada.modules.agent.domain.run import Outcome
+from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
 
 # Earlier messages sent with each question. Older ones are left out for now.
 HISTORY_MESSAGES = 10
-
-
-class ThreadNotFound(Exception):
-    """No such thread for this person, including another person's thread."""
-
-
-class EmptyQuestion(Exception):
-    pass
+# How much of a conversation is shown when it is opened again.
+SHOWN_MESSAGES = 200
 
 
 @dataclass(frozen=True)
@@ -31,6 +26,12 @@ class Reply:
     thread_id: UUID
     text: str
     outcome: Outcome
+
+
+@dataclass(frozen=True)
+class ThreadView:
+    thread: Thread
+    messages: list[Message]
 
 
 class Conversations:
@@ -47,6 +48,18 @@ class Conversations:
         self._runner = runner
         self._clock = clock
         self._new_id = new_id
+
+    def threads(self, user_id: UUID, limit: int = 50) -> list[Thread]:
+        with self._unit_of_work() as work:
+            return work.agent_threads_for(user_id).recent(limit)
+
+    def thread(self, user_id: UUID, thread_id: UUID) -> ThreadView:
+        with self._unit_of_work() as work:
+            threads = work.agent_threads_for(user_id)
+            thread = threads.get(thread_id)
+            if thread is None:
+                raise ThreadNotFound
+            return ThreadView(thread, threads.recent_messages(thread_id, SHOWN_MESSAGES))
 
     def ask(self, user_id: UUID, question: str, thread_id: UUID | None = None) -> Reply:
         question = question.strip()[:MAX_MESSAGE_LENGTH]

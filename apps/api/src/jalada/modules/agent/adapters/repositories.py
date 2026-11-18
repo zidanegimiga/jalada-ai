@@ -44,9 +44,16 @@ class SqlThreads:
                 AgentThreadRow.id == thread_id, AgentThreadRow.user_id == self._user_id
             )
         )
-        if row is None:
-            return None
-        return Thread(row.id, row.user_id, row.title, row.created_at, row.updated_at)
+        return _thread(row) if row is not None else None
+
+    def recent(self, limit: int) -> list[Thread]:
+        rows = self._db.scalars(
+            select(AgentThreadRow)
+            .where(AgentThreadRow.user_id == self._user_id)
+            .order_by(AgentThreadRow.updated_at.desc(), AgentThreadRow.id)
+            .limit(limit)
+        ).all()
+        return [_thread(row) for row in rows]
 
     def touch(self, thread_id: UUID, at: datetime) -> None:
         self._db.execute(
@@ -74,6 +81,10 @@ class SqlThreads:
             .limit(limit)
         ).all()
         return [Message(Role(row.role), row.text, row.created_at) for row in reversed(rows)]
+
+
+def _thread(row: AgentThreadRow) -> Thread:
+    return Thread(row.id, row.user_id, row.title, row.created_at, row.updated_at)
 
 
 class SqlAgentRuns:

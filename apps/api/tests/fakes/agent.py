@@ -33,6 +33,10 @@ class FakeThreads:
         thread = self._threads.get(thread_id)
         return thread if thread is not None and thread.user_id == self._user_id else None
 
+    def recent(self, limit: int) -> list[Thread]:
+        mine = [t for t in self._threads.values() if t.user_id == self._user_id]
+        return sorted(mine, key=lambda t: t.updated_at, reverse=True)[:limit]
+
     def touch(self, thread_id: UUID, at: datetime) -> None:
         thread = self.get(thread_id)
         if thread is not None:

@@ -69,6 +69,8 @@ def test_another_persons_thread_cannot_be_read_or_written(
     with SqlUnitOfWork(session_factory) as work:
         theirs = work.agent_threads_for(other)
         assert theirs.get(thread.id) is None
+        assert theirs.recent(10) == []
+        assert work.agent_threads_for(owner).recent(10) == [thread]
         assert theirs.recent_messages(thread.id, 10) == []
         with pytest.raises(ValueError, match="No such thread"):
             theirs.add_message(thread.id, Message(Role.PERSON, "not mine", NOW))
