@@ -20,6 +20,11 @@ class ConsentToModels:
         self._clock = clock
         self._notice = notice
 
+    @property
+    def notice(self) -> str | None:
+        """Who reads records, where and on what terms; None when no model is set up."""
+        return self._notice
+
     def status(self, user_id: UUID) -> ConsentStatus:
         if self._notice is None:
             return ConsentStatus(required=False, given=False, notice="")

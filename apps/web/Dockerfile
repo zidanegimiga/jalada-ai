@@ -11,6 +11,9 @@ ENV API_URL=$API_URL
 # "on" adds the Ask tab, for an API running with JALADA_AGENT_ENABLED=true.
 ARG ASSISTANT=off
 ENV ASSISTANT=$ASSISTANT
+# The address people write to about their data, shown on the privacy notice.
+ARG PRIVACY_CONTACT=""
+ENV PRIVACY_CONTACT=$PRIVACY_CONTACT
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

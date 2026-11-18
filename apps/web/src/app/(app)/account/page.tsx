@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -97,6 +98,12 @@ export default function AccountPage() {
           <Download aria-hidden="true" />
           Download my data
         </a>
+        <Link
+          href="/privacy"
+          className="inline-flex min-h-tap items-center self-start underline underline-offset-4"
+        >
+          Read the privacy notice
+        </Link>
       </section>
       <SignOutButton />
       <section

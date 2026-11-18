@@ -1,6 +1,7 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 
@@ -104,7 +105,11 @@ export function ConsentChoice({ consent, place }: ConsentChoiceProps) {
         </p>
         <p>
           Without this, photos are read on Jalada AI&apos;s side only, and Ask
-          is off. You can change this at any time on your Account page.
+          is off. You can change this at any time on your Account page. The{" "}
+          <Link href="/privacy" className="underline underline-offset-4">
+            privacy notice
+          </Link>{" "}
+          lists everywhere your data goes.
         </p>
       </div>
       {place === "account" && given ? (

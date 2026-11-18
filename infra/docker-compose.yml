@@ -112,6 +112,7 @@ services:
         API_URL: http://api:8000
         # on with JALADA_AGENT_ENABLED=true, to show the Ask tab.
         ASSISTANT: ${ASSISTANT:-off}
+        PRIVACY_CONTACT: ${PRIVACY_CONTACT:-}
     environment:
       API_URL: http://api:8000
     ports:

@@ -988,6 +988,26 @@
         "title": "PasteRequest",
         "type": "object"
       },
+      "PrivacyResponse": {
+        "properties": {
+          "model_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Provider"
+          }
+        },
+        "required": [
+          "model_provider"
+        ],
+        "title": "PrivacyResponse",
+        "type": "object"
+      },
       "Purpose": {
         "enum": [
           "business",
@@ -3509,6 +3529,28 @@
         "summary": "Take Back The Account",
         "tags": [
           "review"
+        ]
+      }
+    },
+    "/v1/privacy": {
+      "get": {
+        "description": "What the privacy notice names that depends on how the app is set up. Public.",
+        "operationId": "read_privacy_v1_privacy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Read Privacy",
+        "tags": [
+          "account"
         ]
       }
     },

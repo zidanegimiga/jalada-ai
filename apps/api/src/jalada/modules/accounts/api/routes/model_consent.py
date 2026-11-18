@@ -36,3 +36,14 @@ def give_model_consent(user: CurrentUser, services: ServicesDependency) -> Conse
 def withdraw_model_consent(user: CurrentUser, services: ServicesDependency) -> ConsentResponse:
     """From now on, rules and OCR alone read new evidence, and the assistant stops answering."""
     return ConsentResponse.from_status(services.model_consent.withdraw(user.id))
+
+
+class PrivacyResponse(BaseModel):
+    # Who reads records with AI, for those who agree; None when no model is set up.
+    model_provider: str | None
+
+
+@router.get("/v1/privacy")
+def read_privacy(services: ServicesDependency) -> PrivacyResponse:
+    """What the privacy notice names that depends on how the app is set up. Public."""
+    return PrivacyResponse(model_provider=services.model_consent.notice)

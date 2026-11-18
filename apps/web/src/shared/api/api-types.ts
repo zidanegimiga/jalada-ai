@@ -627,6 +627,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/privacy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Privacy
+         * @description What the privacy notice names that depends on how the app is set up. Public.
+         */
+        get: operations["read_privacy_v1_privacy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/{entry_id}/paid": {
         parameters: {
             query?: never;
@@ -1191,6 +1211,11 @@ export interface components {
         PasteRequest: {
             /** Text */
             text: string;
+        };
+        /** PrivacyResponse */
+        PrivacyResponse: {
+            /** Model Provider */
+            model_provider: string | null;
         };
         /**
          * Purpose
@@ -2558,6 +2583,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_privacy_v1_privacy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyResponse"];
                 };
             };
         };

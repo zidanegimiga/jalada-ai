@@ -270,3 +270,15 @@ def test_the_assistant_answers_only_after_agreeing_to_the_provider(
     assert given["given"] is True
     assert answered.status_code == 200
     assert withdrawn["given"] is False
+
+
+def test_the_privacy_notice_names_the_provider_without_signing_in(
+    make_app: Callable[..., FastAPI],
+) -> None:
+    named = TestClient(make_app(consent_notice="Google's Gemini API, in the United States."))
+    unset = TestClient(make_app())
+
+    assert named.get("/v1/privacy").json() == {
+        "model_provider": "Google's Gemini API, in the United States."
+    }
+    assert unset.get("/v1/privacy").json() == {"model_provider": None}

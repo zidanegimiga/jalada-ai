@@ -86,3 +86,18 @@ describe("ConsentChoice", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+describe("ConsentChoice and the privacy notice", () => {
+  it("points to the notice that lists every service", () => {
+    render(
+      <ConsentChoice
+        consent={{ required: true, given: false, notice: "Google" }}
+        place="ask"
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "privacy notice" }),
+    ).toHaveAttribute("href", "/privacy");
+  });
+});
