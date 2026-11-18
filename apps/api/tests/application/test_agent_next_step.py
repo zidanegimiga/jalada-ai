@@ -52,6 +52,7 @@ def test_the_instructions_list_each_tool_with_its_arguments() -> None:
     assert "- total_paid: Total paid to a counterparty." in text
     assert '"counterparty"' in text
     assert "<records>" in text
+    assert "ask a tool for totals" in text
 
 
 def test_records_cannot_be_closed_from_inside() -> None:
