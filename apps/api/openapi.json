@@ -1,6 +1,52 @@
 {
   "components": {
     "schemas": {
+      "ActionResponse": {
+        "description": "A change the assistant suggested. Only a tap on Confirm makes it.",
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "confirm_payment",
+              "change_category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "confirmed",
+              "declined",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "summary",
+          "status",
+          "expires_at"
+        ],
+        "title": "ActionResponse",
+        "type": "object"
+      },
       "Actor": {
         "enum": [
           "user",
@@ -830,6 +876,13 @@
       },
       "MessageResponse": {
         "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionResponse"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
           "at": {
             "format": "date-time",
             "title": "At",
@@ -1499,6 +1552,125 @@
         ]
       }
     },
+    "/v1/assistant/actions/{action_id}/confirm": {
+      "post": {
+        "description": "Make a change the assistant suggested, through the same steps as doing it by hand.",
+        "operationId": "confirm_action_v1_assistant_actions__action_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Action",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/v1/assistant/actions/{action_id}/decline": {
+      "post": {
+        "operationId": "decline_action_v1_assistant_actions__action_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decline Action",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
     "/v1/assistant/messages": {
       "post": {
         "description": "Ask a question, in a new conversation or an earlier one, and follow the answer.",
@@ -1540,7 +1712,7 @@
                 }
               }
             },
-            "description": "Server-sent events: progress, then answer or error."
+            "description": "Server-sent events: progress, then answer (with any suggested changes) or error."
           },
           "422": {
             "content": {

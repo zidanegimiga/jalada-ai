@@ -84,6 +84,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/assistant/actions/{action_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Action
+         * @description Make a change the assistant suggested, through the same steps as doing it by hand.
+         */
+        post: operations["confirm_action_v1_assistant_actions__action_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/assistant/actions/{action_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline Action */
+        post: operations["decline_action_v1_assistant_actions__action_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/assistant/messages": {
         parameters: {
             query?: never;
@@ -761,6 +798,34 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * ActionResponse
+         * @description A change the assistant suggested. Only a tap on Confirm makes it.
+         */
+        ActionResponse: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "confirm_payment" | "change_category";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "proposed" | "confirmed" | "declined" | "expired";
+            /** Summary */
+            summary: string;
+        };
+        /**
          * Actor
          * @enum {string}
          */
@@ -1055,6 +1120,8 @@ export interface components {
         };
         /** MessageResponse */
         MessageResponse: {
+            /** Actions */
+            actions?: components["schemas"]["ActionResponse"][];
             /**
              * At
              * Format: date-time
@@ -1372,6 +1439,72 @@ export interface operations {
             };
         };
     };
+    confirm_action_v1_assistant_actions__action_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_action_v1_assistant_actions__action_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ask_assistant_v1_assistant_messages_post: {
         parameters: {
             query?: never;
@@ -1387,7 +1520,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Server-sent events: progress, then answer or error. */
+            /** @description Server-sent events: progress, then answer (with any suggested changes) or error. */
             200: {
                 headers: {
                     [name: string]: unknown;

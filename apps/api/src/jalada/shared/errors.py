@@ -62,6 +62,14 @@ class EmptyQuestion(ApplicationError):
     pass
 
 
+class ActionNotFound(ApplicationError):
+    """No such suggested change for this person, including another person's."""
+
+
+class ActionClosed(ApplicationError):
+    """The suggested change was already confirmed or declined, or has expired."""
+
+
 class InvalidEntry(ApplicationError):
     """An entry cannot be confirmed as it stands. `reason` says why, for the user."""
 

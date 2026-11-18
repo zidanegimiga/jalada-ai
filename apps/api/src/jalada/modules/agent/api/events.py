@@ -1,7 +1,8 @@
 """A turn as server-sent events, so the chat can show progress before the answer.
 
     event: progress  data: {"stage": "looking_up", "tool": "add_up_payments", "label": "..."}
-    event: answer    data: {"thread_id": "...", "text": "...", "outcome": "answered"}
+    event: answer    data: {"thread_id": "...", "text": "...", "outcome": "answered",
+                            "actions": [{"id": "...", "summary": "...", "status": "proposed"}]}
     event: error     data: {"code": "...", "message": "..."}
 
 The turn runs on its own thread and reports into a queue that the response reads from. If
@@ -16,6 +17,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
+from jalada.modules.agent.api.schemas.assistant import ActionResponse
 from jalada.modules.agent.application.conversations import Reply
 from jalada.modules.agent.domain.progress import OnProgress, Progress
 
@@ -49,7 +51,14 @@ def stream_turn(ask: Callable[[OnProgress], Reply]) -> Iterator[str]:
     def run() -> None:
         try:
             reply = ask(on_progress)
-            data = {"thread_id": str(reply.thread_id), "text": reply.text, "outcome": reply.outcome}
+            data = {
+                "thread_id": str(reply.thread_id),
+                "text": reply.text,
+                "outcome": reply.outcome,
+                "actions": [
+                    ActionResponse.from_action(a).model_dump(mode="json") for a in reply.actions
+                ],
+            }
             events.put(event("answer", data))
         except Exception:
             # Logged by type only: the message can repeat the person's records.

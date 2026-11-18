@@ -32,14 +32,14 @@ For conversation memory: LangGraph's Postgres checkpointer, our own tables, or a
 
 **Tools are a registry of typed adapters over existing use cases** (`Ledger`, `EntryReview`, `TaxYearExport` and the summaries). Each tool has Pydantic arguments, and none of them takes a user id: the id comes from the session and is bound into the tool context when the run starts. Tool results are cut down to the fields the answer needs.
 
-**The agent cannot change anything by itself.** Tools that would change data only propose: the proposal is stored as a pending action, the graph pauses with `interrupt`, and the person sees a card on the web or buttons in Telegram. Confirming resumes the graph, and the change runs through the existing use case with the person as the actor in the audit trail, noted as coming from the assistant. Pending actions expire after 24 hours. Tax advice, filing and anything about another person are refused by policy.
+**The agent cannot change anything by itself.** Tools that would change data only suggest: each checks the change would work, then stores it with a summary written by the app from the records, never by the model. The turn ends with the answer and the suggestion, and the person sees a card on the web or buttons in Telegram. Confirming runs the change through the existing ledger use case, with the person as the actor in the audit trail; no model runs after the tap. Suggestions expire after 24 hours. Tax advice, filing and anything about another person are refused in code before a model is asked.
 
 **Figures are checked in code.** Before an answer is sent, every amount and date in it must appear in that turn's tool results. If one does not, the answer is retried once with the reason and then withheld.
 
 **Text from evidence is data.** Receipt, PDF and M-Pesa text only ever reaches the model inside tool results, marked as untrusted and never as instructions. Because tools are bound to one person and every change needs their tap, a manipulated model can at worst say something wrong to the person who uploaded the text.
 
 **Memory.**
-- LangGraph's Postgres checkpointer holds graph state for paused and running turns. It is pruned when a thread ends or expires.
+- LangGraph's Postgres checkpointer holds graph state while a turn runs, and is cleared when it ends. The graph does not pause for the person: a confirmed change needs nothing from the model, so ending the turn is simpler and leaves less to go wrong.
 - The messages a person sees live in our own `agent_threads` and `agent_messages` tables, managed by Alembic. The last turns are sent verbatim and older ones as a rolling summary within a token budget.
 - Long-term memory is what the app already knows, such as counterparty categories and preferences, looked up by tools when needed rather than packed into every prompt.
 

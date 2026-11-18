@@ -5,6 +5,7 @@ from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
+from jalada.modules.agent.application.confirmations import ActionConfirmations
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
@@ -43,6 +44,8 @@ class Services:
     telegram_capture: TelegramCapture | None = None
     # None unless the assistant is switched on (decision 0025).
     conversations: Conversations | None = None
+    # The person's answers to changes the assistant suggests. None with the assistant off.
+    assistant_actions: ActionConfirmations | None = None
     # Questions to the assistant, per person.
     assistant_limiter: RateLimiter = field(default_factory=lambda: RateLimiter("30/hour"))
     # What /health/ready checks: the database and evidence storage.

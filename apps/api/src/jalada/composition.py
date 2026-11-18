@@ -24,7 +24,12 @@ from jalada.core.settings import Settings, load_settings
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.proposals import ActionProposals
-from jalada.modules.agent.wiring import build_conversations, build_lookups, build_tracer
+from jalada.modules.agent.wiring import (
+    build_confirmations,
+    build_conversations,
+    build_lookups,
+    build_tracer,
+)
 from jalada.modules.evidence.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.modules.evidence.wiring import build_evidence
 from jalada.modules.exports.wiring import build_tax_year_export
@@ -85,6 +90,11 @@ def build_services(settings: Settings) -> Services:
             telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
         conversations=assistant(settings, unit_of_work, clock, ledger),
+        assistant_actions=(
+            build_confirmations(unit_of_work, clock, ledger.review)
+            if settings.agent_enabled
+            else None
+        ),
         assistant_limiter=RateLimiter(f"{settings.agent_questions_per_hour}/hour"),
         health_checks=[
             DatabaseCheck(engine),

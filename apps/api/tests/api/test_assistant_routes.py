@@ -1,5 +1,7 @@
 import json
+import uuid
 from collections.abc import Callable
+from datetime import date
 from typing import Any
 
 import pytest
@@ -7,11 +9,17 @@ from fakes import FakeUnitOfWork, FixedClock, Store
 from fakes.agent import CannedRunner
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from samples import confirmed_entry
 
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.ports import TurnRequest
+from jalada.modules.agent.application.proposals import ActionProposals
+from jalada.modules.agent.application.tools import ToolContext
 from jalada.modules.agent.domain.progress import OnProgress, ignore
+from jalada.modules.agent.domain.proposals import ActionKind
 from jalada.modules.agent.domain.run import TurnResult
+from jalada.modules.agent.wiring import build_confirmations
+from jalada.modules.ledger.application.entry_review import EntryReview
 
 
 def sign_up(client: TestClient, email: str = "jane@example.com") -> None:
@@ -141,3 +149,92 @@ def test_a_failed_turn_ends_with_an_error_event_and_no_details(
 
     assert (name, data["code"]) == ("error", "assistant_failed")
     assert "0712345678" not in json.dumps(data)
+
+
+class SuggestingRunner(CannedRunner):
+    """Suggests moving the person's first payment to Workspace rent, as a model would."""
+
+    def __init__(self, store: Store, proposals: ActionProposals) -> None:
+        super().__init__("I suggested moving it to Workspace rent. Tap Confirm to change it.")
+        self.store = store
+        self.proposals = proposals
+
+    def run(self, request: TurnRequest, on_progress: OnProgress = ignore) -> TurnResult:
+        [payment] = [t for t in self.store.transactions.values() if t.user_id == request.user_id]
+        context = ToolContext(request.user_id, request.today, request.run_id, request.thread_id)
+        payload = {"entry_id": str(payment.id), "category": "business_rent"}
+        self.proposals.propose(context, ActionKind.CHANGE_CATEGORY, payload, "Move it to rent")
+        return super().run(request, on_progress)
+
+
+@pytest.fixture
+def suggesting(make_app: Callable[..., FastAPI], store: Store) -> TestClient:
+    def work() -> FakeUnitOfWork:
+        return FakeUnitOfWork(store)
+
+    clock = FixedClock()
+    runner = SuggestingRunner(store, ActionProposals(work, clock))
+    app = make_app(
+        assistant=Conversations(work, runner, clock),
+        assistant_actions=build_confirmations(work, clock, EntryReview(work, clock)),
+    )
+    client = TestClient(app)
+    sign_up(client)
+    user = next(iter(store.users))
+    store.save_entries(confirmed_entry(user, date(2026, 7, 4), 250_000, "out", "business_other"))
+    return client
+
+
+def suggested(client: TestClient) -> dict[str, Any]:
+    [(_, answer)] = [
+        e
+        for e in events(
+            client.post("/v1/assistant/messages", json={"question": "That was rent"}).text
+        )
+        if e[0] == "answer"
+    ]
+    return answer
+
+
+def test_a_suggested_change_comes_with_the_answer_and_in_the_thread(
+    suggesting: TestClient,
+) -> None:
+    answer = suggested(suggesting)
+
+    [action] = answer["actions"]
+    assert (action["summary"], action["status"], action["kind"]) == (
+        "Move it to rent",
+        "proposed",
+        "change_category",
+    )
+    thread = suggesting.get(f"/v1/assistant/threads/{answer['thread_id']}").json()
+    assert thread["messages"][0]["actions"] == []
+    assert thread["messages"][1]["actions"] == [action]
+
+
+def test_confirming_over_the_api_changes_the_payment(suggesting: TestClient, store: Store) -> None:
+    action = suggested(suggesting)["actions"][0]
+
+    confirmed = suggesting.post(f"/v1/assistant/actions/{action['id']}/confirm")
+
+    assert (confirmed.status_code, confirmed.json()["status"]) == (200, "confirmed")
+    [payment] = store.transactions.values()
+    assert payment.lines[0].category == "business_rent"
+    again = suggesting.post(f"/v1/assistant/actions/{action['id']}/confirm")
+    assert (again.status_code, again.json()["error"]["code"]) == (409, "already_decided")
+
+
+def test_declining_over_the_api_changes_nothing(suggesting: TestClient, store: Store) -> None:
+    action = suggested(suggesting)["actions"][0]
+
+    declined = suggesting.post(f"/v1/assistant/actions/{action['id']}/decline")
+
+    assert declined.json()["status"] == "declined"
+    [payment] = store.transactions.values()
+    assert payment.lines[0].category == "business_other"
+
+
+def test_an_unknown_suggestion_is_not_found(suggesting: TestClient) -> None:
+    response = suggesting.post(f"/v1/assistant/actions/{uuid.uuid4()}/confirm")
+
+    assert response.status_code == 404

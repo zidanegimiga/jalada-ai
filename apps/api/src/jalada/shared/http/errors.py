@@ -3,6 +3,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from jalada.shared.errors import (
+    ActionClosed,
+    ActionNotFound,
     ApplicationError,
     AssistantOff,
     ConfirmationMismatch,
@@ -48,6 +50,12 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     AssistantOff: (404, "assistant_off", "The assistant is not available."),
     ThreadNotFound: (404, "not_found", "That conversation does not exist."),
     EmptyQuestion: (422, "empty", "Type a question first."),
+    ActionNotFound: (404, "not_found", "That suggested change does not exist."),
+    ActionClosed: (
+        409,
+        "already_decided",
+        "That change was already confirmed or declined, or it has expired. Ask again.",
+    ),
 }
 
 

@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from uuid import UUID, uuid4
 
 from jalada.core.ports import Clock
@@ -74,7 +74,10 @@ class Conversations:
                 raise ThreadNotFound
             messages = threads.recent_messages(thread_id, SHOWN_MESSAGES)
             actions = work.agent_actions_for(user_id).for_thread(thread_id)
-            return ThreadView(thread, messages, actions)
+        # A suggestion nobody decided on in time shows as expired.
+        now = self._clock.now()
+        current = [replace(a, status=a.status_at(now)) for a in actions]
+        return ThreadView(thread, messages, current)
 
     def ask(
         self,

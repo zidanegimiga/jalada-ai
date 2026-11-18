@@ -7,11 +7,12 @@ from fastapi.responses import StreamingResponse
 from jalada.dependencies import CurrentUser, ServicesDependency
 from jalada.modules.agent.api.events import stream_turn
 from jalada.modules.agent.api.schemas.assistant import (
-    MessageResponse,
+    ActionResponse,
     QuestionRequest,
     ThreadResponse,
     ThreadSummary,
 )
+from jalada.modules.agent.application.confirmations import ActionConfirmations
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.services import Services
 from jalada.shared.errors import AssistantOff, EmptyQuestion
@@ -21,7 +22,8 @@ router = APIRouter(tags=["assistant"])
 
 EVENT_STREAM: dict[int | str, dict[str, Any]] = {
     200: {
-        "description": "Server-sent events: progress, then answer or error.",
+        "description": "Server-sent events: progress, then answer (with any suggested "
+        "changes) or error.",
         "content": {"text/event-stream": {"schema": {"type": "string"}}},
     }
 }
@@ -41,12 +43,28 @@ def list_threads(user: CurrentUser, services: ServicesDependency) -> list[Thread
 
 @router.get("/v1/assistant/threads/{thread_id}")
 def read_thread(thread_id: UUID, user: CurrentUser, services: ServicesDependency) -> ThreadResponse:
-    view = _assistant(services).thread(user.id, thread_id)
-    return ThreadResponse(
-        id=view.thread.id,
-        title=view.thread.title,
-        messages=[MessageResponse(role=m.role, text=m.text, at=m.at) for m in view.messages],
-    )
+    return ThreadResponse.from_view(_assistant(services).thread(user.id, thread_id))
+
+
+def _confirmations(services: Services) -> ActionConfirmations:
+    if services.assistant_actions is None:
+        raise AssistantOff
+    return services.assistant_actions
+
+
+@router.post("/v1/assistant/actions/{action_id}/confirm")
+def confirm_action(
+    action_id: UUID, user: CurrentUser, services: ServicesDependency
+) -> ActionResponse:
+    """Make a change the assistant suggested, through the same steps as doing it by hand."""
+    return ActionResponse.from_action(_confirmations(services).confirm(user.id, action_id))
+
+
+@router.post("/v1/assistant/actions/{action_id}/decline")
+def decline_action(
+    action_id: UUID, user: CurrentUser, services: ServicesDependency
+) -> ActionResponse:
+    return ActionResponse.from_action(_confirmations(services).decline(user.id, action_id))
 
 
 @router.post("/v1/assistant/messages", response_class=StreamingResponse, responses=EVENT_STREAM)
