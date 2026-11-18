@@ -136,3 +136,9 @@ type = "forbidden"
 allow_indirect_imports = true
 source_modules = ["jalada.modules.agent"]
 forbidden_modules = ["jalada.modules.accounts.adapters", "jalada.modules.accounts.api.routes", "jalada.modules.evidence.adapters", "jalada.modules.evidence.api.routes", "jalada.modules.pipeline.adapters", "jalada.modules.ledger.adapters", "jalada.modules.ledger.api.routes", "jalada.modules.exports.adapters", "jalada.modules.exports.api.routes", "jalada.modules.telegram.adapters", "jalada.modules.telegram.api.routes", "jalada.modules.health.api.routes"]
+
+[[tool.importlinter.contracts]]
+name = "Only the assistant's orchestration adapter uses LangGraph (decision 0025)"
+type = "forbidden"
+source_modules = ["jalada.core", "jalada.shared", "jalada.modules.accounts", "jalada.modules.evidence", "jalada.modules.pipeline", "jalada.modules.ledger", "jalada.modules.exports", "jalada.modules.telegram", "jalada.modules.health", "jalada.modules.agent.domain", "jalada.modules.agent.application", "jalada.modules.agent.adapters.repositories", "jalada.modules.agent.adapters.tables"]
+forbidden_modules = ["langgraph", "langchain_core", "psycopg_pool"]
