@@ -68,5 +68,7 @@ def ask_assistant(
     return StreamingResponse(
         turns,
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        # no-transform stops proxies that compress, the web app's included, from holding
+        # events back until the stream ends. X-Accel-Buffering does the same for nginx.
+        headers={"Cache-Control": "no-store, no-transform", "X-Accel-Buffering": "no"},
     )

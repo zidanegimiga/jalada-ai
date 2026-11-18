@@ -45,6 +45,8 @@ def test_a_question_streams_progress_then_the_answer(signed_in: TestClient) -> N
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/event-stream")
+    # Without no-transform the web app gzips the stream and holds every event to the end.
+    assert "no-transform" in response.headers["cache-control"]
     [(first, progress), (last, answer)] = events(response.text)
     assert (first, progress["stage"]) == ("progress", "thinking")
     assert last == "answer"
