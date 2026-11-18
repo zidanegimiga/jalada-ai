@@ -38,7 +38,7 @@ Both read every field on the seven clear receipts, and both invented an amount f
 1. Create the Google Cloud project with billing on; turn logging off on the Logs page; never join the Contributor Tier. Accept Google's data processing terms for the project.
 2. Run the photo and assistant evals with the paid keys for the primary and both fallback candidates, and record the scores, cost and time in this file.
 3. Ask for consent in plain words: which provider reads receipts and questions, that it is outside Kenya, and that it does not train on them. Built (SEC-10): the question is asked on Home, can be changed on the Account page, and gates Ask. It is separate from sign-up, so it is freely given and Google sign-ups see it too. The pipeline and the assistant only use a model for people who agreed to the notice named in `JALADA_MODEL_PROVIDER_NOTICE`; changing the notice asks everyone again, and production will not start with a model unless it is set.
-4. Name the provider and the transfer in the privacy notice, and keep a record of the safeguards for the Commissioner.
+4. Name the provider and the transfer in the privacy notice, and keep a record of the safeguards for the Commissioner. Built: the notice at `/privacy` names it from `JALADA_MODEL_PROVIDER_NOTICE`, and the record is `docs/privacy/transfers-out-of-kenya.md`.
 5. Have a Kenyan data protection practitioner check steps 3 and 4.
 6. Then set `JALADA_MODEL_CHAIN` (and the assistant's chains), `JALADA_MODEL_PROVIDERS`, and `JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true` on the host.
 
