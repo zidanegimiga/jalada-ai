@@ -18,10 +18,16 @@ from jalada.builders import (
 )
 from jalada.core.clock import SystemClock
 from jalada.core.health import QUICK, DatabaseCheck, StorageCheck
-from jalada.core.jobs.runner import JobRunner, background_jobs
+from jalada.core.jobs.runner import JobHandler, JobRunner, background_jobs
 from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
+from jalada.modules.agent.application.channels import (
+    ANSWER_QUESTION_JOB,
+    AnswerQuestionJob,
+    ChannelAssistant,
+)
+from jalada.modules.agent.application.confirmations import ActionConfirmations
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.proposals import ActionProposals
 from jalada.modules.agent.wiring import (
@@ -36,6 +42,7 @@ from jalada.modules.exports.wiring import build_tax_year_export
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
 from jalada.modules.ledger.wiring import LedgerServices, build_ledger
 from jalada.modules.pipeline.wiring import build_evidence_processor
+from jalada.modules.telegram.adapters.assistant_replies import TelegramReplies
 from jalada.modules.telegram.adapters.telegram_bot import TelegramBot
 from jalada.modules.telegram.wiring import (
     build_telegram_bot,
@@ -68,6 +75,11 @@ def build_services(settings: Settings) -> Services:
     sign_in_limiter = RateLimiter("5/minute")
     upload_limiter = RateLimiter("60/hour")
     telegram_linking = build_telegram_linking(unit_of_work, clock)
+    conversations = assistant(settings, unit_of_work, clock, ledger)
+    confirmations = (
+        build_confirmations(unit_of_work, clock, ledger.review) if conversations else None
+    )
+    bot = telegram_bot(settings)
     return Services(
         authenticator=accounts.authenticator,
         sign_in_limiter=sign_in_limiter,
@@ -87,14 +99,15 @@ def build_services(settings: Settings) -> Services:
         account_deletion=accounts.account_deletion,
         google_sign_in=accounts.google_sign_in,
         telegram_capture=build_telegram_capture(
-            telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
+            bot,
+            telegram_linking,
+            evidence,
+            sign_in_limiter,
+            upload_limiter,
+            chat_assistant(bot, unit_of_work, conversations, confirmations, clock),
         ),
-        conversations=assistant(settings, unit_of_work, clock, ledger),
-        assistant_actions=(
-            build_confirmations(unit_of_work, clock, ledger.review)
-            if settings.agent_enabled
-            else None
-        ),
+        conversations=conversations,
+        assistant_actions=confirmations,
         assistant_limiter=RateLimiter(f"{settings.agent_questions_per_hour}/hour"),
         health_checks=[
             DatabaseCheck(engine),
@@ -129,6 +142,19 @@ def assistant(
             settings.version,
         ),
     )
+
+
+def chat_assistant(
+    bot: TelegramBot | None,
+    unit_of_work: Callable[[], SqlUnitOfWork],
+    conversations: Conversations | None,
+    confirmations: ActionConfirmations | None,
+    clock: SystemClock,
+) -> ChannelAssistant | None:
+    """The assistant in Telegram, when both the bot and the assistant are on."""
+    if bot is None or conversations is None or confirmations is None:
+        return None
+    return ChannelAssistant(unit_of_work, conversations, confirmations, TelegramReplies(bot), clock)
 
 
 def google_client(settings: Settings) -> GoogleClient | None:
@@ -176,14 +202,23 @@ def build_job_runner(settings: Settings) -> JobRunner:
         return SqlUnitOfWork(session_factory)
 
     clock = SystemClock()
+    bot = telegram_bot(settings)
     processor = build_evidence_processor(
         unit_of_work,
         store=build_evidence_store(settings),
         clock=clock,
         budget=build_budget(settings),
         model=build_language_model(settings),
-        notifier=build_telegram_notifier(
-            unit_of_work, telegram_bot(settings), f"{settings.public_url}/review"
-        ),
+        notifier=build_telegram_notifier(unit_of_work, bot, f"{settings.public_url}/review"),
     )
-    return JobRunner(unit_of_work, {PROCESS_EVIDENCE_JOB: processor}, clock)
+    handlers: dict[str, JobHandler] = {PROCESS_EVIDENCE_JOB: processor}
+    # Questions asked in Telegram are answered here, off the webhook.
+    ledger = build_ledger(unit_of_work, clock)
+    conversations = assistant(settings, unit_of_work, clock, ledger)
+    confirmations = (
+        build_confirmations(unit_of_work, clock, ledger.review) if conversations else None
+    )
+    answering = chat_assistant(bot, unit_of_work, conversations, confirmations, clock)
+    if answering is not None:
+        handlers[ANSWER_QUESTION_JOB] = AnswerQuestionJob(answering)
+    return JobRunner(unit_of_work, handlers, clock)

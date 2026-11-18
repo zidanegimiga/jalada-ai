@@ -137,7 +137,9 @@ People can send receipts, PDFs and forwarded M-Pesa messages to a Telegram bot i
 3. Run `make up-telegram`. Locally the bot reads messages by polling, so no public address is needed.
 4. In the app, tap Link Telegram and open the link it gives you.
 
-Once deployed, set `JALADA_TELEGRAM_WEBHOOK_SECRET` to a long random value and run `jalada-telegram set-webhook`, so Telegram calls the app instead.
+Once deployed, set `JALADA_TELEGRAM_WEBHOOK_SECRET` to a long random value and run `jalada-telegram set-webhook`, so Telegram calls the app instead. Run it again after upgrading, so the webhook also receives button taps.
+
+With the assistant on, a message that ends with "?" or starts with `/ask` is a question rather than evidence. The worker answers it in the chat, and any change the assistant suggests comes with Confirm and Not now buttons. Every other message, typed cash notes included, is still kept as evidence.
 
 ### Google sign-in
 
