@@ -30,10 +30,11 @@ export function AppNav({
       // Its own layer in page transitions, so pages slide under it, never over it.
       style={{ viewTransitionName: "app-nav" }}
     >
-      {/* The page fades out just above the bar, so nothing scrolls into it edge to edge. */}
+      {/* The page fades out just above the bar, so nothing scrolls into it edge to edge.
+          A page with an input pinned above the bar, such as Ask, covers that gap itself. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-36 bg-linear-to-t from-background from-30% to-transparent"
+        className="pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-36 bg-linear-to-t from-background from-30% to-transparent in-[body:has([data-pinned-composer])]:hidden"
       />
       <ul
         className="relative grid grid-flow-col rounded-full bg-foreground p-1.5 text-background shadow-float ring-1 ring-black/10 dark:bg-muted dark:text-foreground dark:ring-white/12"

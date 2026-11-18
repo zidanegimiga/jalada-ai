@@ -1,9 +1,16 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatPanel } from "@/features/agent/components/ChatPanel";
 import { MessageBubble } from "@/features/agent/components/MessageBubble";
-import { ThreadList } from "@/features/agent/components/ThreadList";
+import { AskLayout } from "@/features/agent/components/AskLayout";
+import { ThreadHistory } from "@/features/agent/components/ThreadHistory";
 import { ToolActivity } from "@/features/agent/components/ToolActivity";
 
 /** A streamed reply, one chunk per event, as the API sends it. */
@@ -181,20 +188,18 @@ describe("MessageBubble", () => {
   });
 });
 
-describe("ThreadList", () => {
-  it("lists earlier conversations and a way to start a new one", () => {
-    render(
-      <ThreadList
-        threads={[
-          {
-            id: "t-1",
-            title: "KPLC this quarter",
-            updated_at: "2026-11-18T09:00:00Z",
-          },
-        ]}
-        current="t-1"
-      />,
-    );
+describe("ThreadHistory", () => {
+  const threads = [
+    {
+      id: "t-1",
+      title: "KPLC this quarter",
+      updated_at: "2026-11-18T09:00:00Z",
+    },
+    { id: "t-2", title: "Rent in July", updated_at: "2026-11-17T09:00:00Z" },
+  ];
+
+  it("lists earlier conversations, marks the current one, and offers a new one", () => {
+    render(<ThreadHistory threads={threads} current="t-1" />);
 
     expect(
       screen.getByRole("link", { name: /New conversation/ }),
@@ -202,5 +207,69 @@ describe("ThreadList", () => {
     expect(
       screen.getByRole("link", { name: /KPLC this quarter/ }),
     ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Rent in July/ })).toHaveAttribute(
+      "href",
+      "/ask?thread=t-2",
+    );
+  });
+
+  it("tells a new person where conversations will appear", () => {
+    render(<ThreadHistory threads={[]} current={null} />);
+
+    expect(
+      screen.getByText("Your conversations will be listed here."),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("AskLayout", () => {
+  it("puts a new conversation at the top of the history once it is answered", async () => {
+    streams(ANSWER);
+    vi.spyOn(window.history, "replaceState");
+    render(
+      <AskLayout threads={[]} current={null}>
+        <ChatPanel initial={null} />
+      </AskLayout>,
+    );
+
+    ask("How much did I pay KPLC?");
+
+    const rail = screen.getAllByRole("navigation", {
+      name: "Conversations",
+    })[0];
+    expect(
+      await within(rail).findByRole("link", {
+        name: /How much did I pay KPLC\?/,
+      }),
+    ).toHaveAttribute("aria-current", "page");
+  });
+
+  it("opens the history as a drawer and closes it when a conversation is picked", async () => {
+    render(
+      <AskLayout
+        threads={[
+          {
+            id: "t-1",
+            title: "KPLC this quarter",
+            updated_at: "2026-11-18T09:00:00Z",
+          },
+        ]}
+        current={null}
+      >
+        <p>chat</p>
+      </AskLayout>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "History" }));
+    const drawer = await screen.findByRole("dialog", { name: "Conversations" });
+    fireEvent.click(
+      within(drawer).getByRole("link", { name: /KPLC this quarter/ }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Conversations" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 });

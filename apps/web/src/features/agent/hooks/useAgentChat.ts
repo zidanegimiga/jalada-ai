@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { ask } from "../api/agent.api";
+import { useThreadAnswered } from "./useThreadList";
 import type { ChatMessage, Progress, Thread } from "../types";
 
 const STARTING: Progress = { stage: "thinking", tool: null, label: null };
@@ -12,7 +13,10 @@ const STARTING: Progress = { stage: "thinking", tool: null, label: null };
  * sending the next question. A new conversation gets its id from the first answer.
  */
 export function useAgentChat(initial: Thread | null) {
+  const answered = useThreadAnswered();
   const [threadId, setThreadId] = useState(initial?.id ?? null);
+  // A new conversation is named after its first question, as the API names it.
+  const [title, setTitle] = useState(initial?.title ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>(
     initial?.messages ?? [],
   );
@@ -44,6 +48,13 @@ export function useAgentChat(initial: Thread | null) {
           setProgress(event.data);
         } else if (event.event === "answer") {
           setThreadId(event.data.thread_id);
+          const named = title ?? text;
+          setTitle(named);
+          answered({
+            id: event.data.thread_id,
+            title: named,
+            updated_at: new Date().toISOString(),
+          });
           setMessages((previous) => [
             ...previous,
             {
