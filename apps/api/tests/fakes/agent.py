@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from jalada.modules.agent.application.ports import AgentRun, TurnRequest
 from jalada.modules.agent.application.tools import Tool, ToolContext
 from jalada.modules.agent.domain.conversation import Message, Thread
+from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind, TurnResult
 
 
@@ -104,6 +105,7 @@ class CannedRunner:
         self.result = TurnResult(text, outcome, (AgentStep(StepKind.MODEL, "m", "answer", 5),))
         self.requests: list[TurnRequest] = []
 
-    def run(self, request: TurnRequest) -> TurnResult:
+    def run(self, request: TurnRequest, on_progress: OnProgress = ignore) -> TurnResult:
         self.requests.append(request)
+        on_progress(Progress(Stage.THINKING))
         return self.result

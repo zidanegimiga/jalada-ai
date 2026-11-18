@@ -28,6 +28,8 @@ class Tool[A: BaseModel](ABC):
     name: str
     description: str
     arguments: type[A]
+    # Shown in the chat while the tool runs.
+    label: str = "Looking it up"
 
     @abstractmethod
     def run(self, context: ToolContext, arguments: A) -> dict[str, Any]:

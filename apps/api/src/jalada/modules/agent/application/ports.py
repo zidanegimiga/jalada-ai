@@ -4,6 +4,7 @@ from typing import Protocol
 from uuid import UUID
 
 from jalada.modules.agent.domain.conversation import Message, Thread
+from jalada.modules.agent.domain.progress import OnProgress, ignore
 from jalada.modules.agent.domain.run import AgentStep, Outcome, TurnResult
 
 
@@ -55,4 +56,4 @@ class TurnRequest:
 class AgentRunner(Protocol):
     """Runs one turn: looks things up as needed, then answers within the budget."""
 
-    def run(self, request: TurnRequest) -> TurnResult: ...
+    def run(self, request: TurnRequest, on_progress: OnProgress = ignore) -> TurnResult: ...

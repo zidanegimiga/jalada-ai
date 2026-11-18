@@ -16,6 +16,7 @@ class PeriodArguments(BaseModel):
 
 class SpendingByCategory(Tool[PeriodArguments]):
     name = "totals_by_category"
+    label = "Adding up by category"
     description = "Money in and out between two dates, added up by category, largest first."
     arguments = PeriodArguments
 
@@ -49,6 +50,7 @@ class YearArguments(BaseModel):
 
 class MonthlySummary(Tool[YearArguments]):
     name = "monthly_summary"
+    label = "Going through the months"
     description = "Money in and out for each month of a year, split into business and personal."
     arguments = YearArguments
 

@@ -11,6 +11,7 @@ from jalada.modules.agent.domain.conversation import (
     Thread,
     title_from,
 )
+from jalada.modules.agent.domain.progress import OnProgress, ignore
 from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
@@ -61,7 +62,13 @@ class Conversations:
                 raise ThreadNotFound
             return ThreadView(thread, threads.recent_messages(thread_id, SHOWN_MESSAGES))
 
-    def ask(self, user_id: UUID, question: str, thread_id: UUID | None = None) -> Reply:
+    def ask(
+        self,
+        user_id: UUID,
+        question: str,
+        thread_id: UUID | None = None,
+        on_progress: OnProgress = ignore,
+    ) -> Reply:
         question = question.strip()[:MAX_MESSAGE_LENGTH]
         if not question:
             raise EmptyQuestion
@@ -82,7 +89,7 @@ class Conversations:
 
         run_id = self._new_id()
         request = TurnRequest(run_id, user_id, question, tuple(history), started.date())
-        result = self._runner.run(request)
+        result = self._runner.run(request, on_progress)
 
         finished = self._clock.now()
         with self._unit_of_work() as work:

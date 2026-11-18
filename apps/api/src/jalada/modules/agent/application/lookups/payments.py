@@ -39,6 +39,7 @@ class SearchArguments(PaymentFilters):
 
 class SearchPayments(Tool[SearchArguments]):
     name = "search_payments"
+    label = "Searching your payments"
     description = "Confirmed payments in and out, newest first, filtered as asked."
     arguments = SearchArguments
 
@@ -57,6 +58,7 @@ class SearchPayments(Tool[SearchArguments]):
 
 class AddUpPayments(Tool[PaymentFilters]):
     name = "add_up_payments"
+    label = "Adding up your payments"
     description = (
         "How much money went in and out, and how many payments, filtered as asked. "
         "Use it for totals instead of adding up a search."

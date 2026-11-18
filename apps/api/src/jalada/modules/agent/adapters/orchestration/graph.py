@@ -22,6 +22,7 @@ from jalada.modules.agent.application.prompts import instructions, records, turn
 from jalada.modules.agent.application.tools import ToolContext, ToolRegistry
 from jalada.modules.agent.domain.actions import ToolCall
 from jalada.modules.agent.domain.grounding import ungrounded
+from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
 from jalada.modules.agent.domain.run import AgentStep, Budget, Outcome, StepKind, TurnResult
 from jalada.modules.pipeline.domain.model import LanguageModel, ModelFailed, ModelUsage
 
@@ -64,14 +65,22 @@ class LangGraphRunner:
         self._instructions = instructions(tools)
         self._graph = self._build().compile(checkpointer=checkpointer)
 
-    def run(self, request: TurnRequest) -> TurnResult:
+    def run(self, request: TurnRequest, on_progress: OnProgress = ignore) -> TurnResult:
         thread = str(request.run_id)
         config: Any = {
             "configurable": {"thread_id": thread},
             "recursion_limit": self._budget.max_steps * 3 + 5,
         }
         start: TurnState = {"work": [], "steps": [], "model_calls": 0, "rechecked": False}
-        final = self._graph.invoke(start, config, context=request)
+        final: dict[str, Any] = {}
+        # Nodes report progress on the custom stream; the values stream ends with the result.
+        for mode, chunk in self._graph.stream(
+            start, config, context=request, stream_mode=["custom", "values"]
+        ):
+            if mode == "custom" and isinstance(chunk, Progress):
+                on_progress(chunk)
+            elif mode == "values" and isinstance(chunk, dict):
+                final = chunk
         if self._checkpointer is not None:
             # A finished turn needs no checkpoint; one paused for a person would keep it.
             self._checkpointer.delete_thread(thread)
@@ -95,6 +104,7 @@ class LangGraphRunner:
         if not self._budget.allows(calls, _usage(steps)):
             return {"outcome": Outcome.OUT_OF_BUDGET, "text": OUT_OF_BUDGET}
         content = turn_content(turn.question, turn.history, work, turn.today)
+        runtime.stream_writer(Progress(Stage.THINKING))
         started = perf_counter()
         try:
             reply = self._model.complete(self._instructions, content, NEXT_STEP_SCHEMA)
@@ -125,6 +135,8 @@ class LangGraphRunner:
         call = state.get("pending") or {}
         tool = self._tools.get(call.get("tool", ""))
         context = ToolContext(runtime.context.user_id, runtime.context.today)
+        if tool is not None:
+            runtime.stream_writer(Progress(Stage.LOOKING_UP, tool.name, tool.label))
         started = perf_counter()
         outcome = "ok"
         try:
@@ -150,6 +162,7 @@ class LangGraphRunner:
 
     def _check(self, state: TurnState, runtime: Runtime[TurnRequest]) -> TurnState:
         draft = state.get("draft") or ""
+        runtime.stream_writer(Progress(Stage.CHECKING))
         sources = [records(item["result"]) for item in state["work"] if "result" in item]
         missing = ungrounded(draft, [runtime.context.question, *sources])
         if not missing:

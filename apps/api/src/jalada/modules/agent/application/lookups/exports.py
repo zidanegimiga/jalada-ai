@@ -13,6 +13,7 @@ class TaxYearWorkbook(Tool[WorkbookArguments]):
     """Only a link: the workbook is built when the person opens it, signed in."""
 
     name = "tax_year_workbook"
+    label = "Finding your workbook"
     description = "A link to download the Excel workbook of a year's confirmed records."
     arguments = WorkbookArguments
 

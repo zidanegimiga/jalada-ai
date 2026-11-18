@@ -15,6 +15,7 @@ from jalada.modules.agent.adapters.orchestration.graph import (
 )
 from jalada.modules.agent.application.ports import TurnRequest
 from jalada.modules.agent.application.tools import ToolRegistry
+from jalada.modules.agent.domain.progress import Progress, Stage
 from jalada.modules.agent.domain.run import Budget, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelFailed
 
@@ -138,6 +139,21 @@ def test_a_failed_lookup_is_reported_to_the_model_without_details() -> None:
     assert result.steps[1].outcome == "failed"
     assert "This lookup failed" in model.calls[1]["content"]
     assert "0712345678" not in model.calls[1]["content"]
+
+
+def test_progress_is_reported_as_the_turn_goes() -> None:
+    model = ScriptedModel(use_tool("total_paid", counterparty="KPLC"), answer("Ksh 4,500."))
+    runner = LangGraphRunner(model, ToolRegistry([TotalPaid(TOTALS)]), Budget())
+    seen: list[Progress] = []
+
+    runner.run(TurnRequest(uuid.uuid4(), ME, "KPLC?", (), date(2026, 11, 18)), seen.append)
+
+    assert seen == [
+        Progress(Stage.THINKING),
+        Progress(Stage.LOOKING_UP, "total_paid", "Looking it up"),
+        Progress(Stage.THINKING),
+        Progress(Stage.CHECKING),
+    ]
 
 
 def test_a_finished_turn_leaves_no_checkpoint() -> None:

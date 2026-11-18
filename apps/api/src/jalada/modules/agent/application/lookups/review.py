@@ -21,6 +21,7 @@ class NoArguments(BaseModel):
 
 class WaitingToCheck(Tool[NoArguments]):
     name = "waiting_to_check"
+    label = "Looking at To check"
     description = "What is waiting on the To check page, oldest first, and why."
     arguments = NoArguments
 
@@ -42,6 +43,7 @@ class PaymentArguments(BaseModel):
 
 class PaymentDetails(Tool[PaymentArguments]):
     name = "payment_details"
+    label = "Opening the payment"
     description = "One payment with the evidence kept for it and what has been changed."
     arguments = PaymentArguments
 
