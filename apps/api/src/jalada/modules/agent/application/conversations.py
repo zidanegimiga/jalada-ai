@@ -3,7 +3,13 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 from jalada.core.ports import Clock
-from jalada.modules.agent.application.ports import AgentRun, AgentRunner, TurnRequest
+from jalada.modules.agent.application.ports import (
+    AgentRun,
+    AgentRunner,
+    NoTracing,
+    TurnRequest,
+    TurnTracer,
+)
 from jalada.modules.agent.domain.conversation import (
     MAX_MESSAGE_LENGTH,
     Message,
@@ -44,11 +50,13 @@ class Conversations:
         runner: AgentRunner,
         clock: Clock,
         new_id: Callable[[], UUID] = uuid4,
+        tracer: TurnTracer | None = None,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._runner = runner
         self._clock = clock
         self._new_id = new_id
+        self._tracer = tracer or NoTracing()
 
     def threads(self, user_id: UUID, limit: int = 50) -> list[Thread]:
         with self._unit_of_work() as work:
@@ -96,10 +104,10 @@ class Conversations:
             threads = work.agent_threads_for(user_id)
             threads.add_message(thread.id, Message(Role.ASSISTANT, result.text, finished))
             threads.touch(thread.id, finished)
-            work.agent_runs.add(
-                AgentRun(
-                    run_id, user_id, thread.id, result.outcome, result.steps, started, finished
-                )
+            run = AgentRun(
+                run_id, user_id, thread.id, result.outcome, result.steps, started, finished
             )
+            work.agent_runs.add(run)
             work.commit()
+        self._tracer.record(run)
         return Reply(thread.id, result.text, result.outcome)

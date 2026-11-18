@@ -42,6 +42,17 @@ class AgentRunRepository(Protocol):
     def for_user(self, user_id: UUID) -> list[AgentRun]: ...
 
 
+class TurnTracer(Protocol):
+    """Sends what a turn did to a tracing service. Never what was asked or answered."""
+
+    def record(self, run: AgentRun) -> None: ...
+
+
+class NoTracing:
+    def record(self, run: AgentRun) -> None:
+        pass
+
+
 @dataclass(frozen=True)
 class TurnRequest:
     """What a runner gets for one turn. The user id is for tools, never for the model."""

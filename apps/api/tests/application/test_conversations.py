@@ -6,6 +6,7 @@ from fakes import FakeUnitOfWork, FixedClock, Store
 from fakes.agent import CannedRunner
 
 from jalada.modules.agent.application.conversations import HISTORY_MESSAGES, Conversations
+from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import MAX_MESSAGE_LENGTH, Role
 from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
@@ -100,6 +101,21 @@ def test_threads_list_the_latest_first_and_open_with_their_messages(store: Store
         (Role.PERSON, "KPLC?"),
         (Role.ASSISTANT, "You paid Ksh 4,500."),
     ]
+
+
+def test_each_turn_is_handed_to_the_tracer(store: Store) -> None:
+    traced: list[AgentRun] = []
+
+    class Recording:
+        def record(self, run: AgentRun) -> None:
+            traced.append(run)
+
+    asking = Conversations(
+        lambda: FakeUnitOfWork(store), CannedRunner(), FixedClock(), tracer=Recording()
+    )
+    asking.ask(USER, "KPLC?")
+
+    assert traced == store.agent_runs
 
 
 def test_another_persons_thread_cannot_be_opened(store: Store) -> None:

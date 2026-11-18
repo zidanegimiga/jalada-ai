@@ -23,7 +23,7 @@ from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
 from jalada.modules.agent.application.conversations import Conversations
-from jalada.modules.agent.wiring import build_conversations, build_lookups
+from jalada.modules.agent.wiring import build_conversations, build_lookups, build_tracer
 from jalada.modules.evidence.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.modules.evidence.wiring import build_evidence
 from jalada.modules.exports.wiring import build_tax_year_export
@@ -107,6 +107,11 @@ def assistant(
         build_agent_budget(settings),
         settings.database_url,
         build_lookups(ledger.ledger, ledger.review, settings.public_url),
+        build_tracer(
+            settings.agent_traces_url,
+            headers.get_secret_value() if (headers := settings.agent_traces_headers) else None,
+            settings.version,
+        ),
     )
 
 

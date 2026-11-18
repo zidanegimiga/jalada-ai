@@ -1,16 +1,19 @@
 """Builds the assistant from the pieces the composition root shares."""
 
+import json
 from collections.abc import Callable, Iterable
 from typing import Any
 
 from jalada.core.ports import Clock
 from jalada.modules.agent.adapters.orchestration.checkpoints import postgres_checkpoints
 from jalada.modules.agent.adapters.orchestration.graph import LangGraphRunner
+from jalada.modules.agent.adapters.telemetry import otlp_tracer
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.lookups.exports import TaxYearWorkbook
 from jalada.modules.agent.application.lookups.payments import AddUpPayments, SearchPayments
 from jalada.modules.agent.application.lookups.review import PaymentDetails, WaitingToCheck
 from jalada.modules.agent.application.lookups.summaries import MonthlySummary, SpendingByCategory
+from jalada.modules.agent.application.ports import NoTracing, TurnTracer
 from jalada.modules.agent.application.tools import Tool, ToolRegistry
 from jalada.modules.agent.domain.run import Budget
 from jalada.modules.ledger.application.entry_review import EntryReview
@@ -39,9 +42,20 @@ def build_conversations(
     budget: Budget,
     database_url: str,
     tools: Iterable[Tool[Any]] = (),
+    tracer: TurnTracer | None = None,
 ) -> Conversations | None:
     """The assistant, when it has a model to run on."""
     if model is None:
         return None
     runner = LangGraphRunner(model, ToolRegistry(tools), budget, postgres_checkpoints(database_url))
-    return Conversations(unit_of_work, runner, clock)
+    return Conversations(unit_of_work, runner, clock, tracer=tracer)
+
+
+def build_tracer(url: str | None, headers_json: str | None, version: str) -> TurnTracer:
+    """Traces go to the OTLP address when one is set, and nowhere otherwise."""
+    if not url:
+        return NoTracing()
+    headers = json.loads(headers_json) if headers_json else {}
+    if not isinstance(headers, dict):
+        raise ValueError("JALADA_AGENT_TRACES_HEADERS must be a JSON object")
+    return otlp_tracer(url, {str(k): str(v) for k, v in headers.items()}, version)

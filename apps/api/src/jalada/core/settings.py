@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     agent_max_cost_usd: Decimal = Field(default=Decimal("0.01"), ge=0)
     # How many questions one person may ask in an hour.
     agent_questions_per_hour: int = Field(default=30, ge=1, le=1000)
+    # Where the assistant's traces go, over OTLP/HTTP, such as Langfuse's or Grafana Cloud's
+    # traces address. Off when empty. Traces hold names, outcomes, tokens and times only.
+    agent_traces_url: str | None = None
+    # JSON of headers the endpoint needs, such as {"Authorization": "Basic ..."}.
+    agent_traces_headers: SecretStr | None = None
     # Telegram bot. Switched off unless the token and the bot's username are both set.
     telegram_bot_token: SecretStr | None = None
     telegram_bot_username: str | None = None

@@ -63,7 +63,7 @@ forbidden_modules = ["jalada.modules", "jalada.app", "jalada.builders", "jalada.
 name = "Domain code has no input or output and no vendor libraries"
 type = "forbidden"
 source_modules = ["jalada.modules.*.domain"]
-forbidden_modules = ["jalada.modules.*.application", "jalada.modules.*.adapters", "jalada.modules.*.api", "jalada.core", "sqlalchemy", "fastapi", "starlette", "boto3", "botocore", "httpx2", "openpyxl", "structlog", "sentry_sdk", "pytesseract", "pdfplumber", "authlib", "argon2", "alembic", "psycopg", "langgraph", "langchain_core"]
+forbidden_modules = ["jalada.modules.*.application", "jalada.modules.*.adapters", "jalada.modules.*.api", "jalada.core", "sqlalchemy", "fastapi", "starlette", "boto3", "botocore", "httpx2", "openpyxl", "structlog", "sentry_sdk", "pytesseract", "pdfplumber", "authlib", "argon2", "alembic", "psycopg", "langgraph", "langchain_core", "opentelemetry"]
 
 [[tool.importlinter.contracts]]
 name = "Inside a module, layers only depend downwards"
