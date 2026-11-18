@@ -45,11 +45,9 @@ NOTES = {
 class ReplyChannel(Protocol):
     """How the assistant answers in one chat app. `chat` is the app's own address."""
 
-    def answer(self, chat: str, text: str, actions: Sequence[ProposedAction]) -> None:
-        ...
+    def answer(self, chat: str, text: str, actions: Sequence[ProposedAction]) -> None: ...
 
-    def note(self, chat: str, text: str) -> None:
-        ...
+    def note(self, chat: str, text: str) -> None: ...
 
 
 class ChannelAssistant:
