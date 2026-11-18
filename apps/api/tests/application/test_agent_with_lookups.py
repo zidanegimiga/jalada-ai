@@ -12,6 +12,7 @@ from samples import confirmed_entry
 from jalada.modules.agent.adapters.orchestration.graph import LangGraphRunner
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.prompts import instructions
+from jalada.modules.agent.application.proposals import ActionProposals
 from jalada.modules.agent.application.tools import ToolRegistry
 from jalada.modules.agent.domain.run import Budget, Outcome
 from jalada.modules.agent.wiring import build_lookups
@@ -30,7 +31,12 @@ def assistant(store: Store, *replies: dict[str, Any]) -> tuple[Conversations, Sc
     def work() -> FakeUnitOfWork:
         return FakeUnitOfWork(store)
 
-    lookups = build_lookups(Ledger(work), EntryReview(work, FixedClock()), "https://jalada.test")
+    lookups = build_lookups(
+        Ledger(work),
+        EntryReview(work, FixedClock()),
+        "https://jalada.test",
+        ActionProposals(work, FixedClock()),
+    )
     model = ScriptedModel(*replies)
     runner = LangGraphRunner(model, ToolRegistry(lookups), Budget())
     return Conversations(work, runner, FixedClock()), model
@@ -99,3 +105,24 @@ def test_the_workbook_link_points_at_the_web_app(store: Store) -> None:
     asking.ask(ME, "Can I get my 2025 workbook?")
 
     assert "https://jalada.test/v1/exports/2025.xlsx" in model.calls[1]["content"]
+
+
+def test_a_suggested_change_comes_back_with_the_answer_and_changes_nothing(
+    store: Store,
+) -> None:
+    entry = kplc(ME, date(2026, 7, 4), 250_000)
+    store.save_entries(entry)
+    asking, _ = assistant(
+        store,
+        use_tool("suggest_category", id=str(entry.id), category="business_rent"),
+        answer("I have suggested moving it to Workspace rent. Tap Confirm to change it."),
+    )
+
+    reply = asking.ask(ME, "That KPLC payment was rent, can you fix it?")
+
+    [action] = reply.actions
+    assert action.summary.startswith("Move Ksh 2,500.00 to KPLC PREPAID")
+    assert store.transactions[entry.id].lines[0].category == "business_other"
+    view = asking.thread(ME, reply.thread_id)
+    assert view.actions == [action]
+    assert view.messages[-1].run_id == action.run_id

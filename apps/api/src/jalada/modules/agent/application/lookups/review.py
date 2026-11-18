@@ -88,6 +88,8 @@ def _item(item: ReviewItem) -> dict[str, Any]:
     }
     if entry is not None:
         shown |= {
+            "id": str(entry.id),
+            "ready_to_confirm": item.ready,
             "date": entry.occurred_on.isoformat() if entry.occurred_on else None,
             "direction": entry.direction,
             "amount": kes(entry.amount_cents),

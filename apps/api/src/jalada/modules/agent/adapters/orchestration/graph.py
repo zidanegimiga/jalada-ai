@@ -138,7 +138,8 @@ class LangGraphRunner:
     def _act(self, state: TurnState, runtime: Runtime[TurnRequest]) -> TurnState:
         call = state.get("pending") or {}
         tool = self._tools.get(call.get("tool", ""))
-        context = ToolContext(runtime.context.user_id, runtime.context.today)
+        turn = runtime.context
+        context = ToolContext(turn.user_id, turn.today, turn.run_id, turn.thread_id)
         if tool is not None:
             runtime.stream_writer(Progress(Stage.LOOKING_UP, tool.name, tool.label))
         started = perf_counter()

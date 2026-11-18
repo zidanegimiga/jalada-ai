@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
 from jalada.core.ports import Clock
@@ -18,6 +18,7 @@ from jalada.modules.agent.domain.conversation import (
     title_from,
 )
 from jalada.modules.agent.domain.progress import OnProgress, ignore
+from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
@@ -33,12 +34,15 @@ class Reply:
     thread_id: UUID
     text: str
     outcome: Outcome
+    # Changes suggested in this turn, each waiting for the person's tap.
+    actions: tuple[ProposedAction, ...] = ()
 
 
 @dataclass(frozen=True)
 class ThreadView:
     thread: Thread
     messages: list[Message]
+    actions: list[ProposedAction] = field(default_factory=list)
 
 
 class Conversations:
@@ -68,7 +72,9 @@ class Conversations:
             thread = threads.get(thread_id)
             if thread is None:
                 raise ThreadNotFound
-            return ThreadView(thread, threads.recent_messages(thread_id, SHOWN_MESSAGES))
+            messages = threads.recent_messages(thread_id, SHOWN_MESSAGES)
+            actions = work.agent_actions_for(user_id).for_thread(thread_id)
+            return ThreadView(thread, messages, actions)
 
     def ask(
         self,
@@ -96,13 +102,15 @@ class Conversations:
             work.commit()
 
         run_id = self._new_id()
-        request = TurnRequest(run_id, user_id, question, tuple(history), started.date())
+        request = TurnRequest(run_id, user_id, question, tuple(history), started.date(), thread.id)
         result = self._runner.run(request, on_progress)
 
         finished = self._clock.now()
         with self._unit_of_work() as work:
             threads = work.agent_threads_for(user_id)
-            threads.add_message(thread.id, Message(Role.ASSISTANT, result.text, finished))
+            answer = Message(Role.ASSISTANT, result.text, finished, run_id)
+            threads.add_message(thread.id, answer)
+            actions = tuple(work.agent_actions_for(user_id).for_run(run_id))
             threads.touch(thread.id, finished)
             run = AgentRun(
                 run_id, user_id, thread.id, result.outcome, result.steps, started, finished
@@ -110,4 +118,4 @@ class Conversations:
             work.agent_runs.add(run)
             work.commit()
         self._tracer.record(run)
-        return Reply(thread.id, result.text, result.outcome)
+        return Reply(thread.id, result.text, result.outcome, actions)

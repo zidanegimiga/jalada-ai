@@ -16,6 +16,9 @@ class ToolContext:
 
     user_id: UUID
     today: date
+    # Where a suggested change belongs. Set during a turn; lookups do not need them.
+    run_id: UUID | None = None
+    thread_id: UUID | None = None
 
 
 class BadArguments(Exception):

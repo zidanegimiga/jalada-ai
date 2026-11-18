@@ -14,6 +14,8 @@ from jalada.modules.agent.application.lookups.payments import AddUpPayments, Sea
 from jalada.modules.agent.application.lookups.review import PaymentDetails, WaitingToCheck
 from jalada.modules.agent.application.lookups.summaries import MonthlySummary, SpendingByCategory
 from jalada.modules.agent.application.ports import NoTracing, TurnTracer
+from jalada.modules.agent.application.proposals import ActionProposals
+from jalada.modules.agent.application.suggestions import SuggestCategory, SuggestConfirm
 from jalada.modules.agent.application.tools import Tool, ToolRegistry
 from jalada.modules.agent.domain.run import Budget
 from jalada.modules.ledger.application.entry_review import EntryReview
@@ -22,9 +24,14 @@ from jalada.modules.pipeline.domain.model import LanguageModel
 from jalada.unit_of_work import UnitOfWork
 
 
-def build_lookups(ledger: Ledger, review: EntryReview, public_url: str) -> list[Tool[Any]]:
-    """Every tool the assistant has. All of them only read."""
-    return [
+def build_lookups(
+    ledger: Ledger,
+    review: EntryReview,
+    public_url: str,
+    proposals: ActionProposals | None = None,
+) -> list[Tool[Any]]:
+    """Every tool the assistant has. They only read, or keep a suggestion for the person."""
+    lookups: list[Tool[Any]] = [
         SearchPayments(ledger),
         AddUpPayments(ledger),
         SpendingByCategory(ledger),
@@ -33,6 +40,9 @@ def build_lookups(ledger: Ledger, review: EntryReview, public_url: str) -> list[
         PaymentDetails(ledger),
         TaxYearWorkbook(public_url),
     ]
+    if proposals is not None:
+        lookups += [SuggestConfirm(review, proposals), SuggestCategory(ledger, proposals)]
+    return lookups
 
 
 def build_conversations(
