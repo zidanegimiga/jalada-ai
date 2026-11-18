@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AppNav } from "@/app/(app)/_components/AppNav";
+import { destinations } from "@/app/(app)/_components/navigation";
 
 const path = vi.hoisted(() => ({ current: "/review" }));
 vi.mock("next/navigation", () => ({ usePathname: () => path.current }));
@@ -32,6 +33,22 @@ describe("AppNav", () => {
     render(<AppNav />);
 
     expect(screen.getByRole("link", { name: "Ledger" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    path.current = "/review";
+  });
+
+  it("adds Ask only where the assistant is switched on", () => {
+    expect(destinations("off").map((d) => d.label)).toEqual([
+      "Home",
+      "To check",
+      "Ledger",
+    ]);
+    path.current = "/ask";
+    render(<AppNav places={destinations("on")} />);
+
+    expect(screen.getByRole("link", { name: "Ask" })).toHaveAttribute(
       "aria-current",
       "page",
     );

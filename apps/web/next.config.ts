@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
     APP_ENVIRONMENT: process.env.CONTEXT ?? "development",
     // Netlify sets URL to the site's main address. Links to the sharing image use it.
     SITE_URL: process.env.URL ?? "http://localhost:3000",
+    // "on" adds the Ask tab. Set it where the API runs with JALADA_AGENT_ENABLED=true.
+    ASSISTANT: process.env.ASSISTANT ?? "off",
   },
   // Stop next dev from writing an AGENTS.md file into the app.
   agentRules: false,

@@ -102,6 +102,8 @@ services:
       context: ../apps/web
       args:
         API_URL: http://api:8000
+        # on with JALADA_AGENT_ENABLED=true, to show the Ask tab.
+        ASSISTANT: ${ASSISTANT:-off}
     environment:
       API_URL: http://api:8000
     ports:
