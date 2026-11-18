@@ -50,7 +50,7 @@ export function ChatPanel({ initial }: { initial: Thread | null }) {
           the gap down to the bar, which hides its own fade on this page. */}
       <div
         data-pinned-composer=""
-        className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-10 pt-2 before:pointer-events-none before:absolute before:inset-x-0 before:-top-8 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[calc(env(safe-area-inset-bottom)+6rem)] after:bg-background motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 lg:bottom-6 lg:after:h-6"
+        className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-10 pt-2 before:pointer-events-none before:absolute before:inset-x-0 before:-top-8 before:-z-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:-z-10 after:h-[calc(env(safe-area-inset-bottom)+6rem)] after:bg-background motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 lg:bottom-6 lg:after:h-6"
       >
         <Composer onSend={send} busy={busy} />
       </div>
