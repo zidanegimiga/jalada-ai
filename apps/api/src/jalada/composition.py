@@ -21,6 +21,8 @@ from jalada.core.health import QUICK, DatabaseCheck, StorageCheck
 from jalada.core.jobs.runner import JobHandler, JobRunner, background_jobs
 from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
+from jalada.modules.accounts.application.model_consent import ConsentToModels
+from jalada.modules.accounts.domain.consent import UNNAMED_PROVIDER
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
 from jalada.modules.agent.application.channels import (
     ANSWER_QUESTION_JOB,
@@ -75,7 +77,8 @@ def build_services(settings: Settings) -> Services:
     sign_in_limiter = RateLimiter("5/minute")
     upload_limiter = RateLimiter("60/hour")
     telegram_linking = build_telegram_linking(unit_of_work, clock)
-    conversations = assistant(settings, unit_of_work, clock, ledger)
+    consent = model_consent(settings, unit_of_work, clock)
+    conversations = assistant(settings, unit_of_work, clock, ledger, consent)
     confirmations = (
         build_confirmations(unit_of_work, clock, ledger.review) if conversations else None
     )
@@ -97,6 +100,7 @@ def build_services(settings: Settings) -> Services:
         telegram_linking=telegram_linking,
         account_export=accounts.account_export,
         account_deletion=accounts.account_deletion,
+        model_consent=consent,
         google_sign_in=accounts.google_sign_in,
         telegram_capture=build_telegram_capture(
             bot,
@@ -121,6 +125,7 @@ def assistant(
     unit_of_work: Callable[[], SqlUnitOfWork],
     clock: SystemClock,
     ledger: LedgerServices,
+    consent: ConsentToModels,
 ) -> Conversations | None:
     if not settings.agent_enabled:
         return None
@@ -147,7 +152,19 @@ def assistant(
             if settings.agent_deep_names != settings.agent_fast_names
             else None
         ),
+        consent.allows,
     )
+
+
+def model_consent(
+    settings: Settings, unit_of_work: Callable[[], SqlUnitOfWork], clock: SystemClock
+) -> ConsentToModels:
+    """Asking before a model reads anyone's records: needed whenever a model is set up."""
+    uses_model = settings.model_chain_names or (
+        settings.agent_enabled and settings.agent_fast_names
+    )
+    notice = (settings.model_provider_notice or UNNAMED_PROVIDER) if uses_model else None
+    return ConsentToModels(unit_of_work, clock, notice)
 
 
 def chat_assistant(
@@ -209,6 +226,7 @@ def build_job_runner(settings: Settings) -> JobRunner:
 
     clock = SystemClock()
     bot = telegram_bot(settings)
+    consent = model_consent(settings, unit_of_work, clock)
     processor = build_evidence_processor(
         unit_of_work,
         store=build_evidence_store(settings),
@@ -216,11 +234,12 @@ def build_job_runner(settings: Settings) -> JobRunner:
         budget=build_budget(settings),
         model=build_language_model(settings),
         notifier=build_telegram_notifier(unit_of_work, bot, f"{settings.public_url}/review"),
+        may_use_model=consent.allows,
     )
     handlers: dict[str, JobHandler] = {PROCESS_EVIDENCE_JOB: processor}
     # Questions asked in Telegram are answered here, off the webhook.
     ledger = build_ledger(unit_of_work, clock)
-    conversations = assistant(settings, unit_of_work, clock, ledger)
+    conversations = assistant(settings, unit_of_work, clock, ledger, consent)
     confirmations = (
         build_confirmations(unit_of_work, clock, ledger.review) if conversations else None
     )

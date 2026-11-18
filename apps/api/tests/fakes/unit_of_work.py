@@ -4,7 +4,7 @@ from types import TracebackType
 from typing import Self
 from uuid import UUID
 
-from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
+from fakes.accounts import FakeModelConsents, FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.agent import FakeActions, FakeAgentRuns, FakeThreads
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import (
@@ -19,7 +19,11 @@ from fakes.ledger import (
 )
 from fakes.store import Store
 from jalada.core.jobs.ports import JobQueue
-from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.accounts.application.ports import (
+    ModelConsents,
+    SessionRepository,
+    UserRepository,
+)
 from jalada.modules.agent.application.ports import (
     ActionRepository,
     AgentRunRepository,
@@ -50,6 +54,8 @@ class FakeUnitOfWork:
         self._sessions = FakeSessions(dict(self._store.sessions))
         self.users: UserRepository = self._users
         self.sessions: SessionRepository = self._sessions
+        self._consents = FakeModelConsents(dict(self._store.model_consents))
+        self.model_consents: ModelConsents = self._consents
         self._evidence = dict(self._store.evidence)
         self._jobs = FakeJobs(
             list(self._store.jobs), {k: list(v) for k, v in self._store.queue.items()}
@@ -127,6 +133,7 @@ class FakeUnitOfWork:
         self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
+        self._store.model_consents = self._consents.rows
         self._store.certificate_payments = self._certificate_payments
         self._store.money_accounts = self._money_accounts
         self._store.transactions = self._transactions
@@ -143,6 +150,7 @@ class FakeUnitOfWork:
         """What the database's ON DELETE CASCADE does when a user row is deleted."""
         store = self._store
         store.sessions = {k: s for k, s in store.sessions.items() if s.user_id != user_id}
+        store.model_consents.pop(user_id, None)
         store.evidence = {k: e for k, e in store.evidence.items() if e.user_id != user_id}
         store.entries = {k: e for k, e in store.entries.items() if e.user_id != user_id}
         store.revisions = [(b, a) for b, a in store.revisions if a.user_id != user_id]

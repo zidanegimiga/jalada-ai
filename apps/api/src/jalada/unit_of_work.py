@@ -3,7 +3,11 @@ from typing import Protocol, Self
 from uuid import UUID
 
 from jalada.core.jobs.ports import JobQueue
-from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.accounts.application.ports import (
+    ModelConsents,
+    SessionRepository,
+    UserRepository,
+)
 from jalada.modules.agent.application.ports import (
     ActionRepository,
     AgentRunRepository,
@@ -28,6 +32,7 @@ class UnitOfWork(Protocol):
 
     users: UserRepository
     sessions: SessionRepository
+    model_consents: ModelConsents
     jobs: JobQueue
     runs: RunRepository
     telegram: TelegramLinks

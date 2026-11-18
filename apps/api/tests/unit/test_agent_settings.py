@@ -37,6 +37,7 @@ def test_production_runs_the_assistant_on_models_cleared_for_real_data() -> None
         agent_enabled=True,
         model_chain="m",
         model_allowed_for_real_data=True,
+        model_provider_notice="Google's Gemini API, in the United States.",
     )
 
     assert cleared.agent_enabled

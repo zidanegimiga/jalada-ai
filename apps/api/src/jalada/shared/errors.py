@@ -62,6 +62,10 @@ class EmptyQuestion(ApplicationError):
     pass
 
 
+class ConsentNeeded(ApplicationError):
+    """The person has not agreed to have a model read their records (decision 0026)."""
+
+
 class ActionNotFound(ApplicationError):
     """No such suggested change for this person, including another person's."""
 

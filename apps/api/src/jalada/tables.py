@@ -3,7 +3,7 @@ migrations. Each module defines its own tables on the shared Base."""
 
 from jalada.core.database.base import Base
 from jalada.core.jobs.tables import JobRow
-from jalada.modules.accounts.adapters.tables import SessionRow, UserRow
+from jalada.modules.accounts.adapters.tables import ModelConsentRow, SessionRow, UserRow
 from jalada.modules.agent.adapters.tables import (
     AgentActionRow,
     AgentMessageRow,
@@ -30,6 +30,7 @@ from jalada.modules.telegram.adapters.tables import TelegramLinkCodeRow, Telegra
 ALL_TABLES: list[type[Base]] = [
     UserRow,
     SessionRow,
+    ModelConsentRow,
     EvidenceRow,
     JobRow,
     PipelineRunRow,

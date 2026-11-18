@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     extra_models: str = ""
     # Set to true only for a provider whose terms exclude training on the data sent to it.
     model_allowed_for_real_data: bool = False
+    # Who reads people's records, where, and on what terms, as each person is asked to agree
+    # to it (decision 0026). Changing it asks everyone again. Required in production with a model.
+    model_provider_notice: str = Field(default="", max_length=500)
     # The assistant that answers questions about a person's records (decision 0025).
     agent_enabled: bool = False
     # Catalogue names, like JALADA_MODEL_CHAIN, for the assistant's single lookups (fast) and
@@ -98,6 +101,11 @@ class Settings(BaseSettings):
             raise ValueError(
                 "Real users' evidence may only go to a provider whose terms exclude training on "
                 "it (decision 0012). Set JALADA_MODEL_ALLOWED_FOR_REAL_DATA=true once that is so."
+            )
+        if self.environment == "production" and uses_model and not self.model_provider_notice:
+            raise ValueError(
+                "People are asked before a model reads their records, and the question has to "
+                "name the provider (decision 0026). Set JALADA_MODEL_PROVIDER_NOTICE."
             )
         return self
 

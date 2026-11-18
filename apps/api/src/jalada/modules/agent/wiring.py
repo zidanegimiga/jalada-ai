@@ -58,6 +58,7 @@ def build_conversations(
     tools: Iterable[Tool[Any]] = (),
     tracer: TurnTracer | None = None,
     deep_model: LanguageModel | None = None,
+    may_ask: Callable[[UUID], bool] = lambda _: True,
 ) -> Conversations | None:
     """The assistant, when it has a model to run on. `model` answers single lookups and
     `deep_model`, when given, the harder questions."""
@@ -66,7 +67,7 @@ def build_conversations(
     runner = LangGraphRunner(
         model, ToolRegistry(tools), budget, postgres_checkpoints(database_url), deep_model
     )
-    return Conversations(unit_of_work, runner, clock, tracer=tracer)
+    return Conversations(unit_of_work, runner, clock, tracer=tracer, may_ask=may_ask)
 
 
 def build_confirmations(

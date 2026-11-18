@@ -18,7 +18,13 @@ from jalada.core.ports import Clock
 from jalada.modules.agent.application.confirmations import ActionConfirmations
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.domain.proposals import ActionStatus, ProposedAction
-from jalada.shared.errors import ActionClosed, ActionNotFound, ApplicationError, InvalidEntry
+from jalada.shared.errors import (
+    ActionClosed,
+    ActionNotFound,
+    ApplicationError,
+    ConsentNeeded,
+    InvalidEntry,
+)
 from jalada.unit_of_work import UnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -31,6 +37,8 @@ NOTES = {
     "failed": "Something went wrong answering that. Please ask again in a little while.",
     "gone": "That change was already decided, or it has expired. Ask again if you still want it.",
     "missing": "I could not find that change.",
+    "consent": "To ask about your records, first allow reading with AI on your Account page "
+    "in the app.",
 }
 
 
@@ -74,6 +82,8 @@ class ChannelAssistant:
             reply = self._conversations.ask(user_id, question, self._recent_thread(user_id))
             waiting = [a for a in reply.actions if a.status == ActionStatus.PROPOSED]
             self._channel.answer(chat, reply.text, waiting)
+        except ConsentNeeded:
+            self._note(chat, NOTES["consent"])
         except Exception:
             logger.exception("Answering a chat question failed")
             self._note(chat, NOTES["failed"])

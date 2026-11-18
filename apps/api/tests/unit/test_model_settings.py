@@ -13,6 +13,8 @@ from jalada.modules.pipeline.adapters.models.gemini import GeminiModel
 from jalada.modules.pipeline.adapters.models.openai_compatible import OpenAICompatibleModel
 from jalada.modules.pipeline.adapters.models.registry import ModelSetupError
 
+NOTICE = "Google's Gemini API, in the United States. It does not train on your data."
+
 GEMINI = SecretStr(json.dumps({"gemini": {"api_key": "test-key"}}))
 
 
@@ -111,6 +113,7 @@ def test_production_accepts_models_cleared_for_real_data() -> None:
         environment="production",
         model_chain="gemini-3.5-flash-lite",
         model_allowed_for_real_data=True,
+        model_provider_notice=NOTICE,
     )
 
     assert cleared.model_chain_names == ["gemini-3.5-flash-lite"]
@@ -126,3 +129,12 @@ def test_the_budget_comes_from_settings() -> None:
         500,
         Decimal("0.01"),
     )
+
+
+def test_production_refuses_a_model_without_naming_the_provider_people_agree_to() -> None:
+    with pytest.raises(ValidationError, match="JALADA_MODEL_PROVIDER_NOTICE"):
+        settings(
+            environment="production",
+            model_chain="gemini-3.5-flash-lite",
+            model_allowed_for_real_data=True,
+        )

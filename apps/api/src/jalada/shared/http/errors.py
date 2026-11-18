@@ -8,6 +8,7 @@ from jalada.shared.errors import (
     ApplicationError,
     AssistantOff,
     ConfirmationMismatch,
+    ConsentNeeded,
     EmailAlreadyRegistered,
     EmptyEvidence,
     EmptyQuestion,
@@ -51,6 +52,11 @@ ERRORS: dict[type[Exception], tuple[int, str, str]] = {
     ThreadNotFound: (404, "not_found", "That conversation does not exist."),
     EmptyQuestion: (422, "empty", "Type a question first."),
     ActionNotFound: (404, "not_found", "That suggested change does not exist."),
+    ConsentNeeded: (
+        403,
+        "consent_needed",
+        "Allow reading with AI on your Account page to ask about your records.",
+    ),
     ActionClosed: (
         409,
         "already_decided",

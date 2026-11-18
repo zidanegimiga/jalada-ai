@@ -19,6 +19,7 @@ x-backend-environment: &backend-environment
   # use the graphics chip. Containers reach it at host.docker.internal.
   JALADA_MODEL_PROVIDERS: ${JALADA_MODEL_PROVIDERS:-{"ollama":{"base_url":"http://host.docker.internal:11434"}}}
   JALADA_EXTRA_MODELS: ${JALADA_EXTRA_MODELS:-}
+  JALADA_MODEL_PROVIDER_NOTICE: ${JALADA_MODEL_PROVIDER_NOTICE:-}
   # The assistant (decision 0025). Runs on JALADA_MODEL_CHAIN; build web with ASSISTANT=on too.
   JALADA_AGENT_ENABLED: ${JALADA_AGENT_ENABLED:-false}
   JALADA_AGENT_CHAIN_FAST: ${JALADA_AGENT_CHAIN_FAST:-}

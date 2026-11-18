@@ -5,8 +5,9 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.modules.accounts.adapters.tables import SessionRow, UserRow
+from jalada.modules.accounts.adapters.tables import ModelConsentRow, SessionRow, UserRow
 from jalada.modules.accounts.application.ports import UserCredentials
+from jalada.modules.accounts.domain.consent import ModelConsent
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 from jalada.shared.errors import EmailAlreadyRegistered
@@ -97,3 +98,24 @@ class SqlSessionRepository:
 
     def delete_all_for(self, user_id: UUID) -> None:
         self._db.execute(delete(SessionRow).where(SessionRow.user_id == user_id))
+
+
+class SqlModelConsents:
+    def __init__(self, db: DbSession) -> None:
+        self._db = db
+
+    def get(self, user_id: UUID) -> ModelConsent | None:
+        row = self._db.get(ModelConsentRow, user_id)
+        return ModelConsent(row.user_id, row.notice, row.given_at) if row else None
+
+    def give(self, consent: ModelConsent) -> None:
+        self.withdraw(consent.user_id)
+        self._db.add(
+            ModelConsentRow(
+                user_id=consent.user_id, notice=consent.notice, given_at=consent.given_at
+            )
+        )
+        self._db.flush()
+
+    def withdraw(self, user_id: UUID) -> None:
+        self._db.execute(delete(ModelConsentRow).where(ModelConsentRow.user_id == user_id))

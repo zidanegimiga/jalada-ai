@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from samples import confirmed_entry
 
+from jalada.modules.accounts.application.model_consent import ConsentToModels
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.agent.application.ports import TurnRequest
 from jalada.modules.agent.application.proposals import ActionProposals
@@ -238,3 +239,34 @@ def test_an_unknown_suggestion_is_not_found(suggesting: TestClient) -> None:
     response = suggesting.post(f"/v1/assistant/actions/{uuid.uuid4()}/confirm")
 
     assert response.status_code == 404
+
+
+def test_the_assistant_answers_only_after_agreeing_to_the_provider(
+    make_app: Callable[..., FastAPI], store: Store
+) -> None:
+    def work() -> FakeUnitOfWork:
+        return FakeUnitOfWork(store)
+
+    consent = ConsentToModels(work, FixedClock(), "Google's Gemini API, in the United States.")
+    app = make_app(
+        assistant=Conversations(work, CannedRunner(), FixedClock(), may_ask=consent.allows),
+        consent_notice="Google's Gemini API, in the United States.",
+    )
+    client = TestClient(app)
+    sign_up(client)
+
+    refused = client.post("/v1/assistant/messages", json={"question": "KPLC?"})
+    status = client.get("/v1/account/model-consent").json()
+    given = client.post("/v1/account/model-consent").json()
+    answered = client.post("/v1/assistant/messages", json={"question": "KPLC?"})
+    withdrawn = client.delete("/v1/account/model-consent").json()
+
+    assert (refused.status_code, refused.json()["error"]["code"]) == (403, "consent_needed")
+    assert status == {
+        "required": True,
+        "given": False,
+        "notice": "Google's Gemini API, in the United States.",
+    }
+    assert given["given"] is True
+    assert answered.status_code == 200
+    assert withdrawn["given"] is False

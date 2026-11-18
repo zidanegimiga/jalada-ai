@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from jalada.core.database.base import Base
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
+from jalada.modules.accounts.domain.consent import ModelConsent
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 from jalada.modules.agent.domain.conversation import Message, Role, Thread
@@ -124,6 +125,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         )
         work.telegram.save_code(user.id, "f" * 64, NOW)
         work.telegram.link(user.id, 777, 888, NOW)
+        work.model_consents.give(ModelConsent(user.id, "Google, United States", NOW))
         thread = Thread(uuid.uuid4(), user.id, "Rent", NOW, NOW)
         work.agent_threads_for(user.id).add(thread)
         work.agent_threads_for(user.id).add_message(thread.id, Message(Role.PERSON, "Rent?", NOW))
@@ -152,6 +154,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "telegram_link_codes",
         "agent_threads",
         "agent_actions",
+        "model_consents",
     ]
     with session_factory() as db:
         for table in tables:

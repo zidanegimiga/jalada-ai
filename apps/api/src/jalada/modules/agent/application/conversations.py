@@ -22,7 +22,7 @@ from jalada.modules.agent.domain.progress import OnProgress, ignore
 from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.agent.domain.routing import route_for
 from jalada.modules.agent.domain.run import Outcome
-from jalada.shared.errors import EmptyQuestion, ThreadNotFound
+from jalada.shared.errors import ConsentNeeded, EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
 
 # Earlier messages sent in full with each question.
@@ -59,12 +59,19 @@ class Conversations:
         clock: Clock,
         new_id: Callable[[], UUID] = uuid4,
         tracer: TurnTracer | None = None,
+        may_ask: Callable[[UUID], bool] = lambda _: True,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._runner = runner
         self._clock = clock
         self._new_id = new_id
         self._tracer = tracer or NoTracing()
+        # Whether this person agreed to have a model read their records (decision 0026).
+        self._may_ask = may_ask
+
+    def may_ask(self, user_id: UUID) -> bool:
+        """Whether this person has agreed to have a model read their records."""
+        return self._may_ask(user_id)
 
     def threads(self, user_id: UUID, limit: int = 50) -> list[Thread]:
         with self._unit_of_work() as work:
@@ -93,6 +100,8 @@ class Conversations:
         question = question.strip()[:MAX_MESSAGE_LENGTH]
         if not question:
             raise EmptyQuestion
+        if not self._may_ask(user_id):
+            raise ConsentNeeded
         started = self._clock.now()
         with self._unit_of_work() as work:
             threads = work.agent_threads_for(user_id)

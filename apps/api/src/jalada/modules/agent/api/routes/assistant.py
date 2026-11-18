@@ -15,7 +15,7 @@ from jalada.modules.agent.api.schemas.assistant import (
 from jalada.modules.agent.application.confirmations import ActionConfirmations
 from jalada.modules.agent.application.conversations import Conversations
 from jalada.services import Services
-from jalada.shared.errors import AssistantOff, EmptyQuestion
+from jalada.shared.errors import AssistantOff, ConsentNeeded, EmptyQuestion
 from jalada.shared.http.errors import TooManyAttempts
 
 router = APIRouter(tags=["assistant"])
@@ -75,6 +75,9 @@ def ask_assistant(
     assistant = _assistant(services)
     if not request.question.strip():
         raise EmptyQuestion
+    if not assistant.may_ask(user.id):
+        # Before the stream starts, so it comes back as a plain 403 the page can explain.
+        raise ConsentNeeded
     if not services.assistant_limiter.allow(f"assistant:{user.id}"):
         raise TooManyAttempts
     if request.thread_id is not None:

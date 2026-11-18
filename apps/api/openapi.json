@@ -236,6 +236,29 @@
         "title": "ConfirmAllResponse",
         "type": "object"
       },
+      "ConsentResponse": {
+        "properties": {
+          "given": {
+            "title": "Given",
+            "type": "boolean"
+          },
+          "notice": {
+            "title": "Notice",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "required",
+          "given",
+          "notice"
+        ],
+        "title": "ConsentResponse",
+        "type": "object"
+      },
       "CorrectionRequest": {
         "properties": {
           "amount": {
@@ -1547,6 +1570,151 @@
           }
         },
         "summary": "Export Account",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/v1/account/model-consent": {
+      "delete": {
+        "description": "From now on, rules and OCR alone read new evidence, and the assistant stops answering.",
+        "operationId": "withdraw_model_consent_v1_account_model_consent_delete",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw Model Consent",
+        "tags": [
+          "account"
+        ]
+      },
+      "get": {
+        "description": "Whether a model may read this person's receipts, messages and questions.",
+        "operationId": "read_model_consent_v1_account_model_consent_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Model Consent",
+        "tags": [
+          "account"
+        ]
+      },
+      "post": {
+        "operationId": "give_model_consent_v1_account_model_consent_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Give Model Consent",
         "tags": [
           "account"
         ]

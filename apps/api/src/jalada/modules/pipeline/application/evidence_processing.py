@@ -45,6 +45,7 @@ class EvidenceProcessor:
         budget: Budget,
         model: LanguageModel | None = None,
         notifier: ProcessingNotifier | None = None,
+        may_use_model: Callable[[UUID], bool] = lambda _: True,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._store = store
@@ -53,6 +54,9 @@ class EvidenceProcessor:
         self._budget = budget
         self._model = model
         self._notifier = notifier
+        # Whether this person agreed to have a model read their records (decision 0026).
+        # Without it, rules and OCR alone read the evidence, as with no model at all.
+        self._may_use_model = may_use_model
 
     def handle(self, payload: dict[str, Any]) -> None:
         self.process(UUID(payload["user_id"]), UUID(payload["evidence_id"]))
@@ -86,7 +90,7 @@ class EvidenceProcessor:
             is_duplicate=lambda extraction: self._is_duplicate(user_id, extraction),
             today=kenyan_date(started),
             budget=self._budget,
-            model=self._model,
+            model=self._model if self._may_use_model(user_id) else None,
             own_accounts=[a.identifiers for a in accounts if a.identifiers],
         )
         outcome, entry, may_match = self._save(evidence, result, started)
