@@ -57,7 +57,7 @@ class OpenTelemetryTracer:
         at = run.started_at
         for step in run.steps:
             at = self._step(root, step, at)
-        if run.outcome != Outcome.ANSWERED:
+        if run.outcome not in {Outcome.ANSWERED, Outcome.REFUSED}:
             root.set_attribute("error.type", run.outcome)
         root.end(end_time=_ns(run.finished_at))
 

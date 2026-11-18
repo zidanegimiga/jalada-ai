@@ -1,7 +1,8 @@
-"""One turn as a graph: decide, look up, decide again, then check the answer.
+"""One turn as a graph: screen, decide, look up, decide again, then check the answer.
 
-    decide -> act -> decide -> ... -> check -> done
-                                        \\-> decide (once, if an amount was not in the records)
+    screen -> decide -> act -> decide -> ... -> check -> done
+       \\-> done (a refused question)            \\-> decide (once, if an amount was not
+                                                       in the records)
 
 The person's id and question travel in the run's context, which is never put in a prompt.
 The state holds only what the turn has done so far, as plain data, so it can be checkpointed.
@@ -22,6 +23,7 @@ from jalada.modules.agent.application.prompts import instructions, records, turn
 from jalada.modules.agent.application.tools import ToolContext, ToolRegistry
 from jalada.modules.agent.domain.actions import ToolCall
 from jalada.modules.agent.domain.grounding import ungrounded
+from jalada.modules.agent.domain.policy import refusal_for
 from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
 from jalada.modules.agent.domain.run import AgentStep, Budget, Outcome, StepKind, TurnResult
 from jalada.modules.pipeline.domain.model import LanguageModel, ModelFailed, ModelUsage
@@ -89,10 +91,12 @@ class LangGraphRunner:
 
     def _build(self) -> StateGraph[TurnState, TurnRequest, TurnState, TurnState]:
         graph = StateGraph(TurnState, context_schema=TurnRequest)
+        graph.add_node("screen", _screen)
         graph.add_node("decide", self._decide)
         graph.add_node("act", self._act)
         graph.add_node("check", self._check)
-        graph.add_edge(START, "decide")
+        graph.add_edge(START, "screen")
+        graph.add_conditional_edges("screen", _after_check, ["decide", END])
         graph.add_conditional_edges("decide", _after_decide, ["decide", "act", "check", END])
         graph.add_edge("act", "decide")
         graph.add_conditional_edges("check", _after_check, ["decide", END])
@@ -175,6 +179,11 @@ class LangGraphRunner:
             "from the records, look them up, or say you could not find them."
         }
         return {"work": [*state["work"], note], "rechecked": True, "draft": None}
+
+
+def _screen(state: TurnState, runtime: Runtime[TurnRequest]) -> TurnState:
+    refusal = refusal_for(runtime.context.question)
+    return {"outcome": Outcome.REFUSED, "text": refusal} if refusal else {}
 
 
 def _after_decide(state: TurnState) -> str:

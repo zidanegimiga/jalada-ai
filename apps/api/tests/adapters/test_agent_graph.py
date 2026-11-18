@@ -15,6 +15,7 @@ from jalada.modules.agent.adapters.orchestration.graph import (
 )
 from jalada.modules.agent.application.ports import TurnRequest
 from jalada.modules.agent.application.tools import ToolRegistry
+from jalada.modules.agent.domain.policy import TAX_ADVICE
 from jalada.modules.agent.domain.progress import Progress, Stage
 from jalada.modules.agent.domain.run import Budget, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelFailed
@@ -139,6 +140,14 @@ def test_a_failed_lookup_is_reported_to_the_model_without_details() -> None:
     assert result.steps[1].outcome == "failed"
     assert "This lookup failed" in model.calls[1]["content"]
     assert "0712345678" not in model.calls[1]["content"]
+
+
+def test_tax_advice_is_refused_without_asking_a_model() -> None:
+    result, model = ask(answer("You owe KRA Ksh 12,000."), question="How much tax do I owe KRA?")
+
+    assert (result.outcome, result.text) == (Outcome.REFUSED, TAX_ADVICE)
+    assert model.calls == []
+    assert result.steps == ()
 
 
 def test_progress_is_reported_as_the_turn_goes() -> None:

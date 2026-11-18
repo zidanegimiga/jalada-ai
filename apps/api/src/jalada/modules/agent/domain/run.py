@@ -7,6 +7,8 @@ from jalada.modules.pipeline.domain.model import ModelUsage
 
 class Outcome(StrEnum):
     ANSWERED = "answered"
+    # A question the assistant never answers, such as tax owed. No model was asked.
+    REFUSED = "refused"
     # The answer had figures no tool gave, so it was not sent.
     WITHHELD = "withheld"
     OUT_OF_BUDGET = "out_of_budget"
