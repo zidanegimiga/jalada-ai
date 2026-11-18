@@ -26,6 +26,14 @@ All three meet the rule in 0012. None offers processing in Kenya.
 
 **Fallback: one model from a second provider**, so an outage at Google does not send every photo to manual review. OpenAI or Anthropic, whichever scores better on `evals/run_photo_evals.py` and `evals/agent/run_agent_evals.py --model`. It goes in through `JALADA_EXTRA_MODELS` and the `openai_compatible` adapter, with no code.
 
+## Scores so far
+| Model | Photo fields right | Cost a photo | Time a photo | Unreadable photo |
+|---|---|---|---|---|
+| `gemini-3.5-flash-lite` (18 Nov 2026) | 28 of 29 (96.6%) | $0.00094 | 11.1 s | made up an amount |
+| `ollama-qwen2.5vl` (local, 18 Nov 2026) | 28 of 29 (96.6%) | $0 | 12.2 s | made up an amount |
+
+Both read every field on the seven clear receipts, and both invented an amount for the photo blurred past reading. That is not one model's weakness, so the pipeline needs its own guard before real photos depend on a model: for example, ask the model whether the photo is readable at all, and send it to manual review when it is not. The assistant evals and the fallback candidates are still to run.
+
 ## Before switching on
 1. Create the Google Cloud project with billing on; turn logging off on the Logs page; never join the Contributor Tier. Accept Google's data processing terms for the project.
 2. Run the photo and assistant evals with the paid keys for the primary and both fallback candidates, and record the scores, cost and time in this file.
