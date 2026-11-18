@@ -41,7 +41,7 @@ function IdentitySkeleton() {
       <Skeleton className="size-14 shrink-0 rounded-full" />
       <div className="flex min-w-0 flex-1 flex-col">
         <p className="text-lead">
-          <SkeletonText className="w-36" />
+          <SkeletonText className="w-38" />
         </p>
         <p>
           <SkeletonText className="w-48" />
