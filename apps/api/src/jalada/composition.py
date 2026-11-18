@@ -23,12 +23,12 @@ from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
 from jalada.modules.accounts.wiring import GoogleClient, build_accounts
 from jalada.modules.agent.application.conversations import Conversations
-from jalada.modules.agent.wiring import build_conversations
+from jalada.modules.agent.wiring import build_conversations, build_lookups
 from jalada.modules.evidence.application.evidence_capture import PROCESS_EVIDENCE_JOB
 from jalada.modules.evidence.wiring import build_evidence
 from jalada.modules.exports.wiring import build_tax_year_export
 from jalada.modules.ledger.application.money_accounts import open_default_accounts
-from jalada.modules.ledger.wiring import build_ledger
+from jalada.modules.ledger.wiring import LedgerServices, build_ledger
 from jalada.modules.pipeline.wiring import build_evidence_processor
 from jalada.modules.telegram.adapters.telegram_bot import TelegramBot
 from jalada.modules.telegram.wiring import (
@@ -83,7 +83,7 @@ def build_services(settings: Settings) -> Services:
         telegram_capture=build_telegram_capture(
             telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
-        conversations=assistant(settings, unit_of_work, clock),
+        conversations=assistant(settings, unit_of_work, clock, ledger),
         health_checks=[
             DatabaseCheck(engine),
             StorageCheck(build_s3_client(settings, QUICK), settings.storage_bucket),
@@ -92,7 +92,10 @@ def build_services(settings: Settings) -> Services:
 
 
 def assistant(
-    settings: Settings, unit_of_work: Callable[[], SqlUnitOfWork], clock: SystemClock
+    settings: Settings,
+    unit_of_work: Callable[[], SqlUnitOfWork],
+    clock: SystemClock,
+    ledger: LedgerServices,
 ) -> Conversations | None:
     if not settings.agent_enabled:
         return None
@@ -102,6 +105,7 @@ def assistant(
         build_language_model(settings),
         build_agent_budget(settings),
         settings.database_url,
+        build_lookups(ledger.ledger, ledger.review, settings.public_url),
     )
 
 

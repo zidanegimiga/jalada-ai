@@ -7,10 +7,29 @@ from jalada.core.ports import Clock
 from jalada.modules.agent.adapters.orchestration.checkpoints import postgres_checkpoints
 from jalada.modules.agent.adapters.orchestration.graph import LangGraphRunner
 from jalada.modules.agent.application.conversations import Conversations
+from jalada.modules.agent.application.lookups.exports import TaxYearWorkbook
+from jalada.modules.agent.application.lookups.payments import AddUpPayments, SearchPayments
+from jalada.modules.agent.application.lookups.review import PaymentDetails, WaitingToCheck
+from jalada.modules.agent.application.lookups.summaries import MonthlySummary, SpendingByCategory
 from jalada.modules.agent.application.tools import Tool, ToolRegistry
 from jalada.modules.agent.domain.run import Budget
+from jalada.modules.ledger.application.entry_review import EntryReview
+from jalada.modules.ledger.application.ledger import Ledger
 from jalada.modules.pipeline.domain.model import LanguageModel
 from jalada.unit_of_work import UnitOfWork
+
+
+def build_lookups(ledger: Ledger, review: EntryReview, public_url: str) -> list[Tool[Any]]:
+    """Every tool the assistant has. All of them only read."""
+    return [
+        SearchPayments(ledger),
+        AddUpPayments(ledger),
+        SpendingByCategory(ledger),
+        MonthlySummary(ledger),
+        WaitingToCheck(review),
+        PaymentDetails(ledger),
+        TaxYearWorkbook(public_url),
+    ]
 
 
 def build_conversations(
