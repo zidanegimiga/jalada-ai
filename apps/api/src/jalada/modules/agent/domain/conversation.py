@@ -33,6 +33,22 @@ class Thread:
     updated_at: datetime
 
 
+def earlier_questions(older: list[Message], limit: int = 10, length: int = 150) -> tuple[str, ...]:
+    """What the person asked before the recent messages, newest last, without the answers.
+
+    Enough for "and in October?" to make sense, at a fixed small cost. Old answers are left
+    out on purpose: a figure from one is looked up again rather than repeated unchecked.
+    """
+    asked = [" ".join(m.text.split()) for m in older if m.role == Role.PERSON]
+    return tuple(_shorten(text, length) for text in asked[-limit:])
+
+
+def _shorten(text: str, length: int) -> str:
+    if len(text) <= length:
+        return text
+    return text[:length].rsplit(" ", 1)[0] + "..."
+
+
 def title_from(question: str) -> str:
     """A thread is named after its first question, cut at a word."""
     words = " ".join(question.split())

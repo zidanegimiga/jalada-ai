@@ -79,3 +79,11 @@ def test_the_content_has_the_history_the_question_and_the_work_so_far() -> None:
     assert "Question: And KPLC?" in content
     assert '1. total_paid {"counterparty":"KPLC"}\n<records>' in content
     assert "2. Note: That answer had an amount no tool gave." in content
+
+
+def test_earlier_questions_come_before_the_recent_messages() -> None:
+    content = turn_content("And October?", [], [], NOW, ("Airtime in September?",))
+
+    assert "Before that, the person asked" in content
+    assert "- Airtime in September?" in content
+    assert content.index("Airtime in September?") < content.index("Question: And October?")

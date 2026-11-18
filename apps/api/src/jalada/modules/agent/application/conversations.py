@@ -15,6 +15,7 @@ from jalada.modules.agent.domain.conversation import (
     Message,
     Role,
     Thread,
+    earlier_questions,
     title_from,
 )
 from jalada.modules.agent.domain.progress import OnProgress, ignore
@@ -23,8 +24,10 @@ from jalada.modules.agent.domain.run import Outcome
 from jalada.shared.errors import EmptyQuestion, ThreadNotFound
 from jalada.unit_of_work import UnitOfWork
 
-# Earlier messages sent with each question. Older ones are left out for now.
+# Earlier messages sent in full with each question.
 HISTORY_MESSAGES = 10
+# How far back the condensed earlier questions reach, in messages.
+MEMORY_MESSAGES = 40
 # How much of a conversation is shown when it is opened again.
 SHOWN_MESSAGES = 200
 
@@ -100,12 +103,21 @@ class Conversations:
                 if found is None:
                     raise ThreadNotFound
                 thread = found
-            history = threads.recent_messages(thread.id, HISTORY_MESSAGES)
+            remembered = threads.recent_messages(thread.id, MEMORY_MESSAGES)
             threads.add_message(thread.id, Message(Role.PERSON, question, started))
             work.commit()
+        older, history = remembered[:-HISTORY_MESSAGES], remembered[-HISTORY_MESSAGES:]
 
         run_id = self._new_id()
-        request = TurnRequest(run_id, user_id, question, tuple(history), started.date(), thread.id)
+        request = TurnRequest(
+            run_id,
+            user_id,
+            question,
+            tuple(history),
+            started.date(),
+            thread.id,
+            earlier_questions(older),
+        )
         result = self._runner.run(request, on_progress)
 
         finished = self._clock.now()

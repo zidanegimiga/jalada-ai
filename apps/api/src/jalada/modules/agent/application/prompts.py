@@ -43,10 +43,19 @@ def instructions(tools: ToolRegistry) -> str:
 
 
 def turn_content(
-    question: str, history: Sequence[Message], work: Sequence[dict[str, Any]], today: date
+    question: str,
+    history: Sequence[Message],
+    work: Sequence[dict[str, Any]],
+    today: date,
+    earlier: Sequence[str] = (),
 ) -> str:
     """The conversation, the question and what has been looked up so far in this turn."""
     parts = [f"Today is {today.isoformat()}."]
+    if earlier:
+        asked = "\n".join(f"- {text}" for text in earlier)
+        parts.append(
+            "Before that, the person asked (answers left out; look figures up again):\n" + asked
+        )
     if history:
         said = [f"{_speaker(m.role)}: {m.text}" for m in history]
         parts.append("Earlier in this conversation:\n" + "\n".join(said))

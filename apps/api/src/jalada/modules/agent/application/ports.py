@@ -78,6 +78,8 @@ class TurnRequest:
     today: date
     # The conversation, so a suggested change can be shown in it.
     thread_id: UUID | None = None
+    # Questions asked before `history`, condensed: see earlier_questions.
+    earlier: tuple[str, ...] = ()
 
 
 class AgentRunner(Protocol):

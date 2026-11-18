@@ -124,3 +124,18 @@ def test_another_persons_thread_cannot_be_opened(store: Store) -> None:
 
     with pytest.raises(ThreadNotFound):
         asking.thread(USER, theirs)
+
+
+def test_questions_older_than_the_window_are_remembered_without_their_answers(
+    store: Store,
+) -> None:
+    runner = CannedRunner()
+    asking = conversations(store, runner)
+    thread = asking.ask(USER, "question 0").thread_id
+    for i in range(1, 8):
+        asking.ask(USER, f"question {i}", thread)
+
+    request = runner.requests[-1]
+    # 14 messages before the 8th question: the last 10 start at question 2.
+    assert request.earlier == ("question 0", "question 1")
+    assert [m.text for m in request.history][0] == "question 2"

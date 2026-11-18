@@ -111,7 +111,7 @@ class LangGraphRunner:
         steps, work, calls = state["steps"], state["work"], state["model_calls"]
         if not self._budget.allows(calls, _usage(steps)):
             return {"outcome": Outcome.OUT_OF_BUDGET, "text": OUT_OF_BUDGET}
-        content = turn_content(turn.question, turn.history, work, turn.today)
+        content = turn_content(turn.question, turn.history, work, turn.today, turn.earlier)
         runtime.stream_writer(Progress(Stage.THINKING))
         started = perf_counter()
         try:

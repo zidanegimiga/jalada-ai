@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 
-from jalada.modules.agent.domain.conversation import title_from
+from jalada.modules.agent.domain.conversation import Message, Role, earlier_questions, title_from
 from jalada.modules.agent.domain.run import AgentStep, Budget, Outcome, StepKind, TurnResult
 from jalada.modules.pipeline.domain.model import ModelUsage
 
@@ -40,3 +41,25 @@ def test_a_turn_adds_up_what_its_steps_cost() -> None:
     usage = TurnResult("Done", Outcome.ANSWERED, steps).usage
 
     assert (usage.tokens, usage.cost_usd) == (40, Decimal("0.003"))
+
+
+def test_earlier_questions_keep_only_what_the_person_asked() -> None:
+    at = datetime(2026, 11, 18, tzinfo=UTC)
+    older = [
+        Message(Role.PERSON, "How much  did I pay KPLC?", at),
+        Message(Role.ASSISTANT, "You paid Ksh 4,500.", at),
+        Message(Role.PERSON, "And rent? " + "word " * 60, at),
+    ]
+
+    asked = earlier_questions(older)
+
+    assert asked[0] == "How much did I pay KPLC?"
+    assert asked[1].endswith("...") and len(asked[1]) <= 153
+    assert len(asked) == 2
+
+
+def test_only_the_last_earlier_questions_are_kept() -> None:
+    at = datetime(2026, 11, 18, tzinfo=UTC)
+    older = [Message(Role.PERSON, f"question {i}", at) for i in range(15)]
+
+    assert earlier_questions(older, limit=3) == ("question 12", "question 13", "question 14")
