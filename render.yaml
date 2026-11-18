@@ -56,6 +56,22 @@ services:
         sync: false
       - key: JALADA_MODEL_PROVIDERS
         sync: false
+      - key: JALADA_MODEL_ALLOWED_FOR_REAL_DATA
+        sync: false
+      # Required with a model: the provider named when each person is asked (decision 0026).
+      - key: JALADA_MODEL_PROVIDER_NOTICE
+        sync: false
+      # Optional. The assistant (decision 0025), off unless set to true.
+      - key: JALADA_AGENT_ENABLED
+        sync: false
+      - key: JALADA_AGENT_CHAIN_FAST
+        sync: false
+      - key: JALADA_AGENT_CHAIN_DEEP
+        sync: false
+      - key: JALADA_AGENT_TRACES_URL
+        sync: false
+      - key: JALADA_AGENT_TRACES_HEADERS
+        sync: false
       # Optional. Errors go to Sentry once it is set.
       - key: JALADA_SENTRY_DSN
         sync: false
