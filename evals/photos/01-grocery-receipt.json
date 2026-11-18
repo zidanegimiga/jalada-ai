@@ -1,0 +1,23 @@
+{
+  "name": "grocery-receipt",
+  "lines": [
+    "MAMA PIMA GROCERS",
+    "Kilimani, Nairobi",
+    "Date: 12/09/2026  14:32",
+    "Sukuma 2kg        180.00",
+    "Maize flour 2kg   230.00",
+    "Milk 1L            70.00",
+    "TOTAL KSH        480.00",
+    "Paid: M-PESA"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 48000,
+      "occurred_on": "2026-09-12",
+      "direction": "out",
+      "counterparty": "MAMA PIMA GROCERS"
+    },
+    "outcome": "needs_review"
+  }
+}

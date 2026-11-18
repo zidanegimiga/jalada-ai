@@ -12,6 +12,16 @@ CI fails if extraction drops below 90%, classification below 80%, or verifier re
 
 To add a fixture, copy a similar file, give it the next number, change the text and the expected result, and run `uv run python evals/run_evals.py`.
 
+# Photo evaluations
+
+Each file in `photos/` is an invented receipt as lines of text, drawn as a phone photo and given to a real model with no OCR text, so the score is the model's own reading. One is blurred past reading: the model should leave the amount out rather than make one up. `run_photo_evals.py` prints the fields read right, the cost and the time per photo. It needs a real model, so it is not part of CI; use it to compare providers:
+
+```bash
+JALADA_MODEL_PROVIDERS='{"gemini": {"api_key": "..."}}' uv run python evals/run_photo_evals.py --model gemini-3.5-flash-lite
+```
+
+The photos are cleanly printed, so they are easier than real phone photos. Add invented photos of your own for a harder test.
+
 # Assistant evaluations
 
 Each file in `agent/fixtures/` is one invented conversation: a question, earlier messages if any, the person's records (and sometimes another person's), the replies a model gave, and what should happen. `agent/run_agent_evals.py` runs each through the real assistant and lookups and scores:

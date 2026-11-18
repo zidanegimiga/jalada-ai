@@ -1,0 +1,13 @@
+{
+  "name": "unreadable-photo",
+  "lines": [
+    "MAMA PIMA GROCERS",
+    "Date: 12/09/2026",
+    "TOTAL KSH 480.00"
+  ],
+  "blur": true,
+  "expected": {
+    "fields": null,
+    "outcome": "needs_review"
+  }
+}

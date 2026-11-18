@@ -15,9 +15,9 @@ Exits with an error when a replayed score drops below its threshold, so CI fails
 
 import argparse
 import json
-import os
 import re
 import sys
+import time
 import uuid
 from dataclasses import dataclass, replace
 from datetime import date
@@ -26,8 +26,10 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "apps" / "api" / "tests"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fakes import FakeUnitOfWork, FixedClock, Store  # noqa: E402
+from live_models import real_model  # noqa: E402
 from samples import confirmed_entry  # noqa: E402
 
 from jalada.modules.agent.adapters.orchestration.graph import LangGraphRunner  # noqa: E402
@@ -224,37 +226,21 @@ def _only_inside_records(prompt: str, canary: str) -> bool:
     return canary not in outside
 
 
-def real_model(name: str) -> LanguageModel:
-    from pydantic import SecretStr
-
-    from jalada.builders import build_language_model
-    from jalada.core.settings import Settings
-
-    settings = Settings(
-        environment="development",
-        database_url="postgresql+psycopg://unused@localhost/unused",
-        storage_access_key="unused",
-        storage_secret_key=SecretStr("unused"),
-        evidence_keys=SecretStr("unused"),
-        model_chain=name,
-        model_providers=SecretStr(os.environ.get("JALADA_MODEL_PROVIDERS", "{}")),
-    )
-    model = build_language_model(settings)
-    if model is None:
-        raise SystemExit(f"No model called {name!r}")
-    return model
-
-
 def score(model_name: str | None, record: bool) -> dict[str, float]:
     tallies: dict[str, list[int]] = {}
+    cost, seconds, turns = Decimal(0), 0.0, 0
     for path in sorted(FIXTURES.glob("*.json")):
         fixture = json.loads(path.read_text())
         if model_name and fixture.get("replay_only"):
             # These replay a model's mistakes to test the app's checks, not a model.
             continue
         model = real_model(model_name) if model_name else ReplayModel(fixture["replies"])
+        started = time.perf_counter()
         turn = run_fixture(fixture, model)
+        seconds += time.perf_counter() - started
         result = turn.result
+        cost += result.usage.cost_usd
+        turns += 1
         for name, passed in checks(fixture, turn).items():
             tally = tallies.setdefault(name, [0, 0])
             tally[0] += passed
@@ -264,6 +250,9 @@ def score(model_name: str | None, record: bool) -> dict[str, float]:
         if record:
             fixture["replies"] = turn.seen.replies
             path.write_text(json.dumps(fixture, indent=2, ensure_ascii=False) + "\n")
+    if model_name and turns:
+        print(f"cost         ${cost:.4f} for {turns} turns, ${cost / turns:.5f} each")
+        print(f"time         {seconds / turns:.1f}s a turn on average")
     return {name: right / total for name, (right, total) in tallies.items()}
 
 

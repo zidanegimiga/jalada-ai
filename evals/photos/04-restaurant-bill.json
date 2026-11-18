@@ -1,0 +1,23 @@
+{
+  "name": "restaurant-bill",
+  "lines": [
+    "KAHAWA CORNER CAFE",
+    "Westlands",
+    "Table 4   Guests 2",
+    "2 x Chai          300.00",
+    "2 x Mandazi       200.00",
+    "Service 10%        50.00",
+    "TOTAL Ksh 550.00",
+    "Date: 15-07-2026"
+  ],
+  "blur": false,
+  "expected": {
+    "fields": {
+      "amount_cents": 55000,
+      "occurred_on": "2026-07-15",
+      "direction": "out",
+      "counterparty": "KAHAWA CORNER CAFE"
+    },
+    "outcome": "needs_review"
+  }
+}
