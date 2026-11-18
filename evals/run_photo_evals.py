@@ -5,8 +5,8 @@
 
 Each file in evals/photos/ is an invented receipt as lines of text. It is drawn as a phone
 photo, the way the tests draw one, and given to the model alone, with no OCR text, so the
-score is the model's own reading. One photo is too blurred to read: the model should say so
-rather than make up an amount.
+score is the model's own reading. One photo is too blurred to read: as in production, the
+photo check stops it before the model, and no amount may come out of it.
 
 For choosing a provider (AI-09) and comparing models (AI-10). Not part of CI: a recorded reply
 cannot say which model reads photos best.
@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps" / "api" / "t
 from live_models import real_model  # noqa: E402
 from samples import make_receipt_photo  # noqa: E402
 
+from jalada.modules.pipeline.adapters.text.photo_check import PillowPhotoCheck  # noqa: E402
 from jalada.modules.pipeline.domain.model import ImageInput  # noqa: E402
 from jalada.modules.pipeline.domain.process import run_pipeline  # noqa: E402
 from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput  # noqa: E402
@@ -38,13 +39,15 @@ FIELDS = ("amount_cents", "occurred_on", "direction", "counterparty")
 def score_photo(photo: dict[str, Any], model_name: str) -> dict[str, Any]:
     image = make_receipt_photo(photo["lines"], noise=photo["blur"])
     started = time.perf_counter()
+    # The same check production makes: a photo nobody could read gets no model at all.
+    readable = PillowPhotoCheck().problem(image) is None
     result = run_pipeline(
         EvidenceInput(None, "image/jpeg", ImageInput(image, "image/jpeg")),
         {},
         is_duplicate=lambda _: False,
         today=TODAY,
         budget=Budget(),
-        model=real_model(model_name),
+        model=real_model(model_name) if readable else None,
     )
     seconds = time.perf_counter() - started
     found = result.extraction.to_record() if result.extraction else {}

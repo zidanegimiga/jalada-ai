@@ -114,3 +114,28 @@ def test_a_chat_app_says_how_to_agree(store: Store, clock: FixedClock) -> None:
     ).answer(ME, "42", "KPLC?")
 
     assert chat.notes == [("42", NOTES["consent"])]
+
+
+def test_a_photo_nobody_could_read_never_reaches_the_model(
+    store: Store, capture: EvidenceCapture, evidence_store: FakeEvidenceStore, clock: FixedClock
+) -> None:
+    class Blurred:
+        def problem(self, data: bytes) -> str | None:
+            return "too blurred"
+
+    model = ScriptedModel()
+    processor = EvidenceProcessor(
+        lambda: FakeUnitOfWork(store),
+        evidence_store,
+        FakeTextReader(),
+        clock,
+        Budget(),
+        model=model,
+        photo_check=Blurred(),
+    )
+    evidence = capture.capture_file(ME, JPEG, EvidenceSource.WEB_UPLOAD).evidence
+
+    processor.process(ME, evidence.id)
+
+    assert model.calls == []
+    assert store.entries == {}, "nothing was read, so the person enters it by hand"

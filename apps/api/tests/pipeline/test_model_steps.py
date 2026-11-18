@@ -9,6 +9,8 @@ from jalada.modules.ledger.domain.categories import Direction, Purpose
 from jalada.modules.pipeline.domain.extraction import Extraction
 from jalada.modules.pipeline.domain.model import ImageInput
 from jalada.modules.pipeline.domain.model_steps import classify_with_model, extract_with_model
+from jalada.modules.pipeline.domain.process import run_pipeline
+from jalada.modules.pipeline.domain.run_types import Budget, EvidenceInput
 
 PHOTO = ImageInput(b"jpeg", "image/jpeg")
 GOOD = {
@@ -54,6 +56,28 @@ def test_untrusted_fields_are_checked(change: dict[str, Any], check: Any) -> Non
     )
 
     assert check(extraction, confidence)
+
+
+def test_nothing_is_kept_from_a_photo_the_model_says_it_cannot_read() -> None:
+    unreadable = {**GOOD, "readable": False, "confidence": 0.9}
+
+    extraction, _, _ = extract_with_model(ScriptedModel(unreadable), None, PHOTO, [])
+
+    assert extraction is None, "the amount it gave anyway is not kept"
+
+
+def test_a_reply_that_says_nothing_about_readability_is_read_as_before() -> None:
+    extraction, _, _ = extract_with_model(ScriptedModel(GOOD), None, PHOTO, [])
+
+    assert extraction is not None
+
+
+def test_the_model_is_asked_whether_it_can_read_the_evidence() -> None:
+    model = ScriptedModel(GOOD)
+
+    extract_with_model(model, None, PHOTO, [])
+
+    assert "readable" in model.calls[0]["schema"]["required"]
 
 
 def test_the_photo_is_sent_only_when_there_is_no_text() -> None:
@@ -109,3 +133,19 @@ def test_the_model_is_only_offered_categories_for_the_direction() -> None:
 
     offered = model.calls[0]["schema"]["properties"]["category"]["enum"]
     assert "business_stock" in offered and "salary" not in offered
+
+
+def test_a_model_is_never_asked_to_read_nothing() -> None:
+    model = ScriptedModel()
+
+    result = run_pipeline(
+        EvidenceInput(None, "image/jpeg", None),
+        {},
+        lambda _: False,
+        date(2026, 11, 18),
+        Budget(),
+        model,
+    )
+
+    assert model.calls == []
+    assert result.extraction is None

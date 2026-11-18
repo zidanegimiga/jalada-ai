@@ -55,6 +55,11 @@ def classify_with_model(
 
 
 def _to_extraction(data: dict[str, Any]) -> Extraction | None:
+    # A model that says it cannot read the evidence still often gives a likely amount. Nothing
+    # from such a reply is kept, so the evidence goes to the person to enter by hand instead of
+    # reaching To check looking like a real reading.
+    if data.get("readable") is False:
+        return None
     amount = _cents(data.get("amount_ksh"))
     if amount is None:
         return None

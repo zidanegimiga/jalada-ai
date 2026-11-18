@@ -12,7 +12,12 @@ from jalada.modules.evidence.domain.evidence import Evidence, EvidenceKind, Evid
 from jalada.modules.ledger.application.matching import link_exact_match
 from jalada.modules.ledger.domain.entries import Entry
 from jalada.modules.ledger.domain.transactions import Transaction, as_entry
-from jalada.modules.pipeline.application.ports import PipelineRun, ProcessingNotifier, TextReader
+from jalada.modules.pipeline.application.ports import (
+    PhotoCheck,
+    PipelineRun,
+    ProcessingNotifier,
+    TextReader,
+)
 from jalada.modules.pipeline.application.proposals import waits_as_candidate
 from jalada.modules.pipeline.application.proposing import MAY_MATCH, save_proposal
 from jalada.modules.pipeline.domain.extraction import Extraction
@@ -46,6 +51,7 @@ class EvidenceProcessor:
         model: LanguageModel | None = None,
         notifier: ProcessingNotifier | None = None,
         may_use_model: Callable[[UUID], bool] = lambda _: True,
+        photo_check: PhotoCheck | None = None,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._store = store
@@ -57,6 +63,8 @@ class EvidenceProcessor:
         # Whether this person agreed to have a model read their records (decision 0026).
         # Without it, rules and OCR alone read the evidence, as with no model at all.
         self._may_use_model = may_use_model
+        # A photo nobody could read is not sent to a model, which would guess (AI-21).
+        self._photo_check = photo_check
 
     def handle(self, payload: dict[str, Any]) -> None:
         self.process(UUID(payload["user_id"]), UUID(payload["evidence_id"]))
@@ -79,6 +87,10 @@ class EvidenceProcessor:
             return "missing"
         data = self._store.get(evidence.id, user_id, evidence.encryption_key_id)
         is_photo = evidence.content_type.startswith("image/")
+        # A photo nobody could read gets no model at all: handed the photo or the noise OCR
+        # makes of it, a model guesses. Rules may still match the text; they cannot guess.
+        unreadable = bool(is_photo and self._photo_check and self._photo_check.problem(data))
+        use_model = self._may_use_model(user_id) and not unreadable
         given = EvidenceInput(
             text=self._reader.read(evidence.content_type, data),
             content_type=evidence.content_type,
@@ -90,7 +102,7 @@ class EvidenceProcessor:
             is_duplicate=lambda extraction: self._is_duplicate(user_id, extraction),
             today=kenyan_date(started),
             budget=self._budget,
-            model=self._model if self._may_use_model(user_id) else None,
+            model=self._model if use_model else None,
             own_accounts=[a.identifiers for a in accounts if a.identifiers],
         )
         outcome, entry, may_match = self._save(evidence, result, started)

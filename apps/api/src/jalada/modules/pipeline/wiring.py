@@ -6,6 +6,7 @@ from uuid import UUID
 from jalada.core.ports import Clock
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.modules.pipeline.adapters.text.ocr import TesseractOcr
+from jalada.modules.pipeline.adapters.text.photo_check import PillowPhotoCheck
 from jalada.modules.pipeline.adapters.text.reader import EvidenceTextReader
 from jalada.modules.pipeline.application.evidence_processing import EvidenceProcessor
 from jalada.modules.pipeline.application.ports import ProcessingNotifier
@@ -32,4 +33,5 @@ def build_evidence_processor(
         model=model,
         notifier=notifier,
         may_use_model=may_use_model,
+        photo_check=PillowPhotoCheck(),
     )
