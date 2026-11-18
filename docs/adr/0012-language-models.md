@@ -22,3 +22,4 @@ Free tiers and local models only ever see invented data, in development and eval
 - Before launch, a paid adapter is needed, which brings a running cost per user.
 - The rule is enforced at startup: in production, settings refuse any model provider unless `JALADA_MODEL_ALLOWED_FOR_REAL_DATA` is true.
 - Model answers are untrusted. Amounts must be text that parses as shillings, dates must be real dates, categories must exist and fit the direction, and the evidence text is sent as data with instructions to ignore anything written inside it.
+- Which paid provider takes real users' data is decision 0026.
