@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     agent_max_steps: int = Field(default=6, ge=1, le=12)
     agent_max_tokens: int = Field(default=16000, ge=0)
     agent_max_cost_usd: Decimal = Field(default=Decimal("0.01"), ge=0)
+    # How many questions one person may ask in an hour.
+    agent_questions_per_hour: int = Field(default=30, ge=1, le=1000)
     # Telegram bot. Switched off unless the token and the bot's username are both set.
     telegram_bot_token: SecretStr | None = None
     telegram_bot_username: str | None = None

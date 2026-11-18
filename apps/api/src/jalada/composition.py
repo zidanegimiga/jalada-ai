@@ -84,6 +84,7 @@ def build_services(settings: Settings) -> Services:
             telegram_bot(settings), telegram_linking, evidence, sign_in_limiter, upload_limiter
         ),
         conversations=assistant(settings, unit_of_work, clock, ledger),
+        assistant_limiter=RateLimiter(f"{settings.agent_questions_per_hour}/hour"),
         health_checks=[
             DatabaseCheck(engine),
             StorageCheck(build_s3_client(settings, QUICK), settings.storage_bucket),

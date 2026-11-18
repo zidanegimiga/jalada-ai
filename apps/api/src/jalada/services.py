@@ -43,5 +43,7 @@ class Services:
     telegram_capture: TelegramCapture | None = None
     # None unless the assistant is switched on (decision 0025).
     conversations: Conversations | None = None
+    # Questions to the assistant, per person.
+    assistant_limiter: RateLimiter = field(default_factory=lambda: RateLimiter("30/hour"))
     # What /health/ready checks: the database and evidence storage.
     health_checks: list[HealthCheck] = field(default_factory=list)

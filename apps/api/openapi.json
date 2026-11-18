@@ -828,6 +828,34 @@
         "title": "LinkedEvidenceResponse",
         "type": "object"
       },
+      "MessageResponse": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "person",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "text",
+          "at"
+        ],
+        "title": "MessageResponse",
+        "type": "object"
+      },
       "MonthResponse": {
         "properties": {
           "in_business_cents": {
@@ -892,6 +920,33 @@
         ],
         "title": "Purpose",
         "type": "string"
+      },
+      "QuestionRequest": {
+        "properties": {
+          "question": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "QuestionRequest",
+        "type": "object"
       },
       "ReadinessResponse": {
         "properties": {
@@ -1154,6 +1209,58 @@
         "title": "TelegramStatus",
         "type": "object"
       },
+      "ThreadResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageResponse"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "messages"
+        ],
+        "title": "ThreadResponse",
+        "type": "object"
+      },
+      "ThreadSummary": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "updated_at"
+        ],
+        "title": "ThreadSummary",
+        "type": "object"
+      },
       "UserResponse": {
         "properties": {
           "display_name": {
@@ -1389,6 +1496,178 @@
         "summary": "Export Account",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/v1/assistant/messages": {
+      "post": {
+        "description": "Ask a question, in a new conversation or an earlier one, and follow the answer.",
+        "operationId": "ask_assistant_v1_assistant_messages_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Server-sent events: progress, then answer or error."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask Assistant",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/v1/assistant/threads": {
+      "get": {
+        "operationId": "list_threads_v1_assistant_threads_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadSummary"
+                  },
+                  "title": "Response List Threads V1 Assistant Threads Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Threads",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/v1/assistant/threads/{thread_id}": {
+      "get": {
+        "operationId": "read_thread_v1_assistant_threads__thread_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Thread",
+        "tags": [
+          "assistant"
         ]
       }
     },

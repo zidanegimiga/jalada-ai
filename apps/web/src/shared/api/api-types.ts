@@ -84,6 +84,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/assistant/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask Assistant
+         * @description Ask a question, in a new conversation or an earlier one, and follow the answer.
+         */
+        post: operations["ask_assistant_v1_assistant_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/assistant/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Threads */
+        get: operations["list_threads_v1_assistant_threads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/assistant/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Thread */
+        get: operations["read_thread_v1_assistant_threads__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/google/callback": {
         parameters: {
             query?: never;
@@ -999,6 +1053,21 @@ export interface components {
             received_at: string;
             role: components["schemas"]["EvidenceRole"];
         };
+        /** MessageResponse */
+        MessageResponse: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "person" | "assistant";
+            /** Text */
+            text: string;
+        };
         /** MonthResponse */
         MonthResponse: {
             /** In Business Cents */
@@ -1027,6 +1096,13 @@ export interface components {
          * @enum {string}
          */
         Purpose: "business" | "personal" | "unsure";
+        /** QuestionRequest */
+        QuestionRequest: {
+            /** Question */
+            question: string;
+            /** Thread Id */
+            thread_id?: string | null;
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /** Checks */
@@ -1123,6 +1199,33 @@ export interface components {
             available: boolean;
             /** Linked */
             linked: boolean;
+        };
+        /** ThreadResponse */
+        ThreadResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Messages */
+            messages: components["schemas"]["MessageResponse"][];
+            /** Title */
+            title: string;
+        };
+        /** ThreadSummary */
+        ThreadSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** UserResponse */
         UserResponse: {
@@ -1256,6 +1359,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_assistant_v1_assistant_messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionRequest"];
+            };
+        };
+        responses: {
+            /** @description Server-sent events: progress, then answer or error. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_threads_v1_assistant_threads_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_thread_v1_assistant_threads__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadResponse"];
                 };
             };
             /** @description Validation Error */

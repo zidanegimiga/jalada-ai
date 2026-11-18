@@ -2,5 +2,6 @@
 
 from fastapi import APIRouter
 
-# The chat routes come with server-sent events; until then the assistant has no routes.
-ROUTERS: list[APIRouter] = []
+from jalada.modules.agent.api.routes import assistant
+
+ROUTERS: list[APIRouter] = [assistant.router]
