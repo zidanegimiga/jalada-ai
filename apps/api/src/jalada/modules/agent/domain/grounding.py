@@ -49,3 +49,13 @@ def _number(text: str) -> Decimal | None:
         return Decimal(text).normalize()
     except InvalidOperation:
         return None
+
+
+# How an answer tells the person a change is waiting for them. "Confirm" only with a capital,
+# as the button is named: "I cannot confirm what you owe" promises nothing.
+WAITING_CHANGE = re.compile(r"\b(?i:tap|tapping|suggested)\b|\bConfirm\b")
+
+
+def promises_a_change(answer: str) -> bool:
+    """Whether the answer says a change waits for the person's tap, which must then be true."""
+    return bool(WAITING_CHANGE.search(answer))

@@ -22,7 +22,7 @@ from jalada.modules.agent.application.ports import TurnRequest
 from jalada.modules.agent.application.prompts import instructions, records, turn_content
 from jalada.modules.agent.application.tools import ToolContext, ToolRegistry
 from jalada.modules.agent.domain.actions import ToolCall
-from jalada.modules.agent.domain.grounding import ungrounded
+from jalada.modules.agent.domain.grounding import promises_a_change, ungrounded
 from jalada.modules.agent.domain.policy import refusal_for
 from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
 from jalada.modules.agent.domain.run import AgentStep, Budget, Outcome, StepKind, TurnResult
@@ -37,6 +37,10 @@ FAILED = "I cannot answer right now. Please try again in a little while."
 WITHHELD = (
     "I could not match the figures in my answer to your records, so I have not given it. "
     "Try asking in a different way."
+)
+NO_CHANGE = (
+    "I could not prepare that change for you to confirm. You can make it yourself on the "
+    "payment's page in the ledger."
 )
 LOOKUP_FAILED = {"error": "This lookup failed. Answer without it or say it is not available."}
 
@@ -170,16 +174,33 @@ class LangGraphRunner:
         runtime.stream_writer(Progress(Stage.CHECKING))
         sources = [records(item["result"]) for item in state["work"] if "result" in item]
         missing = ungrounded(draft, [runtime.context.question, *sources])
-        if not missing:
+        if missing:
+            listed = ", ".join(format(amount, "f") for amount in missing)
+            problem = (
+                f"Your answer had amounts no tool returned: {listed}. Use only amounts "
+                "from the records, look them up, or say you could not find them."
+            )
+            withheld = WITHHELD
+        elif promises_a_change(draft) and not _suggested(state["work"]):
+            problem = (
+                "Your answer says a change is waiting for the person, but no suggest_ tool "
+                "suggested one in this turn. Use one, or say you could not suggest it."
+            )
+            withheld = NO_CHANGE
+        else:
             return {"outcome": Outcome.ANSWERED, "text": draft}
         if state["rechecked"]:
-            return {"outcome": Outcome.WITHHELD, "text": WITHHELD}
-        listed = ", ".join(format(amount, "f") for amount in missing)
-        note = {
-            "note": f"Your answer had amounts no tool returned: {listed}. Use only amounts "
-            "from the records, look them up, or say you could not find them."
-        }
+            return {"outcome": Outcome.WITHHELD, "text": withheld}
+        note = {"note": problem}
         return {"work": [*state["work"], note], "rechecked": True, "draft": None}
+
+
+def _suggested(work: list[dict[str, Any]]) -> bool:
+    """Whether a suggest_ tool kept a change in this turn."""
+    return any(
+        str(item.get("tool", "")).startswith("suggest_") and "suggested" in item.get("result", {})
+        for item in work
+    )
 
 
 def _screen(state: TurnState, runtime: Runtime[TurnRequest]) -> TurnState:

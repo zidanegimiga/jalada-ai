@@ -1,6 +1,8 @@
 from decimal import Decimal
 
-from jalada.modules.agent.domain.grounding import amounts, ungrounded
+import pytest
+
+from jalada.modules.agent.domain.grounding import amounts, promises_a_change, ungrounded
 
 RESULT = '{"total": "4500.00", "count": 3, "from": "2026-07-01", "to": "2026-09-30"}'
 
@@ -37,3 +39,17 @@ def test_digits_inside_an_id_do_not_count_as_an_amount() -> None:
     result = '{"id": "0f3a2b1c-4500-4d2e-9f00-123456789abc", "total": "120.00"}'
 
     assert ungrounded("You paid Ksh 4,500.", [result]) == [Decimal(4500)]
+
+
+@pytest.mark.parametrize(
+    ("answer", "promises"),
+    [
+        ("Please confirm the change by tapping on the screen.", True),
+        ("I have suggested moving it to Workspace rent.", True),
+        ("Tap Confirm to change it.", True),
+        ("Nothing is waiting for you to check.", False),
+        ("I cannot confirm what you owe KRA.", False),
+    ],
+)
+def test_an_answer_that_says_a_change_is_waiting_is_noticed(answer: str, promises: bool) -> None:
+    assert promises_a_change(answer) is promises

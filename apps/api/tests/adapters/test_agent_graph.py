@@ -9,6 +9,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from jalada.modules.agent.adapters.orchestration.graph import (
     FAILED,
+    NO_CHANGE,
     OUT_OF_BUDGET,
     WITHHELD,
     LangGraphRunner,
@@ -140,6 +141,17 @@ def test_a_failed_lookup_is_reported_to_the_model_without_details() -> None:
     assert result.steps[1].outcome == "failed"
     assert "This lookup failed" in model.calls[1]["content"]
     assert "0712345678" not in model.calls[1]["content"]
+
+
+def test_an_answer_that_promises_a_change_nobody_suggested_is_sent_back_then_withheld() -> None:
+    result, model = ask(
+        answer("Please confirm the change by tapping on the screen."),
+        answer("Tap Confirm below to change it."),
+        question="Move my KPLC payment to rent.",
+    )
+
+    assert (result.outcome, result.text) == (Outcome.WITHHELD, NO_CHANGE)
+    assert "no suggest_ tool suggested one" in model.calls[1]["content"]
 
 
 def test_tax_advice_is_refused_without_asking_a_model() -> None:
