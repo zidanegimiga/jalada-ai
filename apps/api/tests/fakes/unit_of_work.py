@@ -5,6 +5,7 @@ from typing import Self
 from uuid import UUID
 
 from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
+from fakes.agent import FakeAgentRuns, FakeThreads
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import (
     FakeAuditTrail,
@@ -19,6 +20,7 @@ from fakes.ledger import (
 from fakes.store import Store
 from jalada.core.jobs.ports import JobQueue
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.agent.application.ports import AgentRunRepository, ThreadRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.application.ports import (
     AuditTrail,
@@ -63,6 +65,10 @@ class FakeUnitOfWork:
             dict(self._store.telegram_codes), dict(self._store.telegram_links)
         )
         self.telegram: TelegramLinks = self._telegram
+        self._agent_threads = dict(self._store.agent_threads)
+        self._agent_messages = list(self._store.agent_messages)
+        self._agent_runs = FakeAgentRuns(list(self._store.agent_runs))
+        self.agent_runs: AgentRunRepository = self._agent_runs
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
@@ -85,6 +91,9 @@ class FakeUnitOfWork:
 
     def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository:
         return FakeMatchSuggestions(self._suggestions, user_id)
+
+    def agent_threads_for(self, user_id: UUID) -> ThreadRepository:
+        return FakeThreads(self._agent_threads, self._agent_messages, user_id)
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
         return FakeTransactions(self._transactions, user_id, self._certificate_payments)
@@ -115,6 +124,9 @@ class FakeUnitOfWork:
         self._store.transactions = self._transactions
         self._store.audit_events = self._audit_events
         self._store.suggestions = self._suggestions
+        self._store.agent_threads = self._agent_threads
+        self._store.agent_messages = self._agent_messages
+        self._store.agent_runs = self._agent_runs.rows
         for user_id in self._users.deleted:
             self._cascade(user_id)
 
@@ -139,3 +151,7 @@ class FakeUnitOfWork:
         store.telegram_links.pop(user_id, None)
         store.telegram_codes = {k: c for k, c in store.telegram_codes.items() if c[0] != user_id}
         store.google_subjects = {k: u for k, u in store.google_subjects.items() if u != user_id}
+        gone = {t for t, thread in store.agent_threads.items() if thread.user_id == user_id}
+        store.agent_threads = {t: x for t, x in store.agent_threads.items() if t not in gone}
+        store.agent_messages = [(t, m) for t, m in store.agent_messages if t not in gone]
+        store.agent_runs = [r for r in store.agent_runs if r.user_id != user_id]

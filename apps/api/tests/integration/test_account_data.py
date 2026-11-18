@@ -14,6 +14,7 @@ from jalada.core.database.base import Base
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
+from jalada.modules.agent.domain.conversation import Message, Role, Thread
 from jalada.modules.evidence.adapters.storage import EncryptedS3EvidenceStore
 from jalada.modules.evidence.domain.evidence import (
     Evidence,
@@ -123,6 +124,9 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         )
         work.telegram.save_code(user.id, "f" * 64, NOW)
         work.telegram.link(user.id, 777, 888, NOW)
+        thread = Thread(uuid.uuid4(), user.id, "Rent", NOW, NOW)
+        work.agent_threads_for(user.id).add(thread)
+        work.agent_threads_for(user.id).add_message(thread.id, Message(Role.PERSON, "Rent?", NOW))
         work.jobs.enqueue(
             "process_evidence", {"evidence_id": str(evidence.id), "user_id": str(user.id)}
         )
@@ -146,6 +150,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "match_suggestions",
         "telegram_links",
         "telegram_link_codes",
+        "agent_threads",
     ]
     with session_factory() as db:
         for table in tables:
@@ -155,6 +160,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
             assert left == 0, f"{table} still has rows"
         assert db.scalar(text("SELECT count(*) FROM pipeline_steps")) == 0
         assert db.scalar(text("SELECT count(*) FROM entry_revisions")) == 0
+        assert db.scalar(text("SELECT count(*) FROM agent_messages")) == 0
         assert db.scalar(text("SELECT count(*) FROM jobs")) == 1, (
             "only the other user's job is left"
         )

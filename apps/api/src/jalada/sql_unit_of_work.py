@@ -11,6 +11,8 @@ from jalada.core.jobs.ports import JobQueue
 from jalada.core.jobs.queue import SqlJobQueue
 from jalada.modules.accounts.adapters.repositories import SqlSessionRepository, SqlUserRepository
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
+from jalada.modules.agent.adapters.repositories import SqlAgentRuns, SqlThreads
+from jalada.modules.agent.application.ports import AgentRunRepository, ThreadRepository
 from jalada.modules.evidence.adapters.repository import SqlEvidenceRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.adapters.audit_trail import SqlAuditTrail
@@ -51,6 +53,7 @@ class SqlUnitOfWork:
         self.jobs: JobQueue = SqlJobQueue(self._db, lambda: datetime.now(UTC))
         self.runs: RunRepository = SqlRunRepository(self._db)
         self.telegram: TelegramLinks = SqlTelegramLinks(self._db)
+        self.agent_runs: AgentRunRepository = SqlAgentRuns(self._db)
         return self
 
     def evidence_for(self, user_id: UUID) -> EvidenceRepository:
@@ -76,6 +79,9 @@ class SqlUnitOfWork:
 
     def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository:
         return SqlMatchSuggestions(self._db, user_id)
+
+    def agent_threads_for(self, user_id: UUID) -> ThreadRepository:
+        return SqlThreads(self._db, user_id)
 
     def __exit__(
         self,
