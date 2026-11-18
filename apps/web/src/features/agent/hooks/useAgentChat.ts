@@ -50,6 +50,7 @@ export function useAgentChat(initial: Thread | null) {
               role: "assistant",
               text: event.data.text,
               at: new Date().toISOString(),
+              actions: event.data.actions ?? [],
             },
           ]);
           // The address follows the conversation, so a reload opens it again.

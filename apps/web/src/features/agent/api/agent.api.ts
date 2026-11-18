@@ -1,4 +1,4 @@
-import type { AgentEvent } from "../types";
+import type { AgentEvent, SuggestedAction } from "../types";
 
 /**
  * Splits server-sent events out of the text read so far. Returns the complete events and
@@ -60,4 +60,19 @@ export async function ask(
     read.events.forEach(onEvent);
   }
   readEvents(buffer + "\n\n").events.forEach(onEvent);
+}
+
+/** The person's answer to a suggested change. Confirming makes it; the result comes back. */
+export async function decide(
+  actionId: string,
+  decision: "confirm" | "decline",
+): Promise<SuggestedAction> {
+  const response = await fetch(
+    `/v1/assistant/actions/${encodeURIComponent(actionId)}/${decision}`,
+    { method: "POST" },
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok)
+    throw new Error(data.error?.message ?? "That did not save. Try again.");
+  return data as SuggestedAction;
 }
