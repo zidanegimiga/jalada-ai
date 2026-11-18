@@ -14,7 +14,7 @@ COPY apps/api apps/api
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --package jalada --no-editable
 
-FROM python:3.12-slim-trixie
+FROM python:3.15-slim-trixie
 # Tesseract reads receipt photos when the job loop runs inside the API (decision 0019).
 RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
