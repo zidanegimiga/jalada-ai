@@ -111,10 +111,18 @@ class FakeChat:
 
     def __init__(self, files: dict[str, bytes] | None = None) -> None:
         self.sent: list[tuple[int, str]] = []
+        self.buttons: list[tuple[int, str, list[tuple[str, str]]]] = []
+        self.taps_answered: list[str] = []
         self.files = files or {}
 
     def send(self, chat_id: int, text: str) -> None:
         self.sent.append((chat_id, text))
+
+    def send_with_buttons(self, chat_id: int, text: str, buttons: list[tuple[str, str]]) -> None:
+        self.buttons.append((chat_id, text, buttons))
+
+    def answer_tap(self, tap_id: str) -> None:
+        self.taps_answered.append(tap_id)
 
     def download(self, file_id: str, max_bytes: int) -> bytes | None:
         data = self.files[file_id]
