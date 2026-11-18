@@ -1,0 +1,74 @@
+{
+  "name": "follow-up-uses-history",
+  "question": "And in October?",
+  "history": [
+    {
+      "role": "person",
+      "text": "How much did I spend on airtime in September 2026?"
+    },
+    {
+      "role": "assistant",
+      "text": "I could not find any airtime payments in September 2026."
+    }
+  ],
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "add_up_payments",
+      "arguments": "{\"category\": \"business_airtime_data\", \"start\": \"2026-10-01\", \"end\": \"2026-10-31\"}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "In October 2026 you spent Ksh 1,200.00 on data and airtime."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "add_up_payments"
+    ],
+    "outcome": "answered",
+    "amounts": [
+      "1200.00"
+    ]
+  }
+}

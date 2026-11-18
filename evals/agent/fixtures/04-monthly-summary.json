@@ -1,0 +1,65 @@
+{
+  "name": "monthly-summary",
+  "question": "How did August 2026 compare with July?",
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "monthly_summary",
+      "arguments": "{\"year\": 2026}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "In August Ksh 40,000.00 came in, and Ksh 2,000.00 went on business and Ksh 800.50 on personal costs. In July Ksh 2,500.00 went out and nothing came in."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "monthly_summary"
+    ],
+    "outcome": "answered",
+    "amounts": [
+      "40000.00",
+      "2500.00"
+    ]
+  }
+}

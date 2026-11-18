@@ -1,0 +1,64 @@
+{
+  "name": "workbook-link",
+  "question": "Can I get my 2025 workbook?",
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "tax_year_workbook",
+      "arguments": "{\"year\": 2025}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "Here is your 2025 workbook: https://jalada.example/v1/exports/2025.xlsx. It holds confirmed payments only."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "tax_year_workbook"
+    ],
+    "outcome": "answered",
+    "answer_includes": [
+      "https://jalada.example/v1/exports/2025.xlsx"
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "unknown-tool-is-recovered",
+  "question": "What did I spend on food?",
+  "records": [
+    {
+      "date": "2026-07-04",
+      "direction": "out",
+      "amount": "2500.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-06",
+      "direction": "out",
+      "amount": "2000.00",
+      "with": "KPLC PREPAID",
+      "category": "business_other"
+    },
+    {
+      "date": "2026-08-09",
+      "direction": "out",
+      "amount": "800.50",
+      "with": "JAVA HOUSE",
+      "category": "personal_food"
+    },
+    {
+      "date": "2026-08-01",
+      "direction": "in",
+      "amount": "40000.00",
+      "with": "ACME LTD",
+      "category": "consultancy_fees"
+    },
+    {
+      "date": "2026-10-15",
+      "direction": "out",
+      "amount": "1200.00",
+      "with": "SAFARICOM",
+      "category": "business_airtime_data"
+    }
+  ],
+  "replies": [
+    {
+      "action": "tool",
+      "tool": "food_spending",
+      "arguments": "{}",
+      "answer": null
+    },
+    {
+      "action": "tool",
+      "tool": "search_payments",
+      "arguments": "{\"category\": \"personal_food\"}",
+      "answer": null
+    },
+    {
+      "action": "answer",
+      "tool": null,
+      "arguments": null,
+      "answer": "You spent Ksh 800.50 on food, at JAVA HOUSE on 9 August."
+    }
+  ],
+  "expect": {
+    "tools": [
+      "search_payments"
+    ],
+    "outcome": "answered",
+    "amounts": [
+      "800.50"
+    ]
+  }
+}
