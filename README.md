@@ -170,6 +170,12 @@ uv run --env-file .env jalada-worker
 cd apps/web && npm install && npm run dev
 ```
 
+The assistant is off unless the API has `JALADA_AGENT_ENABLED=true` and a `JALADA_MODEL_CHAIN`, and the Ask tab only shows when the web app starts with `ASSISTANT=on`. The web app does not read the root `.env`, so pass it when starting:
+
+```bash
+cd apps/web && ASSISTANT=on npm run dev
+```
+
 ## Checks
 
 ```bash
