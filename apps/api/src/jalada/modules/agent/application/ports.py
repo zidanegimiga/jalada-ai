@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol
 from uuid import UUID
 
 from jalada.modules.agent.domain.conversation import Message, Thread
-from jalada.modules.agent.domain.run import AgentStep, Outcome
+from jalada.modules.agent.domain.run import AgentStep, Outcome, TurnResult
 
 
 @dataclass(frozen=True)
@@ -35,3 +35,20 @@ class ThreadRepository(Protocol):
 class AgentRunRepository(Protocol):
     def add(self, run: AgentRun) -> None: ...
     def for_user(self, user_id: UUID) -> list[AgentRun]: ...
+
+
+@dataclass(frozen=True)
+class TurnRequest:
+    """What a runner gets for one turn. The user id is for tools, never for the model."""
+
+    run_id: UUID
+    user_id: UUID
+    question: str
+    history: tuple[Message, ...]
+    today: date
+
+
+class AgentRunner(Protocol):
+    """Runs one turn: looks things up as needed, then answers within the budget."""
+
+    def run(self, request: TurnRequest) -> TurnResult: ...

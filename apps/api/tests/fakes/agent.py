@@ -1,10 +1,16 @@
-"""Fake storage for the assistant's conversations and runs."""
+"""Fakes for the assistant: storage, a stand-in tool, scripted replies and a canned runner."""
 
+import json
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from jalada.modules.agent.application.ports import AgentRun
+from pydantic import BaseModel
+
+from jalada.modules.agent.application.ports import AgentRun, TurnRequest
+from jalada.modules.agent.application.tools import Tool, ToolContext
 from jalada.modules.agent.domain.conversation import Message, Thread
+from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind, TurnResult
 
 
 class FakeThreads:
@@ -54,3 +60,46 @@ class FakeAgentRuns:
 
     def for_user(self, user_id: UUID) -> list[AgentRun]:
         return [run for run in self.rows if run.user_id == user_id]
+
+
+class TotalArguments(BaseModel):
+    counterparty: str
+
+
+class TotalPaid(Tool[TotalArguments]):
+    """A stand-in lookup: totals per person, so tests can show one never sees another's."""
+
+    name = "total_paid"
+    description = "Total paid to a counterparty."
+    arguments = TotalArguments
+
+    def __init__(self, totals: dict[UUID, dict[str, str]]) -> None:
+        self.totals = totals
+        self.seen: list[UUID] = []
+
+    def run(self, context: ToolContext, arguments: TotalArguments) -> dict[str, Any]:
+        self.seen.append(context.user_id)
+        mine = self.totals.get(context.user_id, {})
+        return {"counterparty": arguments.counterparty, "total": mine.get(arguments.counterparty)}
+
+
+def use_tool(tool: str, **arguments: Any) -> dict[str, Any]:
+    """A model reply asking for a tool."""
+    return {"action": "tool", "tool": tool, "arguments": json.dumps(arguments), "answer": None}
+
+
+def answer(text: str) -> dict[str, Any]:
+    """A model reply answering the person."""
+    return {"action": "answer", "tool": None, "arguments": None, "answer": text}
+
+
+class CannedRunner:
+    """Answers every turn the same way and remembers what it was asked."""
+
+    def __init__(self, text: str = "You paid Ksh 4,500.", outcome: Outcome = Outcome.ANSWERED):
+        self.result = TurnResult(text, outcome, (AgentStep(StepKind.MODEL, "m", "answer", 5),))
+        self.requests: list[TurnRequest] = []
+
+    def run(self, request: TurnRequest) -> TurnResult:
+        self.requests.append(request)
+        return self.result
