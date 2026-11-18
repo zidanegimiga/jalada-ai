@@ -5,7 +5,7 @@ from typing import Self
 from uuid import UUID
 
 from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
-from fakes.agent import FakeAgentRuns, FakeThreads
+from fakes.agent import FakeActions, FakeAgentRuns, FakeThreads
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import (
     FakeAuditTrail,
@@ -20,7 +20,11 @@ from fakes.ledger import (
 from fakes.store import Store
 from jalada.core.jobs.ports import JobQueue
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
-from jalada.modules.agent.application.ports import AgentRunRepository, ThreadRepository
+from jalada.modules.agent.application.ports import (
+    ActionRepository,
+    AgentRunRepository,
+    ThreadRepository,
+)
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.application.ports import (
     AuditTrail,
@@ -68,6 +72,7 @@ class FakeUnitOfWork:
         self._agent_threads = dict(self._store.agent_threads)
         self._agent_messages = list(self._store.agent_messages)
         self._agent_runs = FakeAgentRuns(list(self._store.agent_runs))
+        self._agent_actions = dict(self._store.agent_actions)
         self.agent_runs: AgentRunRepository = self._agent_runs
         return self
 
@@ -94,6 +99,9 @@ class FakeUnitOfWork:
 
     def agent_threads_for(self, user_id: UUID) -> ThreadRepository:
         return FakeThreads(self._agent_threads, self._agent_messages, user_id)
+
+    def agent_actions_for(self, user_id: UUID) -> ActionRepository:
+        return FakeActions(self._agent_actions, user_id)
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
         return FakeTransactions(self._transactions, user_id, self._certificate_payments)
@@ -127,6 +135,7 @@ class FakeUnitOfWork:
         self._store.agent_threads = self._agent_threads
         self._store.agent_messages = self._agent_messages
         self._store.agent_runs = self._agent_runs.rows
+        self._store.agent_actions = self._agent_actions
         for user_id in self._users.deleted:
             self._cascade(user_id)
 
@@ -155,3 +164,4 @@ class FakeUnitOfWork:
         store.agent_threads = {t: x for t, x in store.agent_threads.items() if t not in gone}
         store.agent_messages = [(t, m) for t, m in store.agent_messages if t not in gone]
         store.agent_runs = [r for r in store.agent_runs if r.user_id != user_id]
+        store.agent_actions = {k: a for k, a in store.agent_actions.items() if a.user_id != user_id}

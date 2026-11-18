@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from jalada.modules.accounts.domain.users import User
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Role, Thread
+from jalada.modules.agent.domain.proposals import ActionKind, ActionStatus, ProposedAction
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelUsage
 from jalada.sql_unit_of_work import SqlUnitOfWork
@@ -107,3 +108,46 @@ def test_a_run_keeps_its_steps_in_order_and_adds_up_its_cost(
 
     with SqlUnitOfWork(session_factory) as work:
         assert work.agent_runs.for_user(user) == [run]
+
+
+def test_a_suggested_change_is_kept_and_decided_only_by_its_owner(
+    session_factory: sessionmaker[DbSession],
+) -> None:
+    owner, other = add_user(session_factory), add_user(session_factory)
+    thread = add_thread(session_factory, owner)
+    run_id = uuid.uuid4()
+    action = ProposedAction(
+        uuid.uuid4(),
+        owner,
+        thread.id,
+        run_id,
+        ActionKind.CHANGE_CATEGORY,
+        {"entry_id": str(uuid.uuid4()), "category": "business_rent"},
+        "Change the category to Workspace rent",
+        ActionStatus.PROPOSED,
+        NOW,
+    )
+    with SqlUnitOfWork(session_factory) as work:
+        work.agent_actions_for(owner).add(action)
+        work.agent_threads_for(owner).add_message(
+            thread.id, Message(Role.ASSISTANT, "I can change that.", NOW, run_id)
+        )
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        theirs = work.agent_actions_for(other)
+        assert theirs.get(action.id) is None
+        theirs.save(action.decided(ActionStatus.CONFIRMED, NOW))
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        mine = work.agent_actions_for(owner)
+        assert mine.for_run(run_id) == [action], "another person cannot decide it"
+        mine.save(action.decided(ActionStatus.DECLINED, NOW))
+        work.commit()
+
+    with SqlUnitOfWork(session_factory) as work:
+        [found] = work.agent_actions_for(owner).for_thread(thread.id)
+        [message] = work.agent_threads_for(owner).recent_messages(thread.id, 5)
+    assert (found.status, found.decided_at) == (ActionStatus.DECLINED, NOW)
+    assert message.run_id == run_id

@@ -5,6 +5,7 @@ from jalada.core.database.base import Base
 from jalada.core.jobs.tables import JobRow
 from jalada.modules.accounts.adapters.tables import SessionRow, UserRow
 from jalada.modules.agent.adapters.tables import (
+    AgentActionRow,
     AgentMessageRow,
     AgentRunRow,
     AgentStepRow,
@@ -49,4 +50,5 @@ ALL_TABLES: list[type[Base]] = [
     AgentMessageRow,
     AgentRunRow,
     AgentStepRow,
+    AgentActionRow,
 ]

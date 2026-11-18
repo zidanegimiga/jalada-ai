@@ -151,6 +151,7 @@ def test_deleting_a_user_empties_every_table_and_the_bucket(
         "telegram_links",
         "telegram_link_codes",
         "agent_threads",
+        "agent_actions",
     ]
     with session_factory() as db:
         for table in tables:

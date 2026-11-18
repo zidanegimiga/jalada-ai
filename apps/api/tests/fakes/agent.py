@@ -11,6 +11,7 @@ from jalada.modules.agent.application.ports import AgentRun, TurnRequest
 from jalada.modules.agent.application.tools import Tool, ToolContext
 from jalada.modules.agent.domain.conversation import Message, Thread
 from jalada.modules.agent.domain.progress import OnProgress, Progress, Stage, ignore
+from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind, TurnResult
 
 
@@ -109,3 +110,32 @@ class CannedRunner:
         self.requests.append(request)
         on_progress(Progress(Stage.THINKING))
         return self.result
+
+
+class FakeActions:
+    def __init__(self, rows: dict[UUID, ProposedAction], user_id: UUID) -> None:
+        self._rows = rows
+        self._user_id = user_id
+
+    def add(self, action: ProposedAction) -> None:
+        if action.user_id != self._user_id:
+            raise ValueError("An action can only be added for its own user")
+        self._rows[action.id] = action
+
+    def get(self, action_id: UUID) -> ProposedAction | None:
+        action = self._rows.get(action_id)
+        return action if action is not None and action.user_id == self._user_id else None
+
+    def save(self, action: ProposedAction) -> None:
+        if self.get(action.id) is not None:
+            self._rows[action.id] = action
+
+    def for_run(self, run_id: UUID) -> list[ProposedAction]:
+        return [a for a in self._mine() if a.run_id == run_id]
+
+    def for_thread(self, thread_id: UUID) -> list[ProposedAction]:
+        return [a for a in self._mine() if a.thread_id == thread_id]
+
+    def _mine(self) -> list[ProposedAction]:
+        mine = [a for a in self._rows.values() if a.user_id == self._user_id]
+        return sorted(mine, key=lambda a: a.created_at)

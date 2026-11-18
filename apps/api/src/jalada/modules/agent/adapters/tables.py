@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from jalada.core.database.base import Base
@@ -30,6 +31,8 @@ class AgentMessageRow(Base):
     role: Mapped[str] = mapped_column(String(20))
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # The turn an answer came from. No foreign key: the message is written before the run.
+    run_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True)
 
 
 class AgentRunRow(Base):
@@ -67,3 +70,25 @@ class AgentStepRow(Base):
     output_tokens: Mapped[int] = mapped_column(Integer)
     cost_usd: Mapped[Any] = mapped_column(Numeric(10, 6))
     duration_ms: Mapped[int] = mapped_column(Integer)
+
+
+class AgentActionRow(Base):
+    """A change the assistant suggested, and what the person decided."""
+
+    __tablename__ = "agent_actions"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    thread_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("agent_threads.id", ondelete="CASCADE"), index=True
+    )
+    # No foreign key: the action is written during the turn, before its run is.
+    run_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    kind: Mapped[str] = mapped_column(String(30))
+    payload: Mapped[dict[str, str]] = mapped_column(JSONB)
+    summary: Mapped[str] = mapped_column(String(300))
+    status: Mapped[str] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

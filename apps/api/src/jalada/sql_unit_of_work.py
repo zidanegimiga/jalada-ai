@@ -11,8 +11,12 @@ from jalada.core.jobs.ports import JobQueue
 from jalada.core.jobs.queue import SqlJobQueue
 from jalada.modules.accounts.adapters.repositories import SqlSessionRepository, SqlUserRepository
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
-from jalada.modules.agent.adapters.repositories import SqlAgentRuns, SqlThreads
-from jalada.modules.agent.application.ports import AgentRunRepository, ThreadRepository
+from jalada.modules.agent.adapters.repositories import SqlActions, SqlAgentRuns, SqlThreads
+from jalada.modules.agent.application.ports import (
+    ActionRepository,
+    AgentRunRepository,
+    ThreadRepository,
+)
 from jalada.modules.evidence.adapters.repository import SqlEvidenceRepository
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.adapters.audit_trail import SqlAuditTrail
@@ -82,6 +86,9 @@ class SqlUnitOfWork:
 
     def agent_threads_for(self, user_id: UUID) -> ThreadRepository:
         return SqlThreads(self._db, user_id)
+
+    def agent_actions_for(self, user_id: UUID) -> ActionRepository:
+        return SqlActions(self._db, user_id)
 
     def __exit__(
         self,

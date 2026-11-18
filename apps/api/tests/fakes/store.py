@@ -9,6 +9,7 @@ from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Thread
+from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.evidence.domain.evidence import Evidence
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.entries import Entry, EntryKind
@@ -49,6 +50,7 @@ class Store:
     agent_threads: dict[UUID, Thread] = field(default_factory=dict)
     agent_messages: list[tuple[UUID, Message]] = field(default_factory=list)
     agent_runs: list[AgentRun] = field(default_factory=list)
+    agent_actions: dict[UUID, ProposedAction] = field(default_factory=dict)
 
     def save_entries(self, *entries: Entry) -> None:
         """Saves entries with the transactions that stand beside them, as the pipeline,

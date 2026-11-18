@@ -5,6 +5,7 @@ from uuid import UUID
 
 from jalada.modules.agent.domain.conversation import Message, Thread
 from jalada.modules.agent.domain.progress import OnProgress, ignore
+from jalada.modules.agent.domain.proposals import ProposedAction
 from jalada.modules.agent.domain.run import AgentStep, Outcome, TurnResult
 
 
@@ -42,6 +43,19 @@ class AgentRunRepository(Protocol):
     def for_user(self, user_id: UUID) -> list[AgentRun]: ...
 
 
+class ActionRepository(Protocol):
+    """One person's suggested changes. Another person's are never found."""
+
+    def add(self, action: ProposedAction) -> None: ...
+    def get(self, action_id: UUID) -> ProposedAction | None: ...
+    def save(self, action: ProposedAction) -> None:
+        """Stores a decision on an action that is already there."""
+        ...
+
+    def for_run(self, run_id: UUID) -> list[ProposedAction]: ...
+    def for_thread(self, thread_id: UUID) -> list[ProposedAction]: ...
+
+
 class TurnTracer(Protocol):
     """Sends what a turn did to a tracing service. Never what was asked or answered."""
 
@@ -62,6 +76,8 @@ class TurnRequest:
     question: str
     history: tuple[Message, ...]
     today: date
+    # The conversation, so a suggested change can be shown in it.
+    thread_id: UUID | None = None
 
 
 class AgentRunner(Protocol):

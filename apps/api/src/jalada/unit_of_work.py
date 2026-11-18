@@ -4,7 +4,11 @@ from uuid import UUID
 
 from jalada.core.jobs.ports import JobQueue
 from jalada.modules.accounts.application.ports import SessionRepository, UserRepository
-from jalada.modules.agent.application.ports import AgentRunRepository, ThreadRepository
+from jalada.modules.agent.application.ports import (
+    ActionRepository,
+    AgentRunRepository,
+    ThreadRepository,
+)
 from jalada.modules.evidence.application.ports import EvidenceRepository
 from jalada.modules.ledger.application.ports import (
     AuditTrail,
@@ -38,6 +42,7 @@ class UnitOfWork(Protocol):
     def audit_for(self, user_id: UUID) -> AuditTrail: ...
     def suggestions_for(self, user_id: UUID) -> MatchSuggestionRepository: ...
     def agent_threads_for(self, user_id: UUID) -> ThreadRepository: ...
+    def agent_actions_for(self, user_id: UUID) -> ActionRepository: ...
 
     def __enter__(self) -> Self: ...
     def __exit__(

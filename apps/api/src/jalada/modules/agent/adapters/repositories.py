@@ -2,10 +2,11 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import Select, select, update
 from sqlalchemy.orm import Session as DbSession
 
 from jalada.modules.agent.adapters.tables import (
+    AgentActionRow,
     AgentMessageRow,
     AgentRunRow,
     AgentStepRow,
@@ -13,6 +14,7 @@ from jalada.modules.agent.adapters.tables import (
 )
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Role, Thread
+from jalada.modules.agent.domain.proposals import ActionKind, ActionStatus, ProposedAction
 from jalada.modules.agent.domain.run import AgentStep, Outcome, StepKind
 from jalada.modules.pipeline.domain.model import ModelUsage
 
@@ -67,7 +69,11 @@ class SqlThreads:
             raise ValueError("No such thread for this user")
         self._db.add(
             AgentMessageRow(
-                thread_id=thread_id, role=message.role, text=message.text, created_at=message.at
+                thread_id=thread_id,
+                role=message.role,
+                text=message.text,
+                created_at=message.at,
+                run_id=message.run_id,
             )
         )
         self._db.flush()
@@ -80,7 +86,9 @@ class SqlThreads:
             .order_by(AgentMessageRow.id.desc())
             .limit(limit)
         ).all()
-        return [Message(Role(row.role), row.text, row.created_at) for row in reversed(rows)]
+        return [
+            Message(Role(row.role), row.text, row.created_at, row.run_id) for row in reversed(rows)
+        ]
 
 
 def _thread(row: AgentThreadRow) -> Thread:
@@ -154,3 +162,67 @@ class SqlAgentRuns:
             started_at=row.started_at,
             finished_at=row.finished_at,
         )
+
+
+class SqlActions:
+    """Every query is limited to one user's actions."""
+
+    def __init__(self, db: DbSession, user_id: UUID) -> None:
+        self._db = db
+        self._user_id = user_id
+
+    def add(self, action: ProposedAction) -> None:
+        if action.user_id != self._user_id:
+            raise ValueError("An action can only be added for its own user")
+        self._db.add(
+            AgentActionRow(
+                id=action.id,
+                user_id=action.user_id,
+                thread_id=action.thread_id,
+                run_id=action.run_id,
+                kind=action.kind,
+                payload=action.payload,
+                summary=action.summary,
+                status=action.status,
+                created_at=action.created_at,
+                decided_at=action.decided_at,
+            )
+        )
+        self._db.flush()
+
+    def get(self, action_id: UUID) -> ProposedAction | None:
+        row = self._db.scalar(self._mine().where(AgentActionRow.id == action_id))
+        return _action(row) if row is not None else None
+
+    def save(self, action: ProposedAction) -> None:
+        self._db.execute(
+            update(AgentActionRow)
+            .where(AgentActionRow.id == action.id, AgentActionRow.user_id == self._user_id)
+            .values(status=action.status, decided_at=action.decided_at)
+        )
+
+    def for_run(self, run_id: UUID) -> list[ProposedAction]:
+        query = self._mine().where(AgentActionRow.run_id == run_id)
+        return [_action(row) for row in self._db.scalars(query.order_by(AgentActionRow.created_at))]
+
+    def for_thread(self, thread_id: UUID) -> list[ProposedAction]:
+        query = self._mine().where(AgentActionRow.thread_id == thread_id)
+        return [_action(row) for row in self._db.scalars(query.order_by(AgentActionRow.created_at))]
+
+    def _mine(self) -> Select[AgentActionRow]:
+        return select(AgentActionRow).where(AgentActionRow.user_id == self._user_id)
+
+
+def _action(row: AgentActionRow) -> ProposedAction:
+    return ProposedAction(
+        id=row.id,
+        user_id=row.user_id,
+        thread_id=row.thread_id,
+        run_id=row.run_id,
+        kind=ActionKind(row.kind),
+        payload=dict(row.payload),
+        summary=row.summary,
+        status=ActionStatus(row.status),
+        created_at=row.created_at,
+        decided_at=row.decided_at,
+    )

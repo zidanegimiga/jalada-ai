@@ -18,6 +18,8 @@ class Message:
     role: Role
     text: str
     at: datetime
+    # The turn an answer came from, to show the changes it suggested beside it.
+    run_id: UUID | None = None
 
 
 @dataclass(frozen=True)
