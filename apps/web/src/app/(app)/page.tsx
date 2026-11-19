@@ -19,7 +19,12 @@ import { getYear } from "@/features/ledger/server/queries";
 import { getTelegramStatus } from "@/features/telegram/server/get-telegram-status";
 import { nairobiMonth } from "@/shared/format/nairobi";
 
-import { HomeOverview, HomeOverviewSkeleton } from "./_components/HomeOverview";
+import {
+  HomeGreeting,
+  HomeGreetingSkeleton,
+  HomeOverview,
+  HomeOverviewSkeleton,
+} from "./_components/HomeOverview";
 
 async function RecentEvidence() {
   const [items, telegram] = await Promise.all([
@@ -66,6 +71,9 @@ async function RecentMonths() {
 export default function Home() {
   return (
     <>
+      <Suspense fallback={<HomeGreetingSkeleton />}>
+        <HomeGreeting />
+      </Suspense>
       <Suspense>
         <AccountNotice />
       </Suspense>

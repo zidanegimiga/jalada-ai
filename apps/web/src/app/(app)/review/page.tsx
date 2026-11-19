@@ -10,6 +10,7 @@ import {
   getCategories,
   getReviewQueue,
 } from "@/features/review/server/queries";
+import { PageHeader } from "@/app/(app)/_components/PageHeader";
 
 async function ReviewQueue() {
   const [items, categories] = await Promise.all([
@@ -40,7 +41,7 @@ async function ReviewQueue() {
 export default function ReviewPage() {
   return (
     <div className="mx-auto flex w-full max-w-content flex-col gap-section">
-      <h1 className="text-display">To check</h1>
+      <PageHeader title="To check" back={{ href: "/", label: "Home" }} />
       <Suspense fallback={<ReviewListSkeleton />}>
         <ReviewQueue />
       </Suspense>

@@ -54,7 +54,7 @@ For conversation memory: LangGraph's Postgres checkpointer, our own tables, or a
 **Off until real data may go to a model.** `JALADA_AGENT_ENABLED` is false by default. In production the app will not start with it on unless `JALADA_MODEL_ALLOWED_FOR_REAL_DATA` is true, the same rule as 0012.
 
 ## Consequences
-- New dependencies: `langgraph`, `langgraph-checkpoint-postgres` and `psycopg-pool`. The checkpointer's tables live in their own `assistant_turns` schema, out of Alembic's sight, and LangGraph creates them once when the app starts with the assistant on.
+- New dependencies: `langgraph`, `langgraph-checkpoint-postgres` and `psycopg-pool`. LangGraph creates its four checkpoint tables once when the app starts with the assistant on. They sit beside the app's own tables, because the pooled connections production uses refuse the startup option that would choose another schema; Alembic never manages them.
 - LangGraph's types are looser than strict mypy wants. The adapter converts at its edge, so nothing outside it sees LangGraph types.
 - A conversation costs more than one piece of evidence; each run has a step, token and cost budget and stops cleanly when it runs out.
 - Conversations are personal data: they are exported and deleted with the account and expire after 90 days.

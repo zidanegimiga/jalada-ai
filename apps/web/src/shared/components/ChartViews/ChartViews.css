@@ -1,0 +1,77 @@
+/* Each chart view plays a short entrance when it is chosen. People who ask for less motion
+ * see them settle at once (globals.css). */
+.chart-view {
+  animation: chart-view-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chart-view-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+/* The balance line draws itself from the first month. */
+.chart-view .balance-line {
+  stroke-dasharray: 1;
+  animation: chart-draw 1.2s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes chart-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Columns grow from the middle line, one month after another. */
+.chart-view .purpose-column {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-grow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--column) * 45ms);
+}
+
+@keyframes chart-grow {
+  from {
+    opacity: 0;
+    scale: 1 0.2;
+  }
+}
+
+/* Spokes appear around the wheel in month order. */
+.chart-view .wheel-month {
+  animation: chart-fade 0.5s ease-out both;
+  animation-delay: calc(var(--month) * 45ms);
+}
+
+@keyframes chart-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Squares pop in one by one. */
+.chart-view .waffle-cell {
+  animation: chart-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--cell) * 8ms);
+}
+
+@keyframes chart-pop {
+  from {
+    opacity: 0;
+    scale: 0.3;
+  }
+}
+
+/* Flow bands fade in, and the one under the pointer stands out. */
+.chart-view .flow-band {
+  animation: chart-fade 0.8s ease-out both;
+  transition: fill-opacity 0.2s;
+}
+
+.chart-view .flow-band:hover {
+  fill-opacity: 0.8;
+}

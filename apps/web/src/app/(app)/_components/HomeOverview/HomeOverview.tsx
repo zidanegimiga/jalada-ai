@@ -11,6 +11,8 @@ import { getReviewQueue } from "@/features/review/server/queries";
 import { SkeletonText } from "@/shared/components/Skeleton";
 import { nairobiMonth } from "@/shared/format/nairobi";
 
+import { PageHeader } from "../PageHeader";
+
 function emptyMonth(month: number): Month {
   return {
     month,
@@ -48,7 +50,19 @@ function Waiting({ count }: { count: number }) {
   );
 }
 
-/** The greeting, this month's totals and what waits on To check. */
+/** The greeting, at the top of the page. */
+export async function HomeGreeting() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/signin");
+  const firstName = user.display_name.trim().split(/\s+/)[0];
+  return <PageHeader title={`Hello, ${firstName}`} />;
+}
+
+export function HomeGreetingSkeleton() {
+  return <PageHeader title={<SkeletonText className="w-56" />} />;
+}
+
+/** This month's totals and what waits on To check. */
 export async function HomeOverview() {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
@@ -57,10 +71,8 @@ export async function HomeOverview() {
     getMonth(year, month),
     getReviewQueue(),
   ]);
-  const firstName = user.display_name.trim().split(/\s+/)[0];
   return (
     <>
-      <h1 className="truncate text-display">Hello, {firstName}</h1>
       <MonthCard year={year} month={summary ?? emptyMonth(month)} />
       <Waiting count={waiting.length} />
     </>
@@ -70,9 +82,6 @@ export async function HomeOverview() {
 export function HomeOverviewSkeleton() {
   return (
     <>
-      <h1 className="text-display">
-        <SkeletonText className="w-56" />
-      </h1>
       <MonthCardSkeleton />
       <p className={`${ROW} bg-muted`}>
         <SkeletonText className="w-44" />

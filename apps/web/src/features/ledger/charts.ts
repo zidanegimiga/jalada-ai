@@ -7,6 +7,9 @@ export type MonthPoint = {
   short: string;
   inCents: number;
   outCents: number;
+  /** The business part of each; the rest is personal. */
+  inBusinessCents: number;
+  outBusinessCents: number;
 };
 
 const LONG = new Intl.DateTimeFormat("en-KE", {
@@ -31,6 +34,8 @@ function point(
     short: SHORT.format(date),
     inCents: month ? month.in_business_cents + month.in_personal_cents : 0,
     outCents: month ? month.out_business_cents + month.out_personal_cents : 0,
+    inBusinessCents: month?.in_business_cents ?? 0,
+    outBusinessCents: month?.out_business_cents ?? 0,
   };
 }
 

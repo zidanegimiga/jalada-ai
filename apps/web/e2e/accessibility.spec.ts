@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 /** WCAG 2.2 at levels A and AA. */
 const STANDARD = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-const SIGNED_OUT = ["/signup", "/signin", "/privacy"];
+const SIGNED_OUT = ["/welcome", "/signup", "/signin", "/privacy"];
 // /ask shows the conversation where the assistant is on, and a notice where it is not.
 const SIGNED_IN = ["/", "/review", "/ledger", "/ask", "/account", "/design"];
 
@@ -65,7 +65,9 @@ function inventedMessage(): string {
 /** Opens each page in the light and dark themes and collects what is wrong. */
 async function checkPages(page: Page, paths: string[]) {
   for (const scheme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme: scheme });
+    // Checked as people who ask for less motion see it, so nothing is mid-animation
+    // (a word fading in would fail contrast while it fades).
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
     for (const path of paths) {
       await test.step(`${path} (${scheme})`, async () => {
         await page.goto(path);

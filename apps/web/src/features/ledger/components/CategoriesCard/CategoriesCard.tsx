@@ -2,10 +2,16 @@ import {
   CategoryBreakdown,
   type Slice,
 } from "@/shared/components/CategoryBreakdown";
+import { CategoryWaffle } from "@/shared/components/CategoryWaffle";
+import { ChartViews } from "@/shared/components/ChartViews";
 import { FolderCard } from "@/shared/components/FolderCard";
+import { MoneyFlow } from "@/shared/components/MoneyFlow";
 import { Skeleton, SkeletonText } from "@/shared/components/Skeleton";
 
-/** Where money went and came from in a period, on a flax folder named for the period. */
+/**
+ * Where money went and came from in a period, on a flax folder named for the period: as
+ * ranked bars, as squares of a hundred, or as one flow from income to spending.
+ */
 export function CategoriesCard({
   tab,
   slices,
@@ -23,7 +29,26 @@ export function CategoriesCard({
       <h2 id="categories-heading" className="text-title">
         By category
       </h2>
-      <CategoryBreakdown slices={slices} />
+      <ChartViews
+        label="Show categories as"
+        views={[
+          {
+            value: "ranked",
+            label: "Ranked",
+            content: <CategoryBreakdown slices={slices} />,
+          },
+          {
+            value: "squares",
+            label: "Squares",
+            content: <CategoryWaffle slices={slices} />,
+          },
+          {
+            value: "flow",
+            label: "Flow",
+            content: <MoneyFlow slices={slices} />,
+          },
+        ]}
+      />
     </FolderCard>
   );
 }
