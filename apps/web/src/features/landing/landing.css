@@ -1,0 +1,337 @@
+/*
+ * The landing page. It keeps the app's palette but sets its own bands of colour, so it
+ * looks the same whichever theme the visitor's phone uses.
+ */
+[data-landing] {
+  --l-ink: #0b0b09;
+  --l-ink-soft: #171713;
+  --l-paper: #fefff6;
+  --l-paper-deep: #f4f3e8;
+  --l-card: #fffffa;
+  --l-pumpkin: #eb712e;
+  --l-flax: #fdf2a0;
+  /* Pumpkin is too pale for text on ivory, so words picked out in it use this. */
+  --l-rust: #a84a17;
+  --l-in: #63c08a;
+  --l-quiet: #4a4b41;
+  --l-quiet-on-ink: #b4b5a8;
+  --l-line: #d6d5c2;
+  color-scheme: light;
+  background: var(--l-paper);
+  color: var(--l-ink);
+}
+
+[data-landing] ::selection {
+  background: var(--l-pumpkin);
+  color: var(--l-ink);
+}
+
+/* Until the effects are set up, what they will reveal stays hidden, so it does not flash.
+ * If the script never runs, it shows anyway after a moment. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-landing]:not([data-ready])
+    :is([data-intro], [data-intro-line] > span, [data-pop]) {
+    opacity: 0;
+    animation: landing-show 0s 2.5s forwards;
+  }
+  @media (min-width: 768px) {
+    [data-landing]:not([data-ready]) [data-ledger] {
+      opacity: 0;
+      animation: landing-show 0s 2.5s forwards;
+    }
+  }
+}
+
+@keyframes landing-show {
+  to {
+    opacity: 1;
+  }
+}
+
+/* The header: clear at the top of the page, solid once scrolled, inverted over dark bands. */
+.landing-header {
+  color: var(--l-ink);
+  transition:
+    translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.3s,
+    background-color 0.3s;
+}
+.landing-header[data-top="false"] {
+  background: color-mix(in oklab, var(--l-paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+.landing-header[data-tone="dark"] {
+  color: var(--l-paper);
+}
+.landing-header[data-tone="dark"][data-top="false"] {
+  background: color-mix(in oklab, var(--l-ink) 85%, transparent);
+}
+.landing-header[data-tone="pumpkin"][data-top="false"] {
+  background: color-mix(in oklab, var(--l-pumpkin) 90%, transparent);
+}
+.landing-header[data-hidden="true"] {
+  translate: 0 -100%;
+}
+
+.landing-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: 0.875rem;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: background-color 0.25s;
+}
+.landing-nav-link:hover {
+  background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+/* Words that roll up: the label leaves upwards and its copy rises from below. */
+.landing-roll-words {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.landing-roll-words > span,
+.landing-roll-words::after {
+  display: block;
+  transition: translate 0.55s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.landing-roll-words::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+.landing-roll:hover .landing-roll-words > span,
+.landing-roll:hover .landing-roll-words::after,
+.landing-roll:focus-visible .landing-roll-words > span,
+.landing-roll:focus-visible .landing-roll-words::after {
+  translate: 0 -100%;
+}
+.landing-roll {
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+.landing-roll[data-roll="pumpkin"]:hover {
+  background: var(--l-ink);
+  color: var(--l-paper);
+}
+.landing-roll[data-roll="line"]:hover {
+  background: var(--l-ink);
+  border-color: var(--l-ink);
+  color: var(--l-paper);
+}
+[data-tone="dark"] .landing-roll[data-roll="pumpkin"]:hover,
+.landing-roll[data-roll="ink"]:hover {
+  background: var(--l-paper);
+  color: var(--l-ink);
+}
+
+/* The pointer. Hidden on touch screens, where it would only sit still. */
+.landing-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: -0.375rem 0 0 -0.375rem;
+  border-radius: 999px;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.3s,
+    opacity 0.3s;
+}
+.landing-cursor > span {
+  font-family: var(--font-label), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--l-ink);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.landing-cursor[data-state="dot"] {
+  opacity: 1;
+}
+.landing-cursor[data-state="press"] {
+  opacity: 1;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: -1.75rem 0 0 -1.75rem;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px #fff;
+}
+.landing-cursor[data-state="label"] {
+  opacity: 1;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: -2.75rem 0 0 -2.75rem;
+  background: var(--l-pumpkin);
+  mix-blend-mode: normal;
+}
+.landing-cursor[data-state="label"] > span {
+  opacity: 1;
+}
+@media (pointer: fine) {
+  :root[data-cursor="custom"] [data-landing],
+  :root[data-cursor="custom"] [data-landing] * {
+    cursor: none;
+  }
+}
+
+/* The scroll cue in the opening: a dot running down a short line. */
+.landing-scroll-cue {
+  position: relative;
+  width: 1px;
+  height: 2.5rem;
+  overflow: hidden;
+  background: color-mix(in oklab, currentColor 25%, transparent);
+}
+.landing-scroll-cue::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 40%;
+  background: currentColor;
+  animation: landing-cue 1.8s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+}
+@keyframes landing-cue {
+  from {
+    translate: 0 -100%;
+  }
+  to {
+    translate: 0 260%;
+  }
+}
+
+/* The message in the reading section: the part being pointed at lights up. */
+.landing-mark {
+  background: transparent;
+  color: inherit;
+  border-radius: 0.375rem;
+  padding: 0 0.15em;
+  box-shadow: inset 0 -2px 0
+    color-mix(in oklab, var(--l-pumpkin) 60%, transparent);
+  transition:
+    background-color 0.35s,
+    color 0.35s,
+    box-shadow 0.35s;
+}
+.landing-mark[data-on="true"] {
+  background: var(--l-pumpkin);
+  color: var(--l-ink);
+  box-shadow: none;
+}
+.landing-field {
+  background: var(--l-card);
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    translate 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-field:hover {
+  translate: 0.5rem 0;
+}
+.landing-field[aria-pressed="true"] {
+  background: var(--l-ink);
+  color: var(--l-paper);
+}
+
+/* The example conversation's typing dots. */
+.landing-typing {
+  overflow: hidden;
+}
+.landing-typing span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--l-quiet-on-ink);
+  animation: landing-typing 1s ease-in-out infinite;
+}
+.landing-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.landing-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes landing-typing {
+  50% {
+    translate: 0 -0.3rem;
+    opacity: 0.4;
+  }
+}
+
+/* Links that draw their underline from the left. */
+.landing-underline {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(currentColor, currentColor) no-repeat left
+    calc(50% + 0.75em) / 0% 1.5px;
+  transition: background-size 0.45s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.landing-underline:hover,
+.landing-underline:focus-visible {
+  background-size: 100% 1.5px;
+}
+
+/* Questions open smoothly where the browser can animate to the content's own height. */
+.landing-question {
+  interpolate-size: allow-keywords;
+}
+.landing-question::details-content {
+  height: 0;
+  overflow: clip;
+  transition:
+    height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    content-visibility 0.5s allow-discrete;
+}
+.landing-question[open]::details-content {
+  height: auto;
+}
+.landing-question summary::-webkit-details-marker {
+  display: none;
+}
+.landing-plus::before,
+.landing-plus::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.875rem;
+  height: 2px;
+  margin: -1px 0 0 -0.4375rem;
+  background: var(--l-paper);
+  transition: rotate 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-plus::after {
+  rotate: 90deg;
+}
+.landing-plus {
+  transition:
+    background-color 0.3s,
+    rotate 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-question summary:hover .landing-plus {
+  background: var(--l-pumpkin);
+}
+.landing-question[open] .landing-plus {
+  rotate: 45deg;
+}
+
+.landing-stack-card {
+  will-change: transform;
+}
