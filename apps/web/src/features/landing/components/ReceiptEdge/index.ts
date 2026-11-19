@@ -1,0 +1,1 @@
+export { ReceiptEdge } from "./ReceiptEdge";

@@ -1,9 +1,18 @@
 import Link from "next/link";
 
+import { CREDIT } from "../../site";
+import { Contours } from "../Contours";
+import { KikoiBand } from "../KikoiBand";
 import { RollLink } from "../RollLink";
 import { Lines } from "../SplitText";
 
-/** The last ask, and the footer under it. */
+const FOOTER_LINKS = [
+  { label: "Sign in", href: "/signin" },
+  { label: "Create an account", href: "/signup" },
+  { label: "Privacy notice", href: "/privacy" },
+];
+
+/** The last ask, and the footer under it, with who made the app and where. */
 export function Closing() {
   return (
     <>
@@ -12,7 +21,11 @@ export function Closing() {
         data-cursor="Start"
         className="relative overflow-hidden bg-(--l-pumpkin) px-4 pt-32 pb-24 text-(--l-ink) md:px-8 md:pt-44 md:pb-32"
       >
-        <div className="mx-auto flex max-w-[90rem] flex-col items-start gap-12 md:flex-row md:items-end md:justify-between">
+        <Contours
+          lines={18}
+          className="pointer-events-none absolute inset-0 size-full text-(--l-ink) opacity-[0.12]"
+        />
+        <div className="relative mx-auto flex max-w-[90rem] flex-col items-start gap-12 md:flex-row md:items-end md:justify-between">
           <h2
             data-motion="lines"
             className="text-[clamp(3.25rem,9vw,9rem)] leading-[0.9] font-bold tracking-[-0.05em]"
@@ -33,33 +46,56 @@ export function Closing() {
         </div>
       </section>
 
+      <KikoiBand className="block bg-(--l-ink)" />
+
       <footer
         data-tone="dark"
+        data-cursor="Asante"
         className="overflow-hidden bg-(--l-ink) px-4 pt-16 text-(--l-paper) md:px-8"
       >
-        <div className="mx-auto flex max-w-[90rem] flex-col gap-8 md:flex-row md:items-center md:justify-between">
-          <p className="max-w-[36ch] text-body text-(--l-quiet-on-ink)">
-            Money records for people in Kenya who don&apos;t have an accountant.
-          </p>
+        <div className="mx-auto grid max-w-[90rem] gap-10 md:grid-cols-[1fr_auto] md:items-start">
+          <div>
+            <p className="max-w-[36ch] text-body text-(--l-quiet-on-ink)">
+              Money records for people in Kenya who don&apos;t have an
+              accountant.
+            </p>
+            <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-body">
+              <span>
+                Built by{" "}
+                <a
+                  href={CREDIT.href}
+                  className="font-medium text-(--l-pumpkin) underline-offset-4 hover:underline"
+                >
+                  {CREDIT.name}
+                </a>
+              </span>
+              <span
+                aria-hidden="true"
+                className="size-1 rounded-full bg-current"
+              />
+              <span className="font-mono text-tiny tracking-[0.18em] uppercase">
+                Made in Kenya
+              </span>
+            </p>
+          </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-6">
-            <Link href="/signin" className="landing-underline min-h-tap">
-              Sign in
-            </Link>
-            <Link href="/signup" className="landing-underline min-h-tap">
-              Create an account
-            </Link>
-            <Link href="/privacy" className="landing-underline min-h-tap">
-              Privacy notice
-            </Link>
+            {FOOTER_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="landing-underline min-h-tap"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
         <p
           aria-hidden="true"
           data-motion="grow"
-          className="mx-auto mt-10 max-w-[90rem] origin-bottom text-center text-[clamp(5rem,24vw,24rem)] leading-[0.78] font-bold tracking-[-0.06em] text-(--l-pumpkin)"
-        >
-          Jalada
-        </p>
+          data-ghost="Jalada"
+          className="landing-ghost mx-auto mt-10 max-w-[90rem] origin-bottom text-center text-[clamp(5rem,24vw,24rem)] leading-[0.78] text-(--l-pumpkin)"
+        />
       </footer>
     </>
   );

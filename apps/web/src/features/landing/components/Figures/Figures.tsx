@@ -6,13 +6,14 @@ import { Lines } from "../SplitText";
 export function Figures() {
   return (
     <section
+      id="filing"
       data-tone="light"
       className="bg-(--l-paper) px-4 py-28 text-(--l-ink) md:px-8 md:py-40"
     >
       <div className="mx-auto max-w-[90rem]">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-end">
           <div>
-            <Eyebrow number="06">Filing time</Eyebrow>
+            <Eyebrow number="07">Filing time</Eyebrow>
             <h2
               data-motion="lines"
               className="mt-8 text-[clamp(2.75rem,6vw,6rem)] leading-[0.92] font-bold tracking-[-0.04em]"

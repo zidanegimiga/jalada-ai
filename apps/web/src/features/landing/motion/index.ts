@@ -5,10 +5,11 @@ import {
   grow,
   lines,
   rise,
+  split,
   words,
 } from "./reveal-motions";
 import { depth, gather } from "./opening-motions";
-import { parallax, ribbon, sideways, stack } from "./scroll-motions";
+import { draw, parallax, ribbon, sideways, stack } from "./scroll-motions";
 
 export { playOpening } from "./opening-motions";
 export type { Motion, MotionContext } from "./motion-kit";
@@ -27,4 +28,6 @@ export const MOTIONS: Record<string, Motion> = {
   gather,
   conversation,
   grow,
+  split,
+  draw,
 };

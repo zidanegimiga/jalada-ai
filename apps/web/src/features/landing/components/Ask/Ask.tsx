@@ -21,7 +21,7 @@ export function Ask() {
       />
       <div className="relative mx-auto grid max-w-[90rem] gap-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-24">
         <div>
-          <Eyebrow number="04">Ask</Eyebrow>
+          <Eyebrow number="05">Ask</Eyebrow>
           <h2
             data-motion="lines"
             className="mt-8 text-[clamp(2.75rem,6vw,6rem)] leading-[0.92] font-bold tracking-[-0.04em]"

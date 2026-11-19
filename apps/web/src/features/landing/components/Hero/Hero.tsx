@@ -1,4 +1,5 @@
 import { EVIDENCE } from "../../content";
+import { Contours } from "../Contours";
 import { HeroLedger } from "../HeroLedger";
 import { RollLink } from "../RollLink";
 import { Lines } from "../SplitText";
@@ -15,6 +16,7 @@ export function Hero() {
       data-cursor="Scroll"
       className="relative overflow-hidden bg-(--l-paper) text-(--l-ink)"
     >
+      <Contours className="pointer-events-none absolute inset-0 size-full text-(--l-ink) opacity-[0.07]" />
       <div
         data-stage=""
         className="relative flex min-h-dvh flex-col items-center justify-center px-4 pt-28 pb-16 md:px-8"
@@ -62,11 +64,11 @@ export function Hero() {
           </h1>
           <p
             data-intro=""
-            className="mt-8 max-w-[52ch] text-lead text-(--l-quiet)"
+            className="mt-8 max-w-[44ch] text-lead text-(--l-quiet)"
           >
-            Send a receipt photo, a PDF or a forwarded M-Pesa message. Jalada AI
-            reads it, sorts it and keeps it next to the original, so filing time
-            is boring.
+            For people with no accountant. Send an M-Pesa or bank message, a
+            receipt, a payslip or a tax certificate. It is read, sorted by what
+            it was for and kept with the original.
           </p>
           <div
             data-intro=""

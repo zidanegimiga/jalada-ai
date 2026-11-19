@@ -108,3 +108,22 @@ export const stack: Motion = (element) => {
     });
   });
 };
+
+/** The lines of a drawing trace themselves while it crosses the screen. */
+export const draw: Motion = (element) => {
+  gsap.fromTo(
+    all(element, "path"),
+    { strokeDasharray: 1, strokeDashoffset: 1 },
+    {
+      strokeDashoffset: 0,
+      ease: "none",
+      stagger: 0.04,
+      scrollTrigger: {
+        trigger: element,
+        start: "top 75%",
+        end: "bottom 60%",
+        scrub: true,
+      },
+    },
+  );
+};

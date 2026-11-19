@@ -3,13 +3,6 @@
  * is made up.
  */
 
-export const NAV = [
-  { label: "How it works", href: "#how" },
-  { label: "Reading", href: "#reading" },
-  { label: "Ask", href: "#ask" },
-  { label: "Privacy", href: "#privacy" },
-];
-
 /** The scattered evidence in the opening, and the ledger rows each one becomes. */
 export const EVIDENCE = [
   {
@@ -27,13 +20,13 @@ export const EVIDENCE = [
   {
     kind: "Withholding certificate",
     body: "PDF, 1 page. Tax withheld KES 9,000.00",
-    place: "left-[5%] bottom-[7%] rotate-2",
+    place: "left-[3%] bottom-[6%] rotate-2",
     depth: 0.8,
   },
   {
     kind: "Bank message",
     body: "Received KES 35,000.00 from WANJIKU DESIGNS LTD.",
-    place: "right-[4%] bottom-[10%] -rotate-3",
+    place: "right-[3%] bottom-[5%] -rotate-3",
     depth: 0.5,
   },
   {

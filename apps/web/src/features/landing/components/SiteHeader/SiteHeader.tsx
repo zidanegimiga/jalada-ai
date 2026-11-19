@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { NAV } from "../../content";
+import { NAV } from "../../site";
 import { RollLink } from "../RollLink";
 
 /**

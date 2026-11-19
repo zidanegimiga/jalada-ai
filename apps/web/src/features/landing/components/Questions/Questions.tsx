@@ -12,7 +12,7 @@ export function Questions() {
     >
       <div className="mx-auto grid max-w-[90rem] gap-14 lg:grid-cols-[1fr_1.5fr]">
         <div>
-          <Eyebrow number="07">Questions</Eyebrow>
+          <Eyebrow number="08">Questions</Eyebrow>
           <h2
             data-motion="lines"
             className="mt-8 text-[clamp(2.75rem,5vw,5rem)] leading-[0.92] font-bold tracking-[-0.04em]"

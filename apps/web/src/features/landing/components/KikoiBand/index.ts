@@ -1,0 +1,1 @@
+export { KikoiBand } from "./KikoiBand";

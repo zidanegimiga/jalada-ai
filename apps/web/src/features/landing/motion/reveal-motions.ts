@@ -116,3 +116,14 @@ export const conversation: Motion = (element) => {
     onEnter: () => play.play(),
   });
 };
+
+/** Each part of a split bar grows out from the left, one after another. */
+export const split: Motion = (element) => {
+  gsap.from(Array.from(element.children), {
+    scaleX: 0,
+    duration: 1.2,
+    ease: EASE,
+    stagger: 0.12,
+    scrollTrigger: onView(element),
+  });
+};

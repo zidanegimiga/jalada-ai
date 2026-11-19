@@ -20,7 +20,7 @@ export function Promises() {
       <div className="mx-auto max-w-[90rem]">
         <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <Eyebrow number="05">Privacy</Eyebrow>
+            <Eyebrow number="06">Privacy</Eyebrow>
             <h2
               data-motion="lines"
               className="mt-8 text-[clamp(2.75rem,6vw,6rem)] leading-[0.92] font-bold tracking-[-0.04em]"

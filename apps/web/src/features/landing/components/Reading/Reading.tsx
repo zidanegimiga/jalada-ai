@@ -33,7 +33,7 @@ export function Reading() {
     >
       <div className="mx-auto grid max-w-[90rem] gap-16 lg:grid-cols-[1fr_1.1fr] lg:gap-24">
         <div>
-          <Eyebrow number="03">Reading</Eyebrow>
+          <Eyebrow number="04">Reading</Eyebrow>
           <h2
             data-motion="lines"
             className="mt-8 text-[clamp(2.75rem,6vw,6rem)] leading-[0.92] font-bold tracking-[-0.04em]"

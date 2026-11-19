@@ -1,10 +1,26 @@
 import { Eyebrow } from "../Eyebrow";
+import { Glyph } from "../Glyph";
 import { Lines, Words } from "../SplitText";
 
 const SCATTERED = [
-  { where: "WhatsApp", what: "Receipts, sent by the shop", speed: -0.25 },
-  { where: "Email", what: "Withholding certificates", speed: 0.15 },
-  { where: "A drawer", what: "Paper, slowly fading", speed: -0.1 },
+  {
+    where: "WhatsApp",
+    what: "Receipts, sent by the shop",
+    speed: -0.25,
+    glyph: "chat",
+  },
+  {
+    where: "Email",
+    what: "Withholding certificates",
+    speed: 0.15,
+    glyph: "mail",
+  },
+  {
+    where: "A drawer",
+    what: "Paper, slowly fading",
+    speed: -0.1,
+    glyph: "drawer",
+  },
 ];
 
 /** Why records go missing, said once, slowly. */
@@ -39,10 +55,11 @@ export function Why() {
                 data-speed={item.speed}
                 className={`rounded-[1.75rem] p-6 ${index === 1 ? "bg-(--l-ink) text-(--l-paper)" : "bg-(--l-card)"}`}
               >
-                <p className="font-mono text-tiny tracking-[0.16em] uppercase opacity-70">
-                  0{index + 1}
-                </p>
-                <p className="mt-16 text-title">{item.where}</p>
+                <Glyph
+                  name={item.glyph}
+                  className={`landing-glyph size-20 ${index % 2 ? "rotate-6" : "-rotate-6"} ${index === 1 ? "landing-glyph-on-ink" : ""}`}
+                />
+                <p className="mt-10 text-title">{item.where}</p>
                 <p className="mt-1 text-small opacity-75">{item.what}</p>
               </li>
             ))}

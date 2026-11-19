@@ -54,7 +54,7 @@ export function How() {
         className="flex flex-col md:h-dvh md:w-max md:flex-row md:items-stretch"
       >
         <div className="flex shrink-0 flex-col justify-center px-4 pt-28 pb-12 md:w-[42vw] md:px-12 md:py-0 lg:px-20">
-          <Eyebrow number="02">How it works</Eyebrow>
+          <Eyebrow number="03">How it works</Eyebrow>
           <h2
             data-motion="lines"
             className="mt-8 text-[clamp(2.75rem,6vw,6rem)] leading-[0.92] font-bold tracking-[-0.04em]"

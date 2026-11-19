@@ -13,6 +13,7 @@
   /* Pumpkin is too pale for text on ivory, so words picked out in it use this. */
   --l-rust: #a84a17;
   --l-in: #63c08a;
+  --l-forest: #2e7d4f;
   --l-quiet: #4a4b41;
   --l-quiet-on-ink: #b4b5a8;
   --l-line: #d6d5c2;
@@ -344,4 +345,68 @@
 
 .landing-stack-card {
   will-change: transform;
+}
+
+/* The section pill: rises while reading down, steps aside on the way up. */
+.landing-pill {
+  pointer-events: none;
+  transition:
+    translate 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s,
+    visibility 0s;
+}
+.landing-pill > * {
+  pointer-events: auto;
+}
+.landing-pill[data-shown="false"] {
+  translate: 0 160%;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    translate 0.45s cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 0.3s,
+    visibility 0s 0.45s;
+}
+.landing-pill-list {
+  scrollbar-width: none;
+}
+.landing-pill-mark {
+  transition:
+    translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-pill-link {
+  transition: color 0.3s;
+}
+.landing-pill-link[aria-current="true"] {
+  color: var(--l-ink);
+}
+.landing-pill-link:not([aria-current="true"]):hover {
+  color: var(--l-pumpkin);
+}
+
+/* The drawings take their shape colours from the band they sit on. */
+.landing-glyph {
+  --glyph-fill: var(--l-pumpkin);
+  --glyph-paper: var(--l-card);
+  color: var(--l-ink);
+}
+.landing-offer-item {
+  transition: translate 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-offer-item:hover {
+  translate: 0.4rem 0;
+}
+.landing-offer-item:hover .landing-glyph {
+  rotate: -6deg;
+  scale: 1.08;
+}
+.landing-glyph {
+  transition:
+    rotate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.landing-glyph-on-ink {
+  --glyph-paper: var(--l-ink-soft);
+  color: var(--l-paper);
 }

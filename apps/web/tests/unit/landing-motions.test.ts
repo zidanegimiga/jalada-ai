@@ -8,15 +8,14 @@ const COMPONENTS = join(__dirname, "../../src/features/landing/components");
 
 /** Every effect name the landing page's markup asks for in data-motion. */
 function namesInMarkup(): string[] {
-  return readdirSync(COMPONENTS).flatMap((folder) => {
-    const source = readFileSync(
-      join(COMPONENTS, folder, `${folder}.tsx`),
-      "utf8",
-    );
-    return [...source.matchAll(/data-motion="([^"]+)"/g)].flatMap((match) =>
-      match[1].split(" "),
-    );
-  });
+  return readdirSync(COMPONENTS, { recursive: true, encoding: "utf8" })
+    .filter((path) => path.endsWith(".tsx"))
+    .flatMap((path) => {
+      const source = readFileSync(join(COMPONENTS, path), "utf8");
+      return [...source.matchAll(/data-motion="([^"]+)"/g)].flatMap((match) =>
+        match[1].split(" "),
+      );
+    });
 }
 
 describe("landing motions", () => {
