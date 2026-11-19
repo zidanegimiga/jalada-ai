@@ -1,21 +1,56 @@
+import { BalanceLine } from "@/shared/components/BalanceLine";
+import { ChartViews } from "@/shared/components/ChartViews";
 import { FolderCard } from "@/shared/components/FolderCard";
-import { InOutChart, type InOutPoint } from "@/shared/components/InOutChart";
+import { InOutChart } from "@/shared/components/InOutChart";
+import { PurposeColumns } from "@/shared/components/PurposeColumns";
 import { Skeleton, SkeletonText } from "@/shared/components/Skeleton";
+import { YearWheel } from "@/shared/components/YearWheel";
 
-/** Money in and out over several months, on an ink folder whose tab names the period. */
+import type { MonthPoint } from "../../charts";
+
+/**
+ * Money in and out over several months, on an ink folder whose tab names the period. The
+ * same months can be seen as bars, as what was kept, split by business and personal, or
+ * around a wheel.
+ */
 export function MoneyChartCard({
   tab,
   points,
-  current,
+  current = points.length - 1,
 }: {
   tab: string;
-  points: InOutPoint[];
+  points: MonthPoint[];
   /** Which point is now, when later ones are still to come. */
   current?: number;
 }) {
+  const sofar = points.slice(0, current + 1);
   return (
     <FolderCard tab={tab} aria-label={`Money in and out, ${tab.toLowerCase()}`}>
-      <InOutChart points={points} current={current} />
+      <ChartViews
+        label="Show the months as"
+        views={[
+          {
+            value: "bars",
+            label: "Bars",
+            content: <InOutChart points={points} current={current} />,
+          },
+          {
+            value: "kept",
+            label: "Kept",
+            content: <BalanceLine points={points} current={current} />,
+          },
+          {
+            value: "purpose",
+            label: "Business",
+            content: <PurposeColumns points={sofar} />,
+          },
+          {
+            value: "wheel",
+            label: "Wheel",
+            content: <YearWheel points={sofar} />,
+          },
+        ]}
+      />
     </FolderCard>
   );
 }
