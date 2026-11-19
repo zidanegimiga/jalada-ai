@@ -55,7 +55,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-18 max-w-[90rem] items-center justify-between gap-4 px-4 md:px-8">
         <Link
           href="/"
-          className="flex min-h-tap items-center gap-2.5 text-lead font-bold"
+          className="flex min-h-tap min-w-tap items-center gap-2.5 text-lead font-bold"
         >
           <Image
             src="/mark.webp"

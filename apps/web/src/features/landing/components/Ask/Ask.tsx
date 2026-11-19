@@ -16,10 +16,9 @@ export function Ask() {
         aria-hidden="true"
         data-motion="parallax"
         data-speed="-0.3"
-        className="pointer-events-none absolute -right-[10vw] top-10 text-[clamp(14rem,36vw,34rem)] leading-none font-bold tracking-[-0.06em] text-white/[0.035]"
-      >
-        ?
-      </div>
+        data-ghost="?"
+        className="landing-ghost pointer-events-none absolute -right-[10vw] top-10 text-[clamp(14rem,36vw,34rem)] leading-none text-white/[0.035]"
+      />
       <div className="relative mx-auto grid max-w-[90rem] gap-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-24">
         <div>
           <Eyebrow number="04">Ask</Eyebrow>

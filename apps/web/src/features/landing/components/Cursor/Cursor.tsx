@@ -20,7 +20,7 @@ export function Cursor() {
   useEffect(() => {
     const element = dot.current;
     if (!element || !matchMedia("(pointer: fine)").matches) return;
-    document.documentElement.dataset.cursor = "custom";
+    document.documentElement.dataset.pointer = "custom";
     const x = gsap.quickTo(element, "x", {
       duration: 0.35,
       ease: "power3.out",
@@ -34,8 +34,10 @@ export function Cursor() {
       x(event.clientX);
       y(event.clientY);
       const target = event.target instanceof Element ? event.target : null;
+      // Only parts of the landing page name a word, never the page root.
       const word =
-        target?.closest<HTMLElement>("[data-cursor]")?.dataset.cursor ?? "";
+        target?.closest<HTMLElement>("[data-landing] [data-cursor]")?.dataset
+          .cursor ?? "";
       if (target?.closest(PRESSABLE)) {
         setState("press");
       } else if (word) {
@@ -49,7 +51,7 @@ export function Cursor() {
     window.addEventListener("pointermove", move);
     document.documentElement.addEventListener("pointerleave", leave);
     return () => {
-      delete document.documentElement.dataset.cursor;
+      delete document.documentElement.dataset.pointer;
       window.removeEventListener("pointermove", move);
       document.documentElement.removeEventListener("pointerleave", leave);
     };

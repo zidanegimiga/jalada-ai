@@ -52,15 +52,14 @@ export function Promises() {
               style={{ top: `calc(5.5rem + ${index} * 1.25rem)` }}
             >
               <div className="flex items-start justify-between gap-6">
-                <p className="font-mono text-small tracking-[0.2em] uppercase opacity-70">
+                <p className="font-mono text-small tracking-[0.2em] uppercase">
                   0{index + 1} / 0{PROMISES.length}
                 </p>
                 <span
                   aria-hidden="true"
-                  className="text-[clamp(6rem,16vw,15rem)] leading-[0.75] font-bold tracking-[-0.06em] opacity-10"
-                >
-                  0{index + 1}
-                </span>
+                  data-ghost={`0${index + 1}`}
+                  className="landing-ghost text-[clamp(6rem,16vw,15rem)] leading-[0.75] opacity-10"
+                />
               </div>
               <div>
                 <h3 className="max-w-3xl text-[clamp(2.25rem,5vw,4.75rem)] leading-[0.95] font-bold tracking-[-0.035em]">

@@ -16,10 +16,9 @@ function Picture({ index, detail }: { index: number; detail: string[] }) {
     >
       <span
         aria-hidden="true"
-        className="absolute text-[clamp(10rem,22vw,20rem)] leading-none font-bold tracking-[-0.06em] text-white/[0.06]"
-      >
-        {STEPS[index].number}
-      </span>
+        data-ghost={STEPS[index].number}
+        className="landing-ghost absolute text-[clamp(10rem,22vw,20rem)] leading-none text-white/[0.06]"
+      />
       <ul className="relative flex max-w-xs flex-wrap justify-center gap-3">
         {detail.map((item, position) => (
           <li

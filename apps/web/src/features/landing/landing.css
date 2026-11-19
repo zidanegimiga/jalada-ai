@@ -186,8 +186,8 @@
   opacity: 1;
 }
 @media (pointer: fine) {
-  :root[data-cursor="custom"] [data-landing],
-  :root[data-cursor="custom"] [data-landing] * {
+  :root[data-pointer="custom"] [data-landing],
+  :root[data-pointer="custom"] [data-landing] * {
     cursor: none;
   }
 }
@@ -330,6 +330,16 @@
 }
 .landing-question[open] .landing-plus {
   rotate: 45deg;
+}
+
+/* Big numbers and marks drawn behind the content. They are decoration, so the text lives
+ * in CSS rather than the page, where screen readers and contrast checks would read it. */
+.landing-ghost {
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+.landing-ghost::before {
+  content: attr(data-ghost);
 }
 
 .landing-stack-card {
