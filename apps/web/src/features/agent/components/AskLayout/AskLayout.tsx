@@ -33,7 +33,7 @@ export function AskLayout(props: AskLayoutProps) {
   const [open, setOpen] = useState(false);
   return (
     <ThreadAnswered value={answered}>
-      <div className="flex min-h-[calc(100dvh-13.5rem-env(safe-area-inset-top))] flex-1 flex-col gap-6 lg:min-h-[calc(100dvh-6.5rem)]">
+      <div className="flex min-h-[calc(100dvh-13.5rem-env(safe-area-inset-top))] flex-1 flex-col gap-6 lg:min-h-[calc(100dvh-4rem)] lg:pt-10">
         <div className="flex items-center gap-2">
           <h1 className="mr-auto text-display">Ask</h1>
           {current && (

@@ -8,6 +8,7 @@ import { ConsentChoice } from "@/features/consent/components/ConsentChoice";
 import { getModelConsent } from "@/features/consent/server/get-model-consent";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { Skeleton } from "@/shared/components/Skeleton";
+import { PageHeader } from "@/app/(app)/_components/PageHeader";
 
 type AskSearch = Promise<{ thread?: string }>;
 
@@ -21,7 +22,7 @@ async function Conversation({ search }: { search: AskSearch }) {
   if (threads === null) {
     return (
       <div className="mx-auto flex w-full max-w-content flex-col gap-section">
-        <h1 className="text-display">Ask</h1>
+        <PageHeader title="Ask" back={{ href: "/", label: "Home" }} />
         <EmptyState Icon={MessageCircle} title="Not available yet">
           <p>Asking about your records is not switched on here yet.</p>
         </EmptyState>
@@ -47,7 +48,7 @@ function ConversationSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="flex min-h-[calc(100dvh-13.5rem)] flex-col gap-6 lg:min-h-[calc(100dvh-6.5rem)]"
+      className="flex min-h-[calc(100dvh-13.5rem)] flex-col gap-6 lg:min-h-[calc(100dvh-4rem)] lg:pt-10"
     >
       <h1 className="text-display">Ask</h1>
       <div className="flex flex-1 flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem]">

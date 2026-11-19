@@ -17,6 +17,7 @@ import { getTelegramStatus } from "@/features/telegram/server/get-telegram-statu
 import { Avatar } from "@/shared/components/Avatar";
 import { buttonVariants } from "@/shared/components/Button";
 import { Skeleton, SkeletonText } from "@/shared/components/Skeleton";
+import { PageHeader } from "@/app/(app)/_components/PageHeader";
 
 const IDENTITY =
   "flex items-center gap-4 rounded-card border border-border bg-card p-card";
@@ -68,7 +69,7 @@ async function Telegram() {
 export default function AccountPage() {
   return (
     <div className="mx-auto flex w-full max-w-content flex-col gap-section">
-      <h1 className="text-display">Account</h1>
+      <PageHeader title="Account" back={{ href: "/", label: "Home" }} />
       <Suspense fallback={<IdentitySkeleton />}>
         <Identity />
       </Suspense>

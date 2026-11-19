@@ -29,6 +29,18 @@ import {
 import type { LedgerQuery } from "@/features/ledger/types";
 import { nairobiMonth } from "@/shared/format/nairobi";
 
+import { PageHeader } from "../_components/PageHeader";
+
+const JUMPS = [
+  { href: "#entries", label: "Entries" },
+  { href: "#year", label: "This year" },
+  { href: "#categories", label: "By category" },
+  { href: "#workbook", label: "Tax-year workbook" },
+];
+
+/** Room for the sticky header when a jump lands on a section. */
+const LANDING = "scroll-mt-48";
+
 /** Today's year, read per request rather than frozen in at build time. */
 async function Export() {
   await connection();
@@ -121,7 +133,11 @@ export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
   const query = searchParams as Promise<LedgerQuery>;
   return (
     <>
-      <h1 className="text-display">Ledger</h1>
+      <PageHeader
+        title="Ledger"
+        back={{ href: "/", label: "Home" }}
+        jumps={JUMPS}
+      />
       <div className="flex flex-col gap-section xl:grid xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] xl:items-start">
         <div className="contents xl:flex xl:flex-col xl:gap-section">
           <div className="order-2 xl:order-none">
@@ -129,24 +145,27 @@ export default function LedgerPage({ searchParams }: PageProps<"/ledger">) {
               <LedgerFilters />
             </Suspense>
           </div>
-          <div className="order-3 flex flex-col gap-section xl:order-none">
+          <div
+            id="entries"
+            className={`order-3 flex flex-col gap-section xl:order-none ${LANDING}`}
+          >
             <Suspense fallback={<LedgerListSkeleton />}>
               <Entries query={query} />
             </Suspense>
           </div>
         </div>
-        <div className="contents xl:sticky xl:top-8 xl:flex xl:flex-col xl:gap-section">
-          <div className="order-1 xl:order-none">
+        <div className="contents xl:flex xl:flex-col xl:gap-section">
+          <div id="year" className={`order-1 xl:order-none ${LANDING}`}>
             <Suspense fallback={<MoneyChartCardSkeleton tab="This year" />}>
               <YearChart />
             </Suspense>
           </div>
-          <div className="order-4 xl:order-none">
+          <div id="categories" className={`order-4 xl:order-none ${LANDING}`}>
             <Suspense fallback={<CategoriesCardSkeleton tab="This year" />}>
               <Categories query={query} />
             </Suspense>
           </div>
-          <div className="order-5 xl:order-none">
+          <div id="workbook" className={`order-5 xl:order-none ${LANDING}`}>
             <Suspense fallback={<ExportCardSkeleton />}>
               <Export />
             </Suspense>

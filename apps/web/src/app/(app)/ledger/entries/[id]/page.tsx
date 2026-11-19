@@ -1,5 +1,3 @@
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -11,6 +9,7 @@ import { EntryHistory } from "@/features/ledger/components/EntryHistory";
 import { getEntry } from "@/features/ledger/server/queries";
 import { EditEntry } from "@/features/review/components/EditEntry";
 import { getCategories } from "@/features/review/server/queries";
+import { PageHeader } from "@/app/(app)/_components/PageHeader";
 
 async function Entry({ params }: { params: Promise<{ id: string }> }) {
   const [detail, categories] = await Promise.all([
@@ -35,13 +34,10 @@ export default function EntryPage({
 }: PageProps<"/ledger/entries/[id]">) {
   return (
     <div className="mx-auto flex w-full max-w-content flex-col gap-section">
-      <Link
-        href="/ledger"
-        className="inline-flex min-h-tap w-fit items-center gap-2 font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft aria-hidden="true" className="size-icon" />
-        Ledger
-      </Link>
+      <PageHeader
+        eyebrow="Payment"
+        back={{ href: "/ledger", label: "Ledger" }}
+      />
       <Suspense fallback={<EntryDetailSkeleton />}>
         <Entry params={params} />
       </Suspense>
