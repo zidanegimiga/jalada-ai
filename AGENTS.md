@@ -51,6 +51,6 @@ Users have scattered income, many small payments, and often small or basic phone
 Docs use short, plain sentences. No em dashes and no emojis. Spell out every acronym the first time and say what it means.
 
 ## Where things are
-- `apps/api`: the FastAPI service and the `jalada` package: `core/`, `shared/`, `modules/`, and at the top the pieces that bring the modules together (`app.py`, `composition.py`, `services.py`, `unit_of_work.py`, `tables.py`). `apps/worker`: runs pipeline jobs. `apps/web`: the Next.js app: `src/app`, `src/features`, `src/shared`, and `tests/`.
+- `apps/api`: the FastAPI service and the `jalada` package: `core/`, `shared/`, `modules/`, and at the top the pieces that bring the modules together (`app.py`, `composition.py`, `services.py`, `unit_of_work.py`, `tables.py`). `apps/worker`: runs pipeline jobs. `apps/web`: the Next.js app: `src/app`, `src/features`, `src/shared`, and `tests/`. `apps/desktop`: the Electron app that works offline (decision 0029): `src/main` (database, sync and network), `src/preload` (the bridge), `src/renderer` (the window) and `src/shared`.
 - `docs/adr/`: decisions. `docs/design/`: design documents. `docs/domain/`: notes on Kenyan tax, M-Pesa messages and withholding certificates, to verify rather than treat as tax advice.
 - `evals/`: invented fixtures and the pipeline scoring script. `infra/`: docker compose.
