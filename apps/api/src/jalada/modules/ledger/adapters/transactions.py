@@ -8,12 +8,14 @@ from sqlalchemy.orm import Session as DbSession
 
 from jalada.core.database.changes import CURRENT_TRANSACTION
 from jalada.modules.ledger.adapters import transaction_rows, transaction_totals
+from jalada.modules.ledger.adapters.change_rows import changed_after
 from jalada.modules.ledger.adapters.tables import (
     TransactionEvidenceRow,
     TransactionLineRow,
     TransactionRow,
 )
 from jalada.modules.ledger.domain.categories import Direction
+from jalada.modules.ledger.domain.changes import ChangePosition
 from jalada.modules.ledger.domain.ledger import (
     CategoryTotal,
     LedgerFilter,
@@ -42,6 +44,22 @@ class SqlTransactions:
         self._db.flush()
         self._save_lines(transaction)
         self._add_links(transaction)
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Transaction]]:
+        rows = list(
+            self._db.scalars(
+                self._mine()
+                .where(*changed_after(TransactionRow, after, until))
+                .order_by(TransactionRow.changed_in, TransactionRow.id)
+                .limit(limit)
+            )
+        )
+        loaded = transaction_rows.load(self._db, rows)
+        return [
+            (ChangePosition(row.changed_in, row.id), t) for row, t in zip(rows, loaded, strict=True)
+        ]
 
     def get(self, transaction_id: UUID) -> Transaction | None:
         found = self._load(self._mine().where(TransactionRow.id == transaction_id))

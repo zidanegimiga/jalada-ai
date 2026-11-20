@@ -17,9 +17,11 @@ from sqlalchemy.orm import Session as DbSession
 from jalada.core.database.changes import CURRENT_TRANSACTION
 from jalada.core.database.text_search import contains_pattern
 from jalada.modules.ledger.adapters import entry_totals
+from jalada.modules.ledger.adapters.change_rows import changed_after
 from jalada.modules.ledger.adapters.tables import EntryRevisionRow, EntryRow
 from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.changes import ChangePosition
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import (
     CategoryTotal,
@@ -42,6 +44,17 @@ class SqlEntryRepository:
         self._check_owner(entry)
         self._db.add(EntryRow(**asdict(entry)))
         self._db.flush()
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Entry]]:
+        rows = self._db.scalars(
+            self._mine()
+            .where(*changed_after(EntryRow, after, until))
+            .order_by(EntryRow.changed_in, EntryRow.id)
+            .limit(limit)
+        )
+        return [(ChangePosition(row.changed_in, row.id), _to_entry(row)) for row in rows]
 
     def get(self, entry_id: UUID) -> Entry | None:
         return self._one(self._mine().where(EntryRow.id == entry_id))

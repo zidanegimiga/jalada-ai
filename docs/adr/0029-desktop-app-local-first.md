@@ -54,7 +54,7 @@ A desktop app should keep working offline: show the ledger, take new evidence an
 **Server changes this needs**, each its own slice:
 - An `Idempotency-Key` header on the write routes the desktop uses, with results kept for 24 hours.
 - A `version` on entries, checked on edits and confirmations.
-- `GET /v1/sync/changes?since=` returning changed entries and evidence, with a cursor.
+- `GET /v1/sync/entries?after=` returning every entry saved since a position, in any state, with the position to ask from next time. Each save records the database transaction that made it, and the feed only returns saves from transactions that have finished. A save still in progress is returned on a later read, never skipped, which ordering by a counter or a clock could not promise. Nothing is deleted on the server, so the feed has no deletions: an entry that leaves the ledger arrives with its new status.
 
 **Sign-in.** The desktop app signs in through the system browser, as recommended for native apps (RFC 8252), and receives a device session through a `jalada://` link. That way passkeys, security keys and Google sign-in all work exactly as on the web, with the system's own prompts. WebAuthn itself gets its own decision.
 

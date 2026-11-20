@@ -471,6 +471,63 @@
         "title": "Direction",
         "type": "string"
       },
+      "EntryChangeResponse": {
+        "properties": {
+          "entry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntryResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "entry"
+        ],
+        "title": "EntryChangeResponse",
+        "type": "object"
+      },
+      "EntryChangesResponse": {
+        "description": "Entries saved since `after`, oldest first. Keep `next` and send it as `after` next\ntime; when `more` is true, ask again straight away.",
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/EntryChangeResponse"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "more": {
+            "title": "More",
+            "type": "boolean"
+          },
+          "next": {
+            "title": "Next",
+            "type": "string"
+          }
+        },
+        "required": [
+          "changes",
+          "next",
+          "more"
+        ],
+        "title": "EntryChangesResponse",
+        "type": "object"
+      },
       "EntryDetailResponse": {
         "description": "One payment with the evidence linked to it and its history, oldest first.",
         "properties": {
@@ -4366,6 +4423,72 @@
         "summary": "Read Monthly Summary",
         "tags": [
           "ledger"
+        ]
+      }
+    },
+    "/v1/sync/entries": {
+      "get": {
+        "description": "Every entry saved since `after`, in any state, so a device can keep its copy up to\ndate. Leave `after` out the first time to get everything.",
+        "operationId": "read_entry_changes_v1_sync_entries_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryChangesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Entry Changes",
+        "tags": [
+          "sync"
         ]
       }
     },

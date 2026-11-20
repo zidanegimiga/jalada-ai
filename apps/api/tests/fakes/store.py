@@ -49,6 +49,8 @@ class Store:
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)
     money_accounts: dict[UUID, MoneyAccount] = field(default_factory=dict)
     transactions: dict[UUID, Transaction] = field(default_factory=dict)
+    # Entry and transaction id to the save that last changed it, for the change feed.
+    saved_in: dict[UUID, int] = field(default_factory=dict)
     audit_events: list[AuditEvent] = field(default_factory=list)
     suggestions: dict[UUID, MatchSuggestion] = field(default_factory=dict)
     agent_threads: dict[UUID, Thread] = field(default_factory=dict)

@@ -844,6 +844,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sync/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Entry Changes
+         * @description Every entry saved since `after`, in any state, so a device can keep its copy up to
+         *     date. Leave `after` out the first time to get everything.
+         */
+        get: operations["read_entry_changes_v1_sync_entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/telegram/link-code": {
         parameters: {
             query?: never;
@@ -1056,6 +1077,30 @@ export interface components {
          * @enum {string}
          */
         Direction: "in" | "out";
+        /** EntryChangeResponse */
+        EntryChangeResponse: {
+            entry: components["schemas"]["EntryResponse"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * EntryChangesResponse
+         * @description Entries saved since `after`, oldest first. Keep `next` and send it as `after` next
+         *     time; when `more` is true, ask again straight away.
+         */
+        EntryChangesResponse: {
+            /** Changes */
+            changes: components["schemas"]["EntryChangeResponse"][];
+            /** More */
+            more: boolean;
+            /** Next */
+            next: string;
+        };
         /**
          * EntryDetailResponse
          * @description One payment with the evidence linked to it and its history, oldest first.
@@ -3063,6 +3108,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["YearResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_entry_changes_v1_sync_entries_get: {
+        parameters: {
+            query?: {
+                after?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryChangesResponse"];
                 };
             };
             /** @description Validation Error */

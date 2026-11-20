@@ -8,6 +8,7 @@ from uuid import UUID
 from jalada.modules.ledger.application.ports import Revision
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.categories import Direction, Purpose
+from jalada.modules.ledger.domain.changes import ChangePosition
 from jalada.modules.ledger.domain.entries import Entry, EntryKind, EntryStatus
 from jalada.modules.ledger.domain.ledger import (
     CategoryTotal,
@@ -28,6 +29,34 @@ from jalada.modules.pipeline.domain.classifier import Preference
 from jalada.modules.pipeline.domain.run_types import StepRecord
 
 
+class Saves:
+    """Stands in for database transaction ids: each save takes the next number."""
+
+    def __init__(self) -> None:
+        self.last = 0
+
+    def __next__(self) -> int:
+        self.last += 1
+        return self.last
+
+
+SAVES = Saves()
+
+
+def changed_after[T: (Entry, Transaction)](
+    rows: dict[UUID, T], saved_in: dict[UUID, int], user_id: UUID, after: ChangePosition, limit: int
+) -> list[tuple[ChangePosition, T]]:
+    found = sorted(
+        (
+            (ChangePosition(saved_in.get(row.id, 0), row.id), row)
+            for row in rows.values()
+            if row.user_id == user_id
+        ),
+        key=lambda pair: pair[0],
+    )
+    return [(position, row) for position, row in found if position > after][:limit]
+
+
 class FakeEntries:
     def __init__(
         self,
@@ -35,8 +64,10 @@ class FakeEntries:
         user_id: UUID,
         revisions: list[tuple[Entry, Entry]],
         linked_payments: Collection[UUID] = (),
+        saved_in: dict[UUID, int] | None = None,
     ) -> None:
         self.rows = rows
+        self.saved_in = {} if saved_in is None else saved_in
         self._user_id = user_id
         self._revisions = revisions
         self._linked_payments = linked_payments
@@ -44,6 +75,12 @@ class FakeEntries:
     def add(self, entry: Entry) -> None:
         assert entry.user_id == self._user_id
         self.rows[entry.id] = entry
+        self.saved_in[entry.id] = next(SAVES)
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Entry]]:
+        return changed_after(self.rows, self.saved_in, self._user_id, after, limit)
 
     def get(self, entry_id: UUID) -> Entry | None:
         return next((e for e in self._mine() if e.id == entry_id), None)
@@ -55,6 +92,7 @@ class FakeEntries:
         assert entry.user_id == self._user_id and entry.id in self.rows
         # The database counts each save, whatever version the caller held.
         self.rows[entry.id] = replace(entry, version=self.rows[entry.id].version + 1)
+        self.saved_in[entry.id] = next(SAVES)
 
     def add_revision(self, before: Entry, after: Entry, changed_at: datetime) -> None:
         self._revisions.append((before, after))
@@ -198,8 +236,10 @@ class FakeTransactions:
         rows: dict[UUID, Transaction],
         user_id: UUID,
         linked_payments: Collection[UUID] = (),
+        saved_in: dict[UUID, int] | None = None,
     ) -> None:
         self.rows = rows
+        self.saved_in = {} if saved_in is None else saved_in
         self._user_id = user_id
         self._linked_payments = linked_payments
 
@@ -210,6 +250,12 @@ class FakeTransactions:
         mine = [t for t in self.rows.values() if t.user_id == self._user_id]
         assert not code or code not in {t.payment_code for t in mine}, "the database refuses it"
         self.rows[transaction.id] = transaction
+        self.saved_in[transaction.id] = next(SAVES)
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Transaction]]:
+        return changed_after(self.rows, self.saved_in, self._user_id, after, limit)
 
     def get(self, transaction_id: UUID) -> Transaction | None:
         found = self.rows.get(transaction_id)
@@ -316,6 +362,7 @@ class FakeTransactions:
         self.rows[transaction.id] = replace(
             transaction, evidence=kept + transaction.evidence, version=old.version + 1
         )
+        self.saved_in[transaction.id] = next(SAVES)
 
     def unlink(self, transaction_id: UUID, evidence_id: UUID) -> None:
         found = self.get(transaction_id)
