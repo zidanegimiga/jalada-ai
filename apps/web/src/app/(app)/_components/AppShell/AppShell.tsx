@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { ConnectionStatus } from "@/features/offline/components/ConnectionStatus";
 import { Skeleton } from "@/shared/components/Skeleton";
 
 import { AppHeader } from "../AppHeader";
@@ -38,6 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="flex flex-1 flex-col lg:h-dvh lg:overflow-y-auto lg:overscroll-contain"
       >
         <AppHeader />
+        <ConnectionStatus />
         <main className="mx-auto flex w-full max-w-page flex-1 flex-col px-gutter pt-6 pb-32 lg:max-w-content lg:pt-0 lg:pb-16 xl:max-w-wide">
           <PageTransition>
             <div className="flex flex-col gap-section">{children}</div>

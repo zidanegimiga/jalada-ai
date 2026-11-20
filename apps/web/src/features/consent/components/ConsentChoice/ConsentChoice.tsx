@@ -100,8 +100,11 @@ export function ConsentChoice({ consent, place }: ConsentChoiceProps) {
           questions, Jalada AI sends your receipts, M-Pesa messages and
           questions to a language model provider outside Kenya:
         </p>
+
         <p className="rounded-control bg-muted px-4 py-3 text-foreground">
-          {consent.notice}
+          {consent.notice === "the language model provider set up for this app"
+            ? "Gemini"
+            : consent.notice}
         </p>
         <p>
           Without this, photos are read on Jalada AI&apos;s side only, and Ask

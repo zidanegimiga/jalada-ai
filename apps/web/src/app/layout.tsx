@@ -4,6 +4,8 @@ import { Martian_Mono, Onest } from "next/font/google";
 import { ClickSounds } from "@/app/_components/ClickSounds";
 import { Splash, SplashScript } from "@/app/_components/Splash";
 import { ThemeScript } from "@/app/_components/ThemeScript";
+import { InstallPromptCatcher } from "@/features/install/components/InstallPromptCatcher";
+import { ServiceWorkerSetup } from "@/features/offline/components/ServiceWorkerSetup";
 import { THEME_COLOURS } from "@/shared/theme/theme";
 
 import "./globals.css";
@@ -49,6 +51,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Splash />
         <ClickSounds />
+        {/* Development reloads must never be served stale code (decision 0028). */}
+        <InstallPromptCatcher />
+        <ServiceWorkerSetup enabled={process.env.NODE_ENV === "production"} />
         {children}
       </body>
     </html>
