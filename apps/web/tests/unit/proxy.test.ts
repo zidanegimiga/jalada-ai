@@ -26,9 +26,12 @@ describe("proxy", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
-  it("sends signed-out visitors to sign in from any other page", () => {
+  it("sends signed-out visitors to sign in, and back to the page afterwards", () => {
     expect(visit("/ledger").headers.get("location")).toBe(
-      "http://localhost/signin",
+      "http://localhost/signin?next=%2Fledger",
+    );
+    expect(visit("/desktop/sign-in?state=abc").headers.get("location")).toBe(
+      "http://localhost/signin?next=%2Fdesktop%2Fsign-in%3Fstate%3Dabc",
     );
   });
 
