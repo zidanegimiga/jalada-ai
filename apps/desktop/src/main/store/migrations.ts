@@ -37,6 +37,8 @@ const STEPS: string[] = [
      settled_at TEXT
    );
    CREATE INDEX changes_waiting ON changes (state, seq);`,
+  // 3: the server's version of each entry, sent back with edits made here.
+  `ALTER TABLE entries ADD COLUMN version INTEGER NOT NULL DEFAULT 0;`,
 ];
 
 export const LATEST = STEPS.length;

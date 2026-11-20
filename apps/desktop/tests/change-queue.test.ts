@@ -293,7 +293,7 @@ describe("changes made in the app", () => {
     return { ledger, ports };
   }
   const emptyLedger = () =>
-    new Response(JSON.stringify({ items: [], next_cursor: null }));
+    new Response(JSON.stringify({ changes: [], next: "p1", more: false }));
 
   it("are kept offline and sent before the ledger is refreshed", async () => {
     const fetch = vi.fn<Fetch>().mockRejectedValue(new TypeError("offline"));
@@ -310,7 +310,7 @@ describe("changes made in the app", () => {
 
     expect(fetch.mock.calls.map(([url]) => new URL(url).pathname)).toEqual([
       "/v1/evidence/text",
-      "/v1/entries",
+      "/v1/sync/entries",
     ]);
     expect(ledger.changes()).toMatchObject([{ state: "confirmed" }]);
     ledger.switchTo(null);
@@ -321,7 +321,7 @@ describe("changes made in the app", () => {
     const fetch = vi
       .fn<Fetch>()
       .mockImplementation(async (url) =>
-        new URL(url).pathname === "/v1/entries" ? emptyLedger() : answer(),
+        new URL(url).pathname === "/v1/sync/entries" ? emptyLedger() : answer(),
       );
     const { ledger, ports } = sync(fetch);
     ledger.addChange("pasted_message", message(1));
@@ -354,7 +354,9 @@ describe("changes made in the app", () => {
     const fetch = vi
       .fn<Fetch>()
       .mockImplementation(async (url) =>
-        new URL(url).pathname === "/v1/entries" ? emptyLedger() : accepted(),
+        new URL(url).pathname === "/v1/sync/entries"
+          ? emptyLedger()
+          : accepted(),
       );
     const { ledger } = sync(fetch);
     const running = ledger.pull();

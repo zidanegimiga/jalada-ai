@@ -9,7 +9,8 @@ import type { ServerEntry } from "../src/main/store/entries";
 import type { KeyProtector } from "../src/main/store/key";
 import { LocalStore, type OpenStore } from "../src/main/store/local-store";
 import { LedgerSync } from "../src/main/sync/ledger-sync";
-import { LAST_PULLED, pullLedger } from "../src/main/sync/pull-ledger";
+import { copyWholeLedger } from "../src/main/sync/copy-ledger";
+import { LAST_PULLED } from "../src/main/sync/pull-ledger";
 
 const keychain: KeyProtector = {
   isSecure: () => true,
@@ -59,7 +60,7 @@ function openStore(): OpenStore {
   return store;
 }
 
-describe("pulling the ledger", () => {
+describe("copying the whole ledger from a server without the change feed", () => {
   it("copies every page, sending the session as a Bearer token", async () => {
     const store = openStore();
     const fetch = vi
@@ -67,7 +68,7 @@ describe("pulling the ledger", () => {
       .mockResolvedValueOnce(page([entry(1), entry(2)], "next"))
       .mockResolvedValueOnce(page([entry(3)], null));
 
-    const result = await pullLedger({
+    const result = await copyWholeLedger({
       apiOrigin: API,
       token: "t0ken",
       store,
@@ -95,7 +96,7 @@ describe("pulling the ledger", () => {
       .mockResolvedValueOnce(page([entry(1)], "next"))
       .mockRejectedValueOnce(new TypeError("offline"));
 
-    const result = await pullLedger({
+    const result = await copyWholeLedger({
       apiOrigin: API,
       token: "t",
       store,
@@ -114,7 +115,7 @@ describe("pulling the ledger", () => {
       .fn()
       .mockResolvedValue(new Response("{}", { status: 401 }));
 
-    const result = await pullLedger({
+    const result = await copyWholeLedger({
       apiOrigin: API,
       token: "old",
       store: openStore(),
@@ -126,14 +127,22 @@ describe("pulling the ledger", () => {
   });
 });
 
-describe("keeping the ledger on this computer", () => {
+describe("keeping the ledger on this computer, from an older server", () => {
   type Fetch = (url: string, init: RequestInit) => Promise<Response>;
+
+  /** A server from before the change feed, so the whole ledger is copied each time. */
+  const withoutFeed =
+    (fetch: Mock<Fetch>): Fetch =>
+    (url, init) =>
+      new URL(url).pathname === "/v1/sync/entries"
+        ? Promise.resolve(new Response("{}", { status: 404 }))
+        : fetch(url, init);
 
   function sync(fetch: Mock<Fetch>, store: LocalStore = localStore()) {
     const ports = {
       apiOrigin: API,
       store,
-      fetch,
+      fetch: withoutFeed(fetch),
       token: () => "t",
       sessionEnded: vi.fn(),
       changed: vi.fn(),
