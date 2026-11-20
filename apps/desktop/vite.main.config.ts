@@ -13,6 +13,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         "electron",
+        // A native module: loaded from node_modules at run time, never bundled.
+        "better-sqlite3-multiple-ciphers",
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
       ],
