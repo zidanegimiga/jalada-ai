@@ -32,6 +32,9 @@ class CorrectionRequest(BaseModel):
     direction: Direction | None = None
     counterparty: str | None = Field(default=None, max_length=200)
     category: str | None = None
+    # The version the edit was made from. When the entry has changed since, it is refused
+    # with 409 and the current copy, instead of undoing that change.
+    version: int | None = Field(default=None, ge=1)
 
     def to_correction(self) -> Correction:
         return Correction(
@@ -57,6 +60,8 @@ class EntryResponse(BaseModel):
     category: str | None
     category_name: str | None
     confidence: float
+    # Goes up by one each time the entry is saved. Send it back with an edit.
+    version: int
     # True when the category is only a suggestion: the user should check it, not just confirm.
     category_suggested: bool = False
     # Set on a payment linked to a withholding certificate.
@@ -85,7 +90,25 @@ class EntryResponse(BaseModel):
             category=entry.category,
             category_name=category.name if category else None,
             confidence=entry.confidence,
+            version=entry.version,
         )
+
+
+class ConfirmRequest(BaseModel):
+    # As for a correction: the version the person saw when confirming.
+    version: int | None = Field(default=None, ge=1)
+
+
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+
+
+class ChangedElsewhereResponse(BaseModel):
+    """The edit was made from an older copy. Nothing changed; here is the entry as it is."""
+
+    error: ErrorDetail
+    current: EntryResponse
 
 
 class SuggestedMatchResponse(BaseModel):

@@ -42,6 +42,9 @@ class Entry:
     confirmed_at: datetime | None = None
     # From withholding certificates: the payer's KRA PIN.
     payer_tax_number: str | None = None
+    # Goes up by one every time the entry is saved. An edit made from an older copy, such as
+    # one queued offline, is refused rather than undoing what changed since (decision 0029).
+    version: int = 1
 
 
 def counterparty_key(name: str) -> str:

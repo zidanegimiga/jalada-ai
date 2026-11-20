@@ -14,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session as DbSession
 
+from jalada.core.database.changes import CURRENT_TRANSACTION
 from jalada.core.database.text_search import contains_pattern
 from jalada.modules.ledger.adapters import entry_totals
 from jalada.modules.ledger.adapters.tables import EntryRevisionRow, EntryRow
@@ -50,11 +51,11 @@ class SqlEntryRepository:
 
     def update(self, entry: Entry) -> None:
         self._check_owner(entry)
-        values = {k: v for k, v in asdict(entry).items() if k not in ("id", "user_id")}
+        values = {k: v for k, v in asdict(entry).items() if k not in ("id", "user_id", "version")}
         self._db.execute(
             update(EntryRow)
             .where(EntryRow.user_id == self._user_id, EntryRow.id == entry.id)
-            .values(**values)
+            .values(**values, version=EntryRow.version + 1, changed_in=CURRENT_TRANSACTION)
         )
 
     def add_revision(self, before: Entry, after: Entry, changed_at: datetime) -> None:
@@ -185,4 +186,5 @@ def _to_entry(row: EntryRow) -> Entry:
         created_at=row.created_at,
         confirmed_at=row.confirmed_at,
         payer_tax_number=row.payer_tax_number,
+        version=row.version,
     )

@@ -75,6 +75,7 @@ def _transaction(
         lines=tuple(lines),
         evidence=tuple(links),
         to_account_id=row.to_account_id,
+        version=row.version,
     )
 
 

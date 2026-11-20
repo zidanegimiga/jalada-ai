@@ -6,6 +6,7 @@ from sqlalchemy import Select, and_, delete, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session as DbSession
 
+from jalada.core.database.changes import CURRENT_TRANSACTION
 from jalada.modules.ledger.adapters import transaction_rows, transaction_totals
 from jalada.modules.ledger.adapters.tables import (
     TransactionEvidenceRow,
@@ -118,11 +119,13 @@ class SqlTransactions:
 
     def update(self, transaction: Transaction) -> None:
         self._check_owner(transaction)
-        values = {k: v for k, v in _fields(transaction).items() if k not in ("id", "user_id")}
+        values = {
+            k: v for k, v in _fields(transaction).items() if k not in ("id", "user_id", "version")
+        }
         updated = self._db.execute(
             update(TransactionRow)
             .where(TransactionRow.user_id == self._user_id, TransactionRow.id == transaction.id)
-            .values(**values)
+            .values(**values, version=TransactionRow.version + 1, changed_in=CURRENT_TRANSACTION)
         )
         # Lines and links below are keyed by transaction id alone, so stop unless the row
         # above was this user's.

@@ -53,7 +53,8 @@ class FakeEntries:
 
     def update(self, entry: Entry) -> None:
         assert entry.user_id == self._user_id and entry.id in self.rows
-        self.rows[entry.id] = entry
+        # The database counts each save, whatever version the caller held.
+        self.rows[entry.id] = replace(entry, version=self.rows[entry.id].version + 1)
 
     def add_revision(self, before: Entry, after: Entry, changed_at: datetime) -> None:
         self._revisions.append((before, after))
@@ -312,7 +313,9 @@ class FakeTransactions:
             raise LookupError("No such transaction for this user")
         known = {link.evidence_id for link in transaction.evidence}
         kept = tuple(link for link in old.evidence if link.evidence_id not in known)
-        self.rows[transaction.id] = replace(transaction, evidence=kept + transaction.evidence)
+        self.rows[transaction.id] = replace(
+            transaction, evidence=kept + transaction.evidence, version=old.version + 1
+        )
 
     def unlink(self, transaction_id: UUID, evidence_id: UUID) -> None:
         found = self.get(transaction_id)

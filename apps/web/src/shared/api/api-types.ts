@@ -964,6 +964,14 @@ export interface components {
             /** Suggestions */
             suggestions: components["schemas"]["EntryResponse"][];
         };
+        /**
+         * ChangedElsewhereResponse
+         * @description The edit was made from an older copy. Nothing changed; here is the entry as it is.
+         */
+        ChangedElsewhereResponse: {
+            current: components["schemas"]["EntryResponse"];
+            error: components["schemas"]["ErrorDetail"];
+        };
         /** ConfirmAllRequest */
         ConfirmAllRequest: {
             /** Entry Ids */
@@ -973,6 +981,11 @@ export interface components {
         ConfirmAllResponse: {
             /** Confirmed */
             confirmed: components["schemas"]["EntryResponse"][];
+        };
+        /** ConfirmRequest */
+        ConfirmRequest: {
+            /** Version */
+            version?: number | null;
         };
         /** ConsentResponse */
         ConsentResponse: {
@@ -994,6 +1007,8 @@ export interface components {
             direction?: components["schemas"]["Direction"] | null;
             /** Occurred On */
             occurred_on?: string | null;
+            /** Version */
+            version?: number | null;
         };
         /** DeleteAccountRequest */
         DeleteAccountRequest: {
@@ -1104,12 +1119,21 @@ export interface components {
             status: components["schemas"]["EntryStatus"];
             /** Tax Withheld Cents */
             tax_withheld_cents: number | null;
+            /** Version */
+            version: number;
         };
         /**
          * EntryStatus
          * @enum {string}
          */
         EntryStatus: "proposed" | "needs_review" | "confirmed" | "rejected";
+        /** ErrorDetail */
+        ErrorDetail: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
         /**
          * EvidenceKind
          * @enum {string}
@@ -2303,6 +2327,15 @@ export interface operations {
                     "application/json": components["schemas"]["EntryResponse"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedElsewhereResponse"];
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2325,7 +2358,11 @@ export interface operations {
                 jalada_session?: string | null;
             };
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2334,6 +2371,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedElsewhereResponse"];
                 };
             };
             /** @description Validation Error */

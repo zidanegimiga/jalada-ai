@@ -159,10 +159,11 @@ def test_confirming_updates_the_entry_and_keeps_the_revision(
         work.entries_for(user.id).add_revision(entry, confirmed, NOW)
         work.commit()
 
+    saved = replace(confirmed, version=2)
     with SqlUnitOfWork(session_factory) as work:
-        assert work.entries_for(user.id).get(entry.id) == confirmed
+        assert work.entries_for(user.id).get(entry.id) == saved
         assert work.entries_for(user.id).pending(10) == []
-        assert work.entries_for(user.id).for_evidence(evidence.id) == confirmed
+        assert work.entries_for(user.id).for_evidence(evidence.id) == saved
     with session_factory() as db:
         before, after = db.execute(text("SELECT before, after FROM entry_revisions")).one()
     assert (before["amount_cents"], after["amount_cents"]) == ("15000", "16000")

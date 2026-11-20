@@ -201,6 +201,23 @@
         "title": "CertificateResponse",
         "type": "object"
       },
+      "ChangedElsewhereResponse": {
+        "description": "The edit was made from an older copy. Nothing changed; here is the entry as it is.",
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/EntryResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error",
+          "current"
+        ],
+        "title": "ChangedElsewhereResponse",
+        "type": "object"
+      },
       "ConfirmAllRequest": {
         "properties": {
           "entry_ids": {
@@ -234,6 +251,24 @@
           "confirmed"
         ],
         "title": "ConfirmAllResponse",
+        "type": "object"
+      },
+      "ConfirmRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "title": "ConfirmRequest",
         "type": "object"
       },
       "ConsentResponse": {
@@ -317,6 +352,18 @@
               }
             ],
             "title": "Occurred On"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
           }
         },
         "title": "CorrectionRequest",
@@ -631,6 +678,10 @@
               }
             ],
             "title": "Tax Withheld Cents"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
@@ -650,7 +701,8 @@
           "purpose",
           "category",
           "category_name",
-          "confidence"
+          "confidence",
+          "version"
         ],
         "title": "EntryResponse",
         "type": "object"
@@ -664,6 +716,24 @@
         ],
         "title": "EntryStatus",
         "type": "string"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
       },
       "EvidenceKind": {
         "enum": [
@@ -3000,6 +3070,16 @@
             },
             "description": "Successful Response"
           },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangedElsewhereResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3048,6 +3128,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ConfirmRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -3058,6 +3155,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangedElsewhereResponse"
+                }
+              }
+            },
+            "description": "Conflict"
           },
           "422": {
             "content": {
