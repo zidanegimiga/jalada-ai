@@ -139,3 +139,79 @@ body {
 .failure {
   color: light-dark(#c62828, #ef6461);
 }
+
+.panel-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.small-text {
+  font-size: 0.875rem;
+}
+
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ledger-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.ledger-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.ledger-header p {
+  margin: 0;
+  flex: 1;
+}
+
+.ledger-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 1.5rem;
+  background: var(--card);
+}
+
+.ledger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+}
+
+.ledger-row + .ledger-row {
+  border-top: 1px solid light-dark(#e3e2d3, #2d2d29);
+}
+
+.ledger-who {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.ledger-who strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ledger-amount {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-amount[data-direction="in"] {
+  color: var(--money-in);
+}

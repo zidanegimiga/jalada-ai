@@ -8,6 +8,7 @@ import { CHANNELS } from "@shared/bridge";
 import { applySecurity } from "./apply-security";
 import { loadConfig } from "./config";
 import { current, watchConnection } from "./connection";
+import { startLedger, wireLedger } from "./ledger-wiring";
 import { windowPreferences } from "./security";
 import { wireSignIn } from "./sign-in-wiring";
 import { keychain } from "./store/keychain";
@@ -22,8 +23,10 @@ if (!app.requestSingleInstanceLock()) app.quit();
 
 // Each person's encrypted records, under the app's own data folder.
 const store = new LocalStore(join(app.getPath("userData"), "local"), keychain);
+// The ledger and sign-in each need the other, so the ledger asks for sign-in lazily.
+const ledger = wireLedger(config, store, () => auth);
 // Before the app is ready: macOS can hand over a sign-in link while it starts.
-wireSignIn(config, store);
+const auth = wireSignIn(config, store, (account) => ledger.switchTo(account));
 
 function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -50,9 +53,11 @@ ipcMain.handle(CHANNELS.connection, () => current());
 
 void app.whenReady().then(() => {
   applySecurity(session.defaultSession, config, appEntry);
+  const backOnline = startLedger(ledger, auth);
   const window = createWindow();
   watchConnection((connection) => {
     window.webContents.send(CHANNELS.connectionChanged, connection);
+    backOnline(connection);
   });
   app.on("second-instance", () => {
     if (window.isMinimized()) window.restore();

@@ -6,12 +6,17 @@ import type { Database } from "better-sqlite3-multiple-ciphers";
 import { openDatabase } from "./database";
 import { EntryStore } from "./entries";
 import { forgetKey, loadOrCreateKey, type KeyProtector } from "./key";
+import { SyncState } from "./sync-state";
 
 const ACCOUNT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** One person's records on this computer, open while they are signed in. */
-export type OpenStore = { entries: EntryStore; close: () => void };
+export type OpenStore = {
+  entries: EntryStore;
+  syncState: SyncState;
+  close: () => void;
+};
 
 /**
  * Where each person's encrypted database and sealed key live, under the app's own data
@@ -30,7 +35,11 @@ export class LocalStore {
       database,
       loadOrCreateKey(key, this.protector),
     );
-    return { entries: new EntryStore(db), close: () => db.close() };
+    return {
+      entries: new EntryStore(db),
+      syncState: new SyncState(db),
+      close: () => db.close(),
+    };
   }
 
   /** Signing out: the database, its write-ahead log and the key all go. */

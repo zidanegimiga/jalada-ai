@@ -115,7 +115,9 @@ describe("device sign-in", () => {
     await auth.finish(await linkBack(auth, ports.openInBrowser));
 
     const restarted = new DeviceAuth({ ...ports, vault });
+    expect(restarted.current()).toBeNull();
 
+    expect(restarted.restore()?.email).toBe(USER.email);
     expect(restarted.current()?.email).toBe(USER.email);
     expect(restarted.token()).toBe("t0ken");
   });

@@ -26,10 +26,17 @@ export class SignInFailed extends Error {}
  */
 export class DeviceAuth {
   private pending: SignInRequest | null = null;
-  private session: SavedSession | null;
+  private session: SavedSession | null = null;
 
-  constructor(private readonly ports: DeviceAuthPorts) {
-    this.session = ports.vault.load();
+  constructor(private readonly ports: DeviceAuthPorts) {}
+
+  /**
+   * Reads the saved session back. Only once the app is ready: before that the system
+   * keychain cannot be used, and the session would look missing.
+   */
+  restore(): Account | null {
+    this.session = this.ports.vault.load();
+    return this.current();
   }
 
   current(): Account | null {
@@ -90,8 +97,9 @@ export class DeviceAuth {
     if (!session) return;
     this.session = null;
     this.ports.vault.clear();
-    this.ports.forgetRecords(session.account.id);
+    // Told first, so the records are closed before their files are deleted.
     this.ports.changed(null);
+    this.ports.forgetRecords(session.account.id);
     try {
       await this.ports.fetch(`${this.ports.apiOrigin}/v1/auth/logout`, {
         method: "POST",

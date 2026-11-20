@@ -1,16 +1,16 @@
-import { useAccount } from "./useAccount";
+import type { AccountState } from "./useAccount";
 
 /**
  * Signing in through the browser, where passwords, Google and passkeys already work, and
  * signing out, which also removes this person's records from the computer.
  */
-export function AccountPanel() {
-  const { account, failure, waiting, signIn, signOut } = useAccount();
+export function AccountPanel({ state }: { state: AccountState }) {
+  const { account, failure, waiting, signIn, signOut } = state;
   if (account === undefined) return null;
 
   if (account) {
     return (
-      <section className="panel">
+      <section className="panel panel-row">
         <p>
           Signed in as <strong>{account.name}</strong> ({account.email}).
         </p>

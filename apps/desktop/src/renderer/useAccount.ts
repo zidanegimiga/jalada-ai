@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { Account } from "@shared/bridge";
 
-type AccountState = {
+export type AccountState = {
   /** Undefined while the main process is asked; null when nobody is signed in. */
   account: Account | null | undefined;
   /** Why the last sign-in through the browser failed, until the next attempt. */

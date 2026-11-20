@@ -3,20 +3,22 @@ import { useEffect, useState } from "react";
 import type { AppInfo } from "@shared/bridge";
 
 import { AccountPanel } from "./AccountPanel";
+import { LedgerView } from "./LedgerView";
+import { useAccount } from "./useAccount";
 import { useConnection } from "./useConnection";
 
 const CONNECTION_TEXT = {
-  online: "Online. Changes go to the server as you make them.",
-  offline:
-    "Offline. Changes stay on this computer until the connection returns.",
+  online: "Online. The copy here is kept up to date.",
+  offline: "Offline. You are reading the copy kept on this computer.",
 };
 
 /**
- * The desktop app's frame. The ledger read from this computer and the queue of changes
- * arrive in the next steps (decision 0029).
+ * The desktop app's frame: who is signed in, and their ledger read from this computer.
+ * Changes made here, queued while offline, arrive in the next step (decision 0029).
  */
 export function App() {
   const connection = useConnection();
+  const accountState = useAccount();
   const [info, setInfo] = useState<AppInfo | null>(null);
 
   useEffect(() => {
@@ -42,7 +44,8 @@ export function App() {
         </p>
         {connection && <p className="muted">{CONNECTION_TEXT[connection]}</p>}
       </section>
-      <AccountPanel />
+      <AccountPanel state={accountState} />
+      {accountState.account && <LedgerView connection={connection} />}
       {info && (
         <footer className="muted small">
           Version {info.version}. Syncs with {info.apiOrigin}.

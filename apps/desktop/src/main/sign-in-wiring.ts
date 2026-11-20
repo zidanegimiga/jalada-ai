@@ -1,23 +1,18 @@
 import { join } from "node:path";
 
-import { app, BrowserWindow, ipcMain, net, shell } from "electron";
+import { app, ipcMain, net, shell } from "electron";
 
-import { CHANNELS } from "@shared/bridge";
+import { CHANNELS, type Account } from "@shared/bridge";
 
 import { DeviceAuth } from "./auth/device-auth";
 import { SessionVault } from "./auth/session-vault";
 import type { DesktopConfig } from "./config";
 import { keychain } from "./store/keychain";
 import { LocalStore } from "./store/local-store";
+import { sendToWindows } from "./windows";
 
 /** The app's own link scheme, which the browser opens when sign-in is allowed. */
 const SCHEME = "jalada";
-
-function sendToWindows(channel: string, value: unknown): void {
-  for (const window of BrowserWindow.getAllWindows()) {
-    window.webContents.send(channel, value);
-  }
-}
 
 /** Finds a jalada:// link among the arguments Windows and Linux start a second copy with. */
 function linkIn(argv: string[]): string | undefined {
@@ -26,11 +21,13 @@ function linkIn(argv: string[]): string | undefined {
 
 /**
  * Sign-in through the browser (decision 0029): registers the jalada:// link, answers the
- * window's account questions, and finishes sign-in when the link comes back.
+ * window's account questions, and finishes sign-in when the link comes back. Tells
+ * `accountChanged` whenever someone signs in or out.
  */
 export function wireSignIn(
   config: DesktopConfig,
   store: LocalStore,
+  accountChanged: (account: Account | null) => void,
 ): DeviceAuth {
   app.setAsDefaultProtocolClient(SCHEME);
   const auth = new DeviceAuth({
@@ -45,7 +42,10 @@ export function wireSignIn(
         await shell.openExternal(url);
     },
     fetch: (url, init) => net.fetch(url, init),
-    changed: (account) => sendToWindows(CHANNELS.accountChanged, account),
+    changed: (account) => {
+      sendToWindows(CHANNELS.accountChanged, account);
+      accountChanged(account);
+    },
     forgetRecords: (accountId) => store.forget(accountId),
   });
 

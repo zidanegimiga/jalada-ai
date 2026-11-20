@@ -26,6 +26,13 @@ const bridge: JaladaBridge = {
     onChange: (changed) => listen(CHANNELS.accountChanged, changed),
     onFailed: (failed) => listen(CHANNELS.signInFailed, failed),
   },
+  ledger: {
+    list: (limit, offset) =>
+      ipcRenderer.invoke(CHANNELS.ledgerList, limit, offset),
+    status: () => ipcRenderer.invoke(CHANNELS.ledgerStatus),
+    refresh: () => ipcRenderer.invoke(CHANNELS.ledgerRefresh),
+    onChange: (changed) => listen(CHANNELS.ledgerChanged, changed),
+  },
 };
 
 contextBridge.exposeInMainWorld("jalada", bridge);
