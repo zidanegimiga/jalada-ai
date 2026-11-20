@@ -194,15 +194,13 @@ The service worker that makes the web app installable and shows the offline page
 
 ### Desktop app
 
-The desktop app talks to an API and opens the web app in your browser to sign in. It does not read `.env`; it takes two addresses, both defaulting to the live ones:
+The desktop app talks to an API and opens the web app in your browser to sign in. Run from source, it uses the local stack, so start that first (`make up`); packaged builds use the live service. It does not read `.env`; `JALADA_API_URL` and `JALADA_WEB_URL` point it elsewhere.
 
 ```bash
-cd apps/desktop && npm install
+cd apps/desktop && npm install && npm start
 ```
 
-```bash
-JALADA_API_URL=http://localhost:8000 JALADA_WEB_URL=http://localhost:3000 npm start
-```
+Choose Sign in, then Allow in the browser. The browser tries to open the app with a `jalada://` link; if it does not, the page shows the link to copy into the app, which waits up to five minutes and can be cancelled.
 
 Installing rebuilds the encrypted SQLite driver for Electron. Each person's records are kept in the app's data folder, encrypted with a key held by the system keychain; on Linux this needs a keyring such as GNOME Keyring, and without one nothing is kept. Signing out deletes them.
 
