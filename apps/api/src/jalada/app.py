@@ -4,6 +4,7 @@ from contextlib import AbstractAsyncContextManager
 from fastapi import FastAPI
 
 from jalada.core.settings import Settings
+from jalada.dependencies import session_token_of
 from jalada.modules.accounts import module as accounts
 from jalada.modules.agent import module as agent
 from jalada.modules.evidence import module as evidence
@@ -13,6 +14,7 @@ from jalada.modules.ledger import module as ledger
 from jalada.modules.telegram import module as telegram
 from jalada.services import Services
 from jalada.shared.http.errors import add_error_handlers
+from jalada.shared.http.idempotency import Idempotency
 from jalada.shared.http.request_context import RequestContext
 
 Lifespan = Callable[[FastAPI], AbstractAsyncContextManager[None]]
@@ -34,6 +36,8 @@ def create_app(settings: Settings, services: Services, lifespan: Lifespan | None
     app.state.settings = settings
     app.state.services = services
     add_error_handlers(app)
+    # Added first so it runs inside RequestContext: answers sent again get a request id too.
+    app.add_middleware(Idempotency, session_token=session_token_of)
     app.add_middleware(RequestContext)
     for module in MODULES:
         for router in module.ROUTERS:

@@ -22,12 +22,14 @@ from samples import JPEG, MPESA_PAYBILL
 from transfers import Paste
 
 from jalada.app import create_app
+from jalada.core.idempotency.requests import IdempotentRequests
 from jalada.core.ports import HealthCheck
 from jalada.core.settings import Environment, Settings
 from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.device_sign_in import DeviceSignIn
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
 from jalada.modules.accounts.application.model_consent import ConsentToModels
 from jalada.modules.agent.application.confirmations import ActionConfirmations
@@ -152,6 +154,7 @@ def make_app(
         assistant_rule: str = "100/minute",
         assistant_actions: ActionConfirmations | None = None,
         consent_notice: str | None = None,
+        idempotency: IdempotentRequests | None = None,
     ) -> FastAPI:
         services = Services(
             authenticator=authenticator,
@@ -178,12 +181,16 @@ def make_app(
             model_consent=ConsentToModels(
                 lambda: FakeUnitOfWork(store), FixedClock(), consent_notice
             ),
+            device_sign_in=DeviceSignIn(
+                lambda: FakeUnitOfWork(store), FixedClock(), timedelta(days=30)
+            ),
             telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,
             health_checks=health_checks or [],
             conversations=assistant,
             assistant_limiter=RateLimiter(assistant_rule),
             assistant_actions=assistant_actions,
+            idempotency=idempotency,
         )
         return create_app(make_settings(environment), services)
 

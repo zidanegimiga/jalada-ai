@@ -4,6 +4,7 @@ from uuid import UUID
 
 from jalada.core.jobs.ports import JobQueue
 from jalada.modules.accounts.application.ports import (
+    DeviceCodeRepository,
     ModelConsents,
     SessionRepository,
     UserRepository,
@@ -32,6 +33,7 @@ class UnitOfWork(Protocol):
 
     users: UserRepository
     sessions: SessionRepository
+    device_codes: DeviceCodeRepository
     model_consents: ModelConsents
     jobs: JobQueue
     runs: RunRepository

@@ -7,6 +7,7 @@ from uuid import UUID
 
 from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.consent import ModelConsent
+from jalada.modules.accounts.domain.device_codes import DeviceCode
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.agent.application.ports import AgentRun
 from jalada.modules.agent.domain.conversation import Message, Thread
@@ -42,6 +43,7 @@ class Store:
     # Jobs for the job runner: id to [job, status, run_after].
     queue: dict[int, list[Any]] = field(default_factory=dict)
     sessions: dict[str, Session] = field(default_factory=dict)
+    device_codes: dict[str, DeviceCode] = field(default_factory=dict)
     model_consents: dict[UUID, ModelConsent] = field(default_factory=dict)
     # Payment id to (user id, certificate id).
     certificate_payments: dict[UUID, tuple[UUID, UUID]] = field(default_factory=dict)

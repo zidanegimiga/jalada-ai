@@ -1,0 +1,38 @@
+name: Desktop
+
+on:
+  pull_request:
+    paths: &desktop-paths
+      - "apps/desktop/**"
+      - ".github/workflows/desktop.yml"
+  push:
+    branches: [main]
+    paths: *desktop-paths
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: apps/desktop
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      # Electron's sandbox needs user namespaces, which Ubuntu runners restrict by default.
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Start the app and check the window, the bridge and the start-up budget
+        run: xvfb-run --auto-servernum npm run e2e
+      # Electron ships inside the app, so every dependency is checked, not only runtime ones.
+      - run: npm audit

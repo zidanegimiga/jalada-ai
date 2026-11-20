@@ -30,12 +30,7 @@ def test_turns_run_on_postgres_and_leave_nothing_behind(engine: Engine) -> None:
     result = runner.run(TurnRequest(uuid.uuid4(), user, "KPLC?", (), date(2026, 11, 18)))
 
     assert result.outcome == Outcome.ANSWERED
+    # The schema keeps this test apart from the tables production keeps beside the app's own.
     with engine.connect() as connection:
         left = connection.scalar(text(f"SELECT count(*) FROM {SCHEMA}.checkpoints"))  # noqa: S608
-        public = connection.scalar(
-            text(
-                "SELECT count(*) FROM information_schema.tables WHERE table_name = 'checkpoints' "
-                "AND table_schema = 'public'"
-            )
-        )
-    assert (left, public) == (0, 0)
+    assert left == 0

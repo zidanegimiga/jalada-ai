@@ -2,6 +2,7 @@
 migrations. Each module defines its own tables on the shared Base."""
 
 from jalada.core.database.base import Base
+from jalada.core.idempotency.tables import IdempotencyKeyRow
 from jalada.core.jobs.tables import JobRow
 from jalada.modules.accounts.adapters.tables import ModelConsentRow, SessionRow, UserRow
 from jalada.modules.agent.adapters.tables import (
@@ -33,6 +34,7 @@ ALL_TABLES: list[type[Base]] = [
     ModelConsentRow,
     EvidenceRow,
     JobRow,
+    IdempotencyKeyRow,
     PipelineRunRow,
     PipelineStepRow,
     EntryRow,

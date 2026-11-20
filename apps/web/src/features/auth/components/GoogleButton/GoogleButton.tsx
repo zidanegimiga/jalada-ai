@@ -1,9 +1,17 @@
+"use client";
+
 import { buttonVariants } from "@/shared/components/Button";
 
-/** A plain link, because Google sign-in is a full-page redirect through the API. */
+import { useReturnPath, withReturnPath } from "../../hooks/useReturnPath";
+
+/**
+ * A plain link, because Google sign-in is a full-page redirect through the API. It carries
+ * the page to go back to, which the API returns to once Google has answered.
+ */
 export function GoogleButton() {
+  const href = withReturnPath("/v1/auth/google/start", useReturnPath());
   return (
-    <a href="/v1/auth/google/start" className={buttonVariants({ variant: "outline", size: "lg" })}>
+    <a href={href} className={buttonVariants({ variant: "outline", size: "lg" })}>
       <GoogleMark />
       Continue with Google
     </a>

@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 
+from jalada.core.idempotency.requests import IdempotentRequests
 from jalada.core.ports import HealthCheck
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.device_sign_in import DeviceSignIn
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
 from jalada.modules.accounts.application.model_consent import ConsentToModels
 from jalada.modules.agent.application.confirmations import ActionConfirmations
@@ -41,6 +43,8 @@ class Services:
     account_deletion: AccountDeletion
     # Whether a model may read each person's records (decision 0026).
     model_consent: ConsentToModels
+    # Signing the desktop app in through the browser (decision 0029).
+    device_sign_in: DeviceSignIn
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None = None
     # None when the Telegram bot is not configured.
@@ -51,5 +55,7 @@ class Services:
     assistant_actions: ActionConfirmations | None = None
     # Questions to the assistant, per person.
     assistant_limiter: RateLimiter = field(default_factory=lambda: RateLimiter("30/hour"))
+    # Writes sent again with the same Idempotency-Key run once. None turns that off.
+    idempotency: IdempotentRequests | None = None
     # What /health/ready checks: the database and evidence storage.
     health_checks: list[HealthCheck] = field(default_factory=list)

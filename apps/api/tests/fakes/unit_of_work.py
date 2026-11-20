@@ -4,7 +4,13 @@ from types import TracebackType
 from typing import Self
 from uuid import UUID
 
-from fakes.accounts import FakeModelConsents, FakeSessions, FakeTelegramLinks, FakeUsers
+from fakes.accounts import (
+    FakeDeviceCodes,
+    FakeModelConsents,
+    FakeSessions,
+    FakeTelegramLinks,
+    FakeUsers,
+)
 from fakes.agent import FakeActions, FakeAgentRuns, FakeThreads
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import (
@@ -20,6 +26,7 @@ from fakes.ledger import (
 from fakes.store import Store
 from jalada.core.jobs.ports import JobQueue
 from jalada.modules.accounts.application.ports import (
+    DeviceCodeRepository,
     ModelConsents,
     SessionRepository,
     UserRepository,
@@ -54,6 +61,8 @@ class FakeUnitOfWork:
         self._sessions = FakeSessions(dict(self._store.sessions))
         self.users: UserRepository = self._users
         self.sessions: SessionRepository = self._sessions
+        self._device_codes = FakeDeviceCodes(dict(self._store.device_codes))
+        self.device_codes: DeviceCodeRepository = self._device_codes
         self._consents = FakeModelConsents(dict(self._store.model_consents))
         self.model_consents: ModelConsents = self._consents
         self._evidence = dict(self._store.evidence)
@@ -133,6 +142,7 @@ class FakeUnitOfWork:
         self._store.preferences = self._preferences
         self._store.runs = self._runs.rows
         self._store.sessions = self._sessions.rows
+        self._store.device_codes = self._device_codes.rows
         self._store.model_consents = self._consents.rows
         self._store.certificate_payments = self._certificate_payments
         self._store.money_accounts = self._money_accounts

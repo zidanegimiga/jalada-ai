@@ -14,6 +14,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { useReturnPath, withReturnPath } from "../../hooks/useReturnPath";
+
 import "./Handoff.css";
 
 /** How long each part takes. The page changes under the cover, between the two. */
@@ -110,15 +112,16 @@ export function HandoffLink({
   className?: string;
 }) {
   const go = useContext(HandoffContext);
+  const target = withReturnPath(href, useReturnPath());
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     // Let new tabs and windows open as usual.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
       return;
     event.preventDefault();
-    go(href, destination);
+    go(target, destination);
   }
   return (
-    <Link href={href} onClick={onClick} className={className}>
+    <Link href={target} onClick={onClick} className={className}>
       {children}
     </Link>
   );

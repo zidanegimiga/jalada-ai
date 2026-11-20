@@ -200,6 +200,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/device/codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Device Code
+         * @description Called by the web app once the signed-in person agrees to sign the desktop app in.
+         */
+        post: operations["issue_device_code_v1_auth_device_codes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/device/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exchange Device Code
+         * @description Called by the desktop app with the code from the browser and its own verifier.
+         */
+        post: operations["exchange_device_code_v1_auth_device_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/google/callback": {
         parameters: {
             query?: never;
@@ -959,6 +999,42 @@ export interface components {
         DeleteAccountRequest: {
             /** Email */
             email: string;
+        };
+        /** DeviceCodeRequest */
+        DeviceCodeRequest: {
+            /** Challenge */
+            challenge: string;
+        };
+        /** DeviceCodeResponse */
+        DeviceCodeResponse: {
+            /** Code */
+            code: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /** DeviceTokenRequest */
+        DeviceTokenRequest: {
+            /** Code */
+            code: string;
+            /** Verifier */
+            verifier: string;
+        };
+        /**
+         * DeviceTokenResponse
+         * @description A session for the desktop app, sent back as a Bearer token on every request.
+         */
+        DeviceTokenResponse: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Token */
+            token: string;
+            user: components["schemas"]["UserResponse"];
         };
         /**
          * Direction
@@ -1756,6 +1832,74 @@ export interface operations {
             };
         };
     };
+    issue_device_code_v1_auth_device_codes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceCodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exchange_device_code_v1_auth_device_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceTokenResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     finish_google_sign_in_v1_auth_google_callback_get: {
         parameters: {
             query?: {
@@ -1766,6 +1910,7 @@ export interface operations {
             path?: never;
             cookie?: {
                 jalada_google?: string | null;
+                jalada_google_next?: string | null;
             };
         };
         requestBody?: never;
@@ -1792,7 +1937,9 @@ export interface operations {
     };
     start_google_sign_in_v1_auth_google_start_get: {
         parameters: {
-            query?: never;
+            query?: {
+                next?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1806,6 +1953,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

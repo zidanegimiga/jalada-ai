@@ -2,6 +2,7 @@
 
 from fakes.accounts import FakeSessions, FakeTelegramLinks, FakeUsers
 from fakes.evidence import FakeEvidence, FakeJobs
+from fakes.idempotency import FakeIdempotencyStore
 from fakes.ledger import FakeEntries, FakePreferences, FakeRuns
 from fakes.services import (
     FakeChat,
@@ -23,6 +24,7 @@ __all__ = [
     "FakeEvidenceStore",
     "FakeGoogle",
     "FakeHasher",
+    "FakeIdempotencyStore",
     "FakeJobs",
     "FakePreferences",
     "FakeRuns",

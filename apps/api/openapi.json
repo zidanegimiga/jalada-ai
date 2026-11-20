@@ -336,6 +336,86 @@
         "title": "DeleteAccountRequest",
         "type": "object"
       },
+      "DeviceCodeRequest": {
+        "properties": {
+          "challenge": {
+            "maxLength": 43,
+            "minLength": 43,
+            "title": "Challenge",
+            "type": "string"
+          }
+        },
+        "required": [
+          "challenge"
+        ],
+        "title": "DeviceCodeRequest",
+        "type": "object"
+      },
+      "DeviceCodeResponse": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "expires_at"
+        ],
+        "title": "DeviceCodeResponse",
+        "type": "object"
+      },
+      "DeviceTokenRequest": {
+        "properties": {
+          "code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "verifier": {
+            "maxLength": 128,
+            "minLength": 43,
+            "title": "Verifier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "verifier"
+        ],
+        "title": "DeviceTokenRequest",
+        "type": "object"
+      },
+      "DeviceTokenResponse": {
+        "description": "A session for the desktop app, sent back as a Bearer token on every request.",
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "required": [
+          "token",
+          "expires_at",
+          "user"
+        ],
+        "title": "DeviceTokenResponse",
+        "type": "object"
+      },
       "Direction": {
         "enum": [
           "in",
@@ -2031,6 +2111,108 @@
         ]
       }
     },
+    "/v1/auth/device/codes": {
+      "post": {
+        "description": "Called by the web app once the signed-in person agrees to sign the desktop app in.",
+        "operationId": "issue_device_code_v1_auth_device_codes_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "jalada_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCodeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue Device Code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/device/token": {
+      "post": {
+        "description": "Called by the desktop app with the code from the browser and its own verifier.",
+        "operationId": "exchange_device_code_v1_auth_device_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exchange Device Code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/auth/google/callback": {
       "get": {
         "operationId": "finish_google_sign_in_v1_auth_google_callback_get",
@@ -2082,6 +2264,22 @@
               ],
               "title": "Jalada Google"
             }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_google_next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Google Next"
+            }
           }
         ],
         "responses": {
@@ -2113,6 +2311,24 @@
     "/v1/auth/google/start": {
       "get": {
         "operationId": "start_google_sign_in_v1_auth_google_start_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2121,6 +2337,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Start Google Sign In",

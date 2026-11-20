@@ -22,6 +22,10 @@ class GoogleSignInFailed(ApplicationError):
     pass
 
 
+class DeviceSignInFailed(ApplicationError):
+    pass
+
+
 class UnsupportedFile(ApplicationError):
     pass
 

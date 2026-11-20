@@ -11,6 +11,7 @@ from jalada.modules.accounts.adapters.google import GoogleOpenIdClient
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator, UserCreated
+from jalada.modules.accounts.application.device_sign_in import DeviceSignIn
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
 from jalada.modules.evidence.application.ports import EvidenceStore
 from jalada.unit_of_work import UnitOfWork
@@ -30,6 +31,7 @@ class AccountServices:
     authenticator: Authenticator
     account_export: AccountExport
     account_deletion: AccountDeletion
+    device_sign_in: DeviceSignIn
     # None when Google sign-in is not configured.
     google_sign_in: GoogleSignIn | None
 
@@ -53,6 +55,7 @@ def build_accounts(
         authenticator=authenticator,
         account_export=AccountExport(unit_of_work, store, ZipAccountArchive()),
         account_deletion=AccountDeletion(unit_of_work, store),
+        device_sign_in=DeviceSignIn(unit_of_work, clock, timedelta(days=session_days)),
         google_sign_in=build_google_sign_in(google, authenticator),
     )
 

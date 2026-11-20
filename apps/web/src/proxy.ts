@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { RETURN_PARAM } from "@/shared/config/return-path";
 import { SESSION_COOKIE } from "@/shared/config/session-cookie";
 
 const PUBLIC_PATHS = ["/signin", "/signup", "/privacy", "/welcome", "/offline"];
@@ -14,7 +15,10 @@ export function proxy(request: NextRequest) {
   if (PUBLIC_PATHS.includes(pathname) || signedIn) return NextResponse.next();
   if (pathname === "/")
     return NextResponse.rewrite(new URL("/welcome", request.url));
-  return NextResponse.redirect(new URL("/signin", request.url));
+  // Back to this page after signing in; sign-in checks it is one of this site's.
+  const signIn = new URL("/signin", request.url);
+  signIn.searchParams.set(RETURN_PARAM, `${pathname}${request.nextUrl.search}`);
+  return NextResponse.redirect(signIn);
 }
 
 export const config = {
