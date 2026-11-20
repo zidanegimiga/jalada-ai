@@ -9,6 +9,7 @@ import { getModelConsent } from "@/features/consent/server/get-model-consent";
 import { Preferences } from "@/features/account/components/Preferences";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { getCurrentUser } from "@/features/auth/server/get-current-user";
+import { InstallCard } from "@/features/install/components/InstallCard";
 import {
   TelegramCard,
   TelegramCardSkeleton,
@@ -74,6 +75,7 @@ export default function AccountPage() {
         <Identity />
       </Suspense>
       <Preferences />
+      <InstallCard />
       <Suspense>
         <AccountConsent />
       </Suspense>
