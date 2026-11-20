@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from jalada.core.idempotency.requests import IdempotentRequests
 from jalada.core.ports import HealthCheck
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
@@ -54,5 +55,7 @@ class Services:
     assistant_actions: ActionConfirmations | None = None
     # Questions to the assistant, per person.
     assistant_limiter: RateLimiter = field(default_factory=lambda: RateLimiter("30/hour"))
+    # Writes sent again with the same Idempotency-Key run once. None turns that off.
+    idempotency: IdempotentRequests | None = None
     # What /health/ready checks: the database and evidence storage.
     health_checks: list[HealthCheck] = field(default_factory=list)

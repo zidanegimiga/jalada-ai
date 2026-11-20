@@ -22,6 +22,12 @@ def session_token_from(cookie: str | None, authorization: str | None) -> str | N
     return token.strip() or None if scheme.lower() == "bearer" else None
 
 
+def session_token_of(request: Request) -> str | None:
+    return session_token_from(
+        request.cookies.get(SESSION_COOKIE), request.headers.get("authorization")
+    )
+
+
 def get_current_user(
     request: Request,
     services: Annotated[Services, Depends(get_services)],

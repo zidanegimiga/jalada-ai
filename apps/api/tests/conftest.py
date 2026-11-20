@@ -22,6 +22,7 @@ from samples import JPEG, MPESA_PAYBILL
 from transfers import Paste
 
 from jalada.app import create_app
+from jalada.core.idempotency.requests import IdempotentRequests
 from jalada.core.ports import HealthCheck
 from jalada.core.settings import Environment, Settings
 from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
@@ -153,6 +154,7 @@ def make_app(
         assistant_rule: str = "100/minute",
         assistant_actions: ActionConfirmations | None = None,
         consent_notice: str | None = None,
+        idempotency: IdempotentRequests | None = None,
     ) -> FastAPI:
         services = Services(
             authenticator=authenticator,
@@ -188,6 +190,7 @@ def make_app(
             conversations=assistant,
             assistant_limiter=RateLimiter(assistant_rule),
             assistant_actions=assistant_actions,
+            idempotency=idempotency,
         )
         return create_app(make_settings(environment), services)
 

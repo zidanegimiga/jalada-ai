@@ -18,6 +18,8 @@ from jalada.builders import (
 )
 from jalada.core.clock import SystemClock
 from jalada.core.health import QUICK, DatabaseCheck, StorageCheck
+from jalada.core.idempotency.requests import IdempotentRequests
+from jalada.core.idempotency.sql import SqlIdempotencyStore
 from jalada.core.jobs.runner import JobHandler, JobRunner, background_jobs
 from jalada.core.logging import configure_logging
 from jalada.core.settings import Settings, load_settings
@@ -61,7 +63,8 @@ POLL_INTERVAL_SECONDS = 5.0
 
 def build_services(settings: Settings) -> Services:
     engine = create_database_engine(settings.database_url)
-    unit_of_work = partial(SqlUnitOfWork, sessionmaker(engine))
+    session_factory = sessionmaker(engine)
+    unit_of_work = partial(SqlUnitOfWork, session_factory)
     clock = SystemClock()
     store = build_evidence_store(settings)
     accounts = build_accounts(
@@ -114,6 +117,7 @@ def build_services(settings: Settings) -> Services:
         conversations=conversations,
         assistant_actions=confirmations,
         assistant_limiter=RateLimiter(f"{settings.agent_questions_per_hour}/hour"),
+        idempotency=IdempotentRequests(SqlIdempotencyStore(session_factory), clock),
         health_checks=[
             DatabaseCheck(engine),
             StorageCheck(build_s3_client(settings, QUICK), settings.storage_bucket),
