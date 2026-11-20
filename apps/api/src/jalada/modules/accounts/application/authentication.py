@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from jalada.core.ports import Clock
 from jalada.modules.accounts.application.ports import GoogleProfile, PasswordHasher, UserCredentials
-from jalada.modules.accounts.domain.sessions import Session, hash_session_token
+from jalada.modules.accounts.domain.sessions import hash_session_token, new_session
 from jalada.modules.accounts.domain.users import User, is_acceptable_password, normalize_email
 from jalada.shared.errors import (
     EmailAlreadyRegistered,
@@ -129,7 +129,6 @@ class Authenticator:
         return user
 
     def _start_session(self, work: UnitOfWork, user: User) -> IssuedSession:
-        token = secrets.token_urlsafe(32)
-        expires_at = self._clock.now() + self._session_lifetime
-        work.sessions.add(Session(hash_session_token(token), user.id, expires_at))
-        return IssuedSession(token, user, expires_at)
+        token, session = new_session(user.id, self._clock.now(), self._session_lifetime)
+        work.sessions.add(session)
+        return IssuedSession(token, user, session.expires_at)

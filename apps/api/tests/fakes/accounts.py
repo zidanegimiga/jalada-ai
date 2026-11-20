@@ -6,6 +6,7 @@ from uuid import UUID
 
 from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.consent import ModelConsent
+from jalada.modules.accounts.domain.device_codes import DeviceCode
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 
@@ -114,3 +115,15 @@ class FakeModelConsents:
 
     def withdraw(self, user_id: UUID) -> None:
         self.rows.pop(user_id, None)
+
+
+class FakeDeviceCodes:
+    def __init__(self, codes: dict[str, DeviceCode]) -> None:
+        self.rows = codes
+
+    def add(self, code: DeviceCode) -> None:
+        self.rows[code.code_hash] = code
+
+    def take(self, code_hash: str, now: datetime) -> DeviceCode | None:
+        code = self.rows.pop(code_hash, None)
+        return code if code and code.expires_at > now else None

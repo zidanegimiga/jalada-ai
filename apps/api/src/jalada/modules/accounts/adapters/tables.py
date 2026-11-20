@@ -36,6 +36,19 @@ class SessionRow(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class DeviceCodeRow(Base):
+    """A one-time code for signing the desktop app in (decision 0029). Only its hash is kept."""
+
+    __tablename__ = "device_codes"
+
+    code_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    challenge: Mapped[str] = mapped_column(String(43))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class ModelConsentRow(Base):
     """A person's agreement to have their records read by the model provider (decision 0026)."""
 

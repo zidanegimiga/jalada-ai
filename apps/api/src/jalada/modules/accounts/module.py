@@ -2,6 +2,12 @@
 
 from fastapi import APIRouter
 
-from jalada.modules.accounts.api.routes import account, auth, google, model_consent
+from jalada.modules.accounts.api.routes import account, auth, device, google, model_consent
 
-ROUTERS: list[APIRouter] = [auth.router, google.router, account.router, model_consent.router]
+ROUTERS: list[APIRouter] = [
+    auth.router,
+    device.router,
+    google.router,
+    account.router,
+    model_consent.router,
+]

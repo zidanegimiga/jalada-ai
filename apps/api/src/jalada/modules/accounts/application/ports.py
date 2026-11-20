@@ -7,6 +7,7 @@ from uuid import UUID
 if TYPE_CHECKING:
     from jalada.modules.accounts.application.account_export import AccountData
 from jalada.modules.accounts.domain.consent import ModelConsent
+from jalada.modules.accounts.domain.device_codes import DeviceCode
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 from jalada.modules.evidence.domain.evidence import Evidence
@@ -55,6 +56,13 @@ class SessionRepository(Protocol):
     def get_active(self, token_hash: str, now: datetime) -> Session | None: ...
     def delete(self, token_hash: str) -> None: ...
     def delete_all_for(self, user_id: UUID) -> None: ...
+
+
+class DeviceCodeRepository(Protocol):
+    def add(self, code: DeviceCode) -> None: ...
+    def take(self, code_hash: str, now: datetime) -> DeviceCode | None:
+        """The unexpired code with this hash, removed so it cannot be used again."""
+        ...
 
 
 class PasswordHasher(Protocol):

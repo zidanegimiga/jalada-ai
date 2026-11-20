@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Request, Response, status
+from fastapi import APIRouter, Cookie, Header, Request, Response, status
 
-from jalada.dependencies import CurrentUser, ServicesDependency
+from jalada.dependencies import CurrentUser, ServicesDependency, session_token_from
 from jalada.modules.accounts.api.schemas.auth import (
     SignInOptions,
     SignInRequest,
@@ -45,8 +45,11 @@ def sign_in(
 def sign_out(
     response: Response,
     services: ServicesDependency,
-    session_token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    session_cookie: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    # Left out of the contract: the same session as the cookie, for the desktop app.
+    authorization: Annotated[str | None, Header(include_in_schema=False)] = None,
 ) -> None:
+    session_token = session_token_from(session_cookie, authorization)
     if session_token:
         services.authenticator.sign_out(session_token)
     response.delete_cookie(SESSION_COOKIE)

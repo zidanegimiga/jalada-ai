@@ -28,6 +28,7 @@ from jalada.modules.accounts.adapters.account_archive import ZipAccountArchive
 from jalada.modules.accounts.application.account_deletion import AccountDeletion
 from jalada.modules.accounts.application.account_export import AccountExport
 from jalada.modules.accounts.application.authentication import Authenticator
+from jalada.modules.accounts.application.device_sign_in import DeviceSignIn
 from jalada.modules.accounts.application.google_sign_in import GoogleSignIn
 from jalada.modules.accounts.application.model_consent import ConsentToModels
 from jalada.modules.agent.application.confirmations import ActionConfirmations
@@ -177,6 +178,9 @@ def make_app(
             account_deletion=AccountDeletion(lambda: FakeUnitOfWork(store), evidence_store),
             model_consent=ConsentToModels(
                 lambda: FakeUnitOfWork(store), FixedClock(), consent_notice
+            ),
+            device_sign_in=DeviceSignIn(
+                lambda: FakeUnitOfWork(store), FixedClock(), timedelta(days=30)
             ),
             telegram_capture=telegram if with_telegram else None,
             google_sign_in=GoogleSignIn(google, authenticator) if with_google else None,

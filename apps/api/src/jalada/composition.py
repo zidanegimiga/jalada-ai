@@ -100,6 +100,7 @@ def build_services(settings: Settings) -> Services:
         telegram_linking=telegram_linking,
         account_export=accounts.account_export,
         account_deletion=accounts.account_deletion,
+        device_sign_in=accounts.device_sign_in,
         model_consent=consent,
         google_sign_in=accounts.google_sign_in,
         telegram_capture=build_telegram_capture(

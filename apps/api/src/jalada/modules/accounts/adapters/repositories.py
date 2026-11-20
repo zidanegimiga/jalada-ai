@@ -5,9 +5,15 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
 
-from jalada.modules.accounts.adapters.tables import ModelConsentRow, SessionRow, UserRow
+from jalada.modules.accounts.adapters.tables import (
+    DeviceCodeRow,
+    ModelConsentRow,
+    SessionRow,
+    UserRow,
+)
 from jalada.modules.accounts.application.ports import UserCredentials
 from jalada.modules.accounts.domain.consent import ModelConsent
+from jalada.modules.accounts.domain.device_codes import DeviceCode
 from jalada.modules.accounts.domain.sessions import Session
 from jalada.modules.accounts.domain.users import User
 from jalada.shared.errors import EmailAlreadyRegistered
@@ -119,3 +125,28 @@ class SqlModelConsents:
 
     def withdraw(self, user_id: UUID) -> None:
         self._db.execute(delete(ModelConsentRow).where(ModelConsentRow.user_id == user_id))
+
+
+class SqlDeviceCodeRepository:
+    def __init__(self, db: DbSession) -> None:
+        self._db = db
+
+    def add(self, code: DeviceCode) -> None:
+        self._db.add(
+            DeviceCodeRow(
+                code_hash=code.code_hash,
+                user_id=code.user_id,
+                challenge=code.challenge,
+                expires_at=code.expires_at,
+            )
+        )
+
+    def take(self, code_hash: str, now: datetime) -> DeviceCode | None:
+        row = self._db.execute(
+            delete(DeviceCodeRow)
+            .where(DeviceCodeRow.code_hash == code_hash)
+            .returning(DeviceCodeRow.user_id, DeviceCodeRow.challenge, DeviceCodeRow.expires_at)
+        ).one_or_none()
+        if row is None or row.expires_at <= now:
+            return None
+        return DeviceCode(code_hash, row.user_id, row.challenge, row.expires_at)
