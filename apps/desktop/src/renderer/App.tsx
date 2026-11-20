@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { AppInfo } from "@shared/bridge";
 
+import { AccountPanel } from "./AccountPanel";
 import { useConnection } from "./useConnection";
 
 const CONNECTION_TEXT = {
@@ -11,8 +12,8 @@ const CONNECTION_TEXT = {
 };
 
 /**
- * The desktop app's frame. Sign-in, the ledger read from this computer and the queue of
- * changes arrive in the next steps (decision 0029).
+ * The desktop app's frame. The ledger read from this computer and the queue of changes
+ * arrive in the next steps (decision 0029).
  */
 export function App() {
   const connection = useConnection();
@@ -41,6 +42,7 @@ export function App() {
         </p>
         {connection && <p className="muted">{CONNECTION_TEXT[connection]}</p>}
       </section>
+      <AccountPanel />
       {info && (
         <footer className="muted small">
           Version {info.version}. Syncs with {info.apiOrigin}.

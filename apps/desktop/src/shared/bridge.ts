@@ -11,12 +11,24 @@ export type AppInfo = {
   apiOrigin: string;
 };
 
+/** Who is signed in on this computer. */
+export type Account = { id: string; email: string; name: string };
+
 export type JaladaBridge = {
   app: { info: () => Promise<AppInfo> };
   connection: {
     current: () => Promise<Connection>;
     /** Calls back whenever the connection changes. Returns a function that stops it. */
     onChange: (changed: (connection: Connection) => void) => () => void;
+  };
+  account: {
+    current: () => Promise<Account | null>;
+    /** Opens the browser to sign in; the answer arrives through `onChange`. */
+    signIn: () => Promise<void>;
+    signOut: () => Promise<void>;
+    onChange: (changed: (account: Account | null) => void) => () => void;
+    /** Calls back when a sign-in through the browser fails. */
+    onFailed: (failed: (message: string) => void) => () => void;
   };
 };
 
@@ -25,4 +37,9 @@ export const CHANNELS = {
   appInfo: "app:info",
   connection: "connection:current",
   connectionChanged: "connection:changed",
+  account: "account:current",
+  signIn: "account:sign-in",
+  signOut: "account:sign-out",
+  accountChanged: "account:changed",
+  signInFailed: "account:sign-in-failed",
 } as const;

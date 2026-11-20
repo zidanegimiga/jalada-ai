@@ -27,4 +27,14 @@ describe("desktop config", () => {
       /not an address/,
     );
   });
+
+  it("uses the live web app for sign-in when nothing is set", () => {
+    expect(loadConfig({}).webOrigin).toBe("https://jalada-ai.netlify.app");
+  });
+
+  it("holds the web app address to the same https rule", () => {
+    expect(() =>
+      loadConfig({ JALADA_WEB_URL: "http://jalada.example" }),
+    ).toThrow(/JALADA_WEB_URL must use https/);
+  });
 });

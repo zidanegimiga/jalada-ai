@@ -1,3 +1,7 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import {
   _electron as electron,
   expect,
@@ -19,7 +23,11 @@ test.beforeAll(async () => {
   const started = Date.now();
   app = await electron.launch({
     executablePath: electronPath as unknown as string,
-    args: ["."],
+    // Its own data folder: no clash with a copy someone has open, and no records kept.
+    args: [
+      ".",
+      `--user-data-dir=${mkdtempSync(join(tmpdir(), "jalada-e2e-"))}`,
+    ],
     env: { ...process.env, JALADA_API_URL: "http://localhost:8000" },
   });
   page = await app.firstWindow();
@@ -66,4 +74,11 @@ test("says which server it syncs with, and whether it is online", async () => {
     page.getByText("Syncs with http://localhost:8000"),
   ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText(/Online|Offline/);
+});
+
+test("offers sign-in through the browser on a fresh install", async () => {
+  await expect(
+    page.getByRole("button", { name: "Sign in with your browser" }),
+  ).toBeVisible();
+  await page.screenshot({ path: "test-results/signed-out.png" });
 });

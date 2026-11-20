@@ -1,6 +1,13 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 
-import { CHANNELS, type Connection, type JaladaBridge } from "@shared/bridge";
+import { CHANNELS, type JaladaBridge } from "@shared/bridge";
+
+/** Listens on one channel until the returned function is called. */
+function listen<T>(channel: string, changed: (value: T) => void): () => void {
+  const listener = (_event: IpcRendererEvent, value: T) => changed(value);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
 
 /**
  * The only door between the window and the main process (decision 0029). Each call is a
@@ -10,13 +17,14 @@ const bridge: JaladaBridge = {
   app: { info: () => ipcRenderer.invoke(CHANNELS.appInfo) },
   connection: {
     current: () => ipcRenderer.invoke(CHANNELS.connection),
-    onChange: (changed) => {
-      const listener = (_event: unknown, connection: Connection) =>
-        changed(connection);
-      ipcRenderer.on(CHANNELS.connectionChanged, listener);
-      return () =>
-        ipcRenderer.removeListener(CHANNELS.connectionChanged, listener);
-    },
+    onChange: (changed) => listen(CHANNELS.connectionChanged, changed),
+  },
+  account: {
+    current: () => ipcRenderer.invoke(CHANNELS.account),
+    signIn: () => ipcRenderer.invoke(CHANNELS.signIn),
+    signOut: () => ipcRenderer.invoke(CHANNELS.signOut),
+    onChange: (changed) => listen(CHANNELS.accountChanged, changed),
+    onFailed: (failed) => listen(CHANNELS.signInFailed, failed),
   },
 };
 
