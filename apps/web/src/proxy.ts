@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_COOKIE } from "@/shared/config/session-cookie";
 
-const PUBLIC_PATHS = ["/signin", "/signup", "/privacy", "/welcome"];
+const PUBLIC_PATHS = ["/signin", "/signup", "/privacy", "/welcome", "/offline"];
 
 /**
  * Sends visitors without a session cookie to sign in, except at the front door, where they

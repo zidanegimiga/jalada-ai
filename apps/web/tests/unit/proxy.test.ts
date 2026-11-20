@@ -33,7 +33,7 @@ describe("proxy", () => {
   });
 
   it("lets anyone open the landing page and the privacy notice", () => {
-    for (const path of ["/welcome", "/privacy"]) {
+    for (const path of ["/welcome", "/privacy", "/offline"]) {
       expect(visit(path).headers.get("location")).toBeNull();
     }
   });
