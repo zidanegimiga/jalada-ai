@@ -16,7 +16,11 @@ export type DeviceAuthPorts = {
   changed: (account: Account | null) => void;
   /** Deletes the person's records from this computer when they sign out. */
   forgetRecords: (accountId: string) => void;
+  now?: () => number;
 };
+
+/** How long a sign-in in the browser may take before the app stops waiting for it. */
+export const SIGN_IN_WAIT_MS = 5 * 60 * 1000;
 
 export class SignInFailed extends Error {}
 
@@ -25,7 +29,7 @@ export class SignInFailed extends Error {}
  * sign-in can be waiting at a time; a link that does not answer it is ignored.
  */
 export class DeviceAuth {
-  private pending: SignInRequest | null = null;
+  private pending: (SignInRequest & { startedAt: number }) | null = null;
   private session: SavedSession | null = null;
 
   constructor(private readonly ports: DeviceAuthPorts) {}
@@ -39,6 +43,27 @@ export class DeviceAuth {
     return this.current();
   }
 
+  /** Whether a sign-in in the browser is still being waited for. */
+  waiting(): boolean {
+    return this.pending !== null && !this.expired();
+  }
+
+  /** Stops waiting for the browser; a link that arrives later is ignored. */
+  cancel(): void {
+    this.pending = null;
+  }
+
+  private expired(): boolean {
+    return (
+      this.pending !== null &&
+      this.clock() - this.pending.startedAt > SIGN_IN_WAIT_MS
+    );
+  }
+
+  private clock(): number {
+    return this.ports.now?.() ?? Date.now();
+  }
+
   current(): Account | null {
     return this.session?.account ?? null;
   }
@@ -49,16 +74,26 @@ export class DeviceAuth {
 
   /** Opens the browser at the web app, which asks the person before signing the app in. */
   async start(): Promise<void> {
-    this.pending = newSignInRequest();
+    this.pending = { ...newSignInRequest(), startedAt: this.clock() };
     const page = new URL("/desktop/sign-in", this.ports.webOrigin);
     page.searchParams.set("challenge", this.pending.challenge);
     page.searchParams.set("state", this.pending.state);
     await this.ports.openInBrowser(page.href);
   }
 
-  /** Finishes sign-in with the `jalada://signed-in` link the browser opened. */
+  /**
+   * Finishes sign-in with the `jalada://signed-in` link, opened by the browser or pasted by
+   * the person when the browser could not open the app. Either way it must answer this
+   * app's own request, made in the last few minutes.
+   */
   async finish(link: string): Promise<Account> {
-    const answer = readSignInLink(link);
+    const answer = readSignInLink(link.trim());
+    if (this.expired()) {
+      this.pending = null;
+      throw new SignInFailed(
+        "That sign-in took too long. Start again from the app.",
+      );
+    }
     const pending = this.pending;
     if (!answer || !pending || answer.state !== pending.state) {
       throw new SignInFailed(

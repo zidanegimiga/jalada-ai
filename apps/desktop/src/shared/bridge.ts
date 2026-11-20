@@ -36,6 +36,10 @@ export type JaladaBridge = {
     /** Opens the browser to sign in; the answer arrives through `onChange`. */
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
+    /** Stops waiting for the browser. */
+    cancelSignIn: () => Promise<void>;
+    /** Finishes sign-in with the link the web page shows when it could not open the app. */
+    pasteSignInLink: (link: string) => Promise<void>;
     onChange: (changed: (account: Account | null) => void) => () => void;
     /** Calls back when a sign-in through the browser fails. */
     onFailed: (failed: (message: string) => void) => () => void;
@@ -58,6 +62,8 @@ export const CHANNELS = {
   account: "account:current",
   signIn: "account:sign-in",
   signOut: "account:sign-out",
+  cancelSignIn: "account:cancel-sign-in",
+  pasteSignInLink: "account:paste-sign-in-link",
   accountChanged: "account:changed",
   signInFailed: "account:sign-in-failed",
   ledgerList: "ledger:list",

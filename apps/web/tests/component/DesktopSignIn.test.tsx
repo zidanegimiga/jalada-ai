@@ -64,5 +64,14 @@ describe("DesktopSignIn", () => {
     expect(JSON.parse(fetch.mock.calls[0]![1].body)).toEqual({
       challenge: REQUEST.challenge,
     });
+    // In case the browser could not open the app, the link is there to copy.
+    expect(
+      screen.getByDisplayValue(
+        `jalada://signed-in?code=one-time&state=${REQUEST.state}`,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Copy the sign-in link" }),
+    ).toBeInTheDocument();
   });
 });

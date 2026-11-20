@@ -1,11 +1,12 @@
 import type { AccountState } from "./useAccount";
+import { WaitingForBrowser } from "./WaitingForBrowser";
 
 /**
  * Signing in through the browser, where passwords, Google and passkeys already work, and
  * signing out, which also removes this person's records from the computer.
  */
 export function AccountPanel({ state }: { state: AccountState }) {
-  const { account, failure, waiting, signIn, signOut } = state;
+  const { account, failure, waiting, signIn, signOut, cancel, paste } = state;
   if (account === undefined) return null;
 
   if (account) {
@@ -32,6 +33,7 @@ export function AccountPanel({ state }: { state: AccountState }) {
       >
         {waiting ? "Waiting for your browser" : "Sign in with your browser"}
       </button>
+      {waiting && <WaitingForBrowser cancel={cancel} paste={paste} />}
       {failure && (
         <p role="alert" className="failure">
           {failure}

@@ -215,3 +215,46 @@ body {
 .ledger-amount[data-direction="in"] {
   color: var(--money-in);
 }
+
+.waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.waiting p {
+  margin: 0;
+}
+
+.paste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.paste label {
+  width: 100%;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.paste input {
+  flex: 1;
+  min-width: 14rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 0.75rem;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.paste input:focus-visible {
+  outline: 2px solid var(--pumpkin);
+  outline-offset: 2px;
+}

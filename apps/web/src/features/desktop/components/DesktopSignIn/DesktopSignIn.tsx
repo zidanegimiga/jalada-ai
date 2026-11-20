@@ -7,10 +7,12 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/shared/components/Button";
 import { FormError } from "@/shared/components/FormError";
 
+import { HandBack } from "../HandBack";
+
 import { requestDesktopCode } from "../../api/desktop.api";
 import { backToApp, type DesktopRequest } from "../../desktop-sign-in";
 
-type Step = "asking" | "sending" | "done";
+type Step = "asking" | "sending";
 
 /**
  * Asks before signing the desktop app in as the person (decision 0029). Allowing it makes a
@@ -19,6 +21,8 @@ type Step = "asking" | "sending" | "done";
 export function DesktopSignIn({ request }: { request: DesktopRequest | null }) {
   const [step, setStep] = useState<Step>("asking");
   const [error, setError] = useState<string | null>(null);
+  // The link back to the app, once the person has allowed it.
+  const [handBack, setHandBack] = useState<string | null>(null);
 
   if (!request) {
     return (
@@ -34,21 +38,16 @@ export function DesktopSignIn({ request }: { request: DesktopRequest | null }) {
     setError(null);
     try {
       const code = await requestDesktopCode(desktop.challenge);
-      window.location.href = backToApp(code, desktop.state);
-      setStep("done");
+      const link = backToApp(code, desktop.state);
+      setHandBack(link);
+      window.location.href = link;
     } catch {
       setError("That did not work. Go back to the app and try again.");
       setStep("asking");
     }
   }
 
-  if (step === "done") {
-    return (
-      <p role="status" className="text-lead">
-        You are signed in on the desktop app. You can close this tab.
-      </p>
-    );
-  }
+  if (handBack) return <HandBack link={handBack} />;
 
   return (
     <section className="flex flex-col gap-4 rounded-card bg-card p-card">

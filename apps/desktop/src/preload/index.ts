@@ -23,6 +23,9 @@ const bridge: JaladaBridge = {
     current: () => ipcRenderer.invoke(CHANNELS.account),
     signIn: () => ipcRenderer.invoke(CHANNELS.signIn),
     signOut: () => ipcRenderer.invoke(CHANNELS.signOut),
+    cancelSignIn: () => ipcRenderer.invoke(CHANNELS.cancelSignIn),
+    pasteSignInLink: (link) =>
+      ipcRenderer.invoke(CHANNELS.pasteSignInLink, link),
     onChange: (changed) => listen(CHANNELS.accountChanged, changed),
     onFailed: (failed) => listen(CHANNELS.signInFailed, failed),
   },

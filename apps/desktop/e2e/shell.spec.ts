@@ -99,3 +99,23 @@ test("offers sign-in through the browser on a fresh install", async () => {
   ).toBeVisible();
   await page.screenshot({ path: "test-results/signed-out.png" });
 });
+
+test("run from source, signs in through the local web app, with a way back", async () => {
+  await page.getByRole("button", { name: "Sign in with your browser" }).click();
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+  const handed = await app.evaluate(
+    () => (globalThis as { handedToBrowser?: string[] }).handedToBrowser,
+  );
+  expect(handed?.[0]).toMatch(/^http:\/\/localhost:3000\/desktop\/sign-in\?/);
+
+  await page
+    .getByLabel("Sign-in link")
+    .fill("jalada://signed-in?code=x&state=not-ours");
+  await page.getByRole("button", { name: "Finish signing in" }).click();
+  await expect(page.getByRole("alert")).toHaveText(/does not answer a sign-in/);
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(
+    page.getByRole("button", { name: "Sign in with your browser" }),
+  ).toBeEnabled();
+});

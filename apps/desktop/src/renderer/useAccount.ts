@@ -10,6 +10,10 @@ export type AccountState = {
   waiting: boolean;
   signIn: () => void;
   signOut: () => void;
+  /** Stops waiting for the browser. */
+  cancel: () => void;
+  /** Finishes sign-in with the link the web page shows when the app did not open. */
+  paste: (link: string) => void;
 };
 
 /** Who is signed in on this computer, kept up to date, with sign-in and sign-out. */
@@ -27,10 +31,9 @@ export function useAccount(): AccountState {
       setAccount(now);
       setWaiting(false);
     });
-    const stopFailures = window.jalada.account.onFailed((message) => {
-      setFailure(message);
-      setWaiting(false);
-    });
+    // A failed attempt, such as a mistyped link, keeps the wait open to try again; the
+    // main process ends it when time runs out, through onChange.
+    const stopFailures = window.jalada.account.onFailed(setFailure);
     return () => {
       live = false;
       stopChanges();
@@ -48,5 +51,13 @@ export function useAccount(): AccountState {
       void window.jalada.account.signIn();
     },
     signOut: () => void window.jalada.account.signOut(),
+    cancel: () => {
+      setWaiting(false);
+      void window.jalada.account.cancelSignIn();
+    },
+    paste: (link) => {
+      setFailure(null);
+      void window.jalada.account.pasteSignInLink(link);
+    },
   };
 }

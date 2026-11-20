@@ -5,7 +5,11 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DeviceAuth, SignInFailed } from "../src/main/auth/device-auth";
+import {
+  DeviceAuth,
+  SIGN_IN_WAIT_MS,
+  SignInFailed,
+} from "../src/main/auth/device-auth";
 import { newSignInRequest, readSignInLink } from "../src/main/auth/pkce";
 import { SessionVault } from "../src/main/auth/session-vault";
 import type { KeyProtector } from "../src/main/store/key";
@@ -44,6 +48,7 @@ function setUp(
     fetch: vi.fn().mockResolvedValue(reply),
     changed: vi.fn(),
     forgetRecords: vi.fn(),
+    now: vi.fn(() => 0),
   };
   return { auth: new DeviceAuth(ports), ports, vault, folder };
 }
@@ -160,5 +165,34 @@ describe("device sign-in", () => {
     expect(vault.load()).toBeNull();
     expect(ports.forgetRecords).toHaveBeenCalledWith(USER.id);
     expect(ports.changed).toHaveBeenLastCalledWith(null);
+  });
+
+  it("stops waiting after five minutes, and refuses a link that comes later", async () => {
+    const { auth, ports } = setUp();
+    const link = await linkBack(auth, ports.openInBrowser);
+    ports.now.mockReturnValue(SIGN_IN_WAIT_MS + 1);
+
+    expect(auth.waiting()).toBe(false);
+    await expect(auth.finish(link)).rejects.toThrow(/too long/);
+    expect(ports.fetch).not.toHaveBeenCalled();
+  });
+
+  it("ignores the browser's link once sign-in was cancelled", async () => {
+    const { auth, ports } = setUp();
+    const link = await linkBack(auth, ports.openInBrowser);
+
+    auth.cancel();
+
+    expect(auth.waiting()).toBe(false);
+    await expect(auth.finish(link)).rejects.toThrow(SignInFailed);
+  });
+
+  it("takes a pasted link, spaces and all", async () => {
+    const { auth, ports } = setUp();
+    const link = await linkBack(auth, ports.openInBrowser);
+
+    const account = await auth.finish(`  ${link}\n`);
+
+    expect(account.email).toBe(USER.email);
   });
 });
