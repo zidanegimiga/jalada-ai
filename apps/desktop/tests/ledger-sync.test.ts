@@ -137,6 +137,8 @@ describe("keeping the ledger on this computer", () => {
       token: () => "t",
       sessionEnded: vi.fn(),
       changed: vi.fn(),
+      changesChanged: vi.fn(),
+      newId: randomUUID,
       failed: vi.fn(),
       now: () => NOW,
     };

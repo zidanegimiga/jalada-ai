@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import type { Database } from "better-sqlite3-multiple-ciphers";
 
+import { ChangeStore } from "./changes";
 import { openDatabase } from "./database";
 import { EntryStore } from "./entries";
 import { forgetKey, loadOrCreateKey, type KeyProtector } from "./key";
@@ -14,6 +15,7 @@ const ACCOUNT_ID =
 /** One person's records on this computer, open while they are signed in. */
 export type OpenStore = {
   entries: EntryStore;
+  changes: ChangeStore;
   syncState: SyncState;
   close: () => void;
 };
@@ -37,6 +39,7 @@ export class LocalStore {
     );
     return {
       entries: new EntryStore(db),
+      changes: new ChangeStore(db),
       syncState: new SyncState(db),
       close: () => db.close(),
     };

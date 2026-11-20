@@ -23,6 +23,20 @@ const STEPS: string[] = [
    );
    CREATE INDEX entries_newest_first ON entries (occurred_on DESC, id);
    CREATE TABLE sync_state (name TEXT PRIMARY KEY, value TEXT NOT NULL);`,
+  // 2: changes made on this computer, waiting to be sent in the order they were made.
+  `CREATE TABLE changes (
+     seq INTEGER PRIMARY KEY AUTOINCREMENT,
+     id TEXT NOT NULL UNIQUE,
+     kind TEXT NOT NULL,
+     payload TEXT NOT NULL,
+     summary TEXT NOT NULL,
+     state TEXT NOT NULL,
+     attempts INTEGER NOT NULL DEFAULT 0,
+     problem TEXT,
+     created_at TEXT NOT NULL,
+     settled_at TEXT
+   );
+   CREATE INDEX changes_waiting ON changes (state, seq);`,
 ];
 
 export const LATEST = STEPS.length;

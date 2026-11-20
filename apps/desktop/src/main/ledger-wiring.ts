@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { ipcMain, net } from "electron";
 
 import { CHANNELS, type Connection } from "@shared/bridge";
@@ -11,6 +13,8 @@ import { sendToWindows } from "./windows";
 
 /** How often the ledger is refreshed while the app is open and online. */
 const REFRESH_EVERY_MS = 10 * 60 * 1000;
+/** How often changes the server did not take yet are tried again, while online. */
+const RETRY_CHANGES_EVERY_MS = 60 * 1000;
 
 const SESSION_ENDED =
   "Your session has ended. Sign in again to keep your records here.";
@@ -35,6 +39,8 @@ export function wireLedger(
       void auth().signOut();
     },
     changed: (status) => sendToWindows(CHANNELS.ledgerChanged, status),
+    changesChanged: () => sendToWindows(CHANNELS.changesChanged, null),
+    newId: randomUUID,
     failed: (message) => sendToWindows(CHANNELS.signInFailed, message),
   });
 
@@ -48,6 +54,11 @@ export function wireLedger(
   );
   ipcMain.handle(CHANNELS.ledgerStatus, () => ledger.status());
   ipcMain.handle(CHANNELS.ledgerRefresh, () => ledger.pull());
+  ipcMain.handle(CHANNELS.changesPaste, (_event, text: unknown) =>
+    ledger.addChange("pasted_message", text),
+  );
+  ipcMain.handle(CHANNELS.changesList, () => ledger.changes());
+  ipcMain.handle(CHANNELS.changesUnsent, () => ledger.unsent());
   return ledger;
 }
 
@@ -63,6 +74,9 @@ export function startLedger(
   setInterval(() => {
     if (current() === "online") void ledger.pull();
   }, REFRESH_EVERY_MS);
+  setInterval(() => {
+    if (current() === "online" && ledger.unsent() > 0) void ledger.pull();
+  }, RETRY_CHANGES_EVERY_MS);
   // Back online: catch up straight away.
   return (connection) => {
     if (connection === "online") void ledger.pull();

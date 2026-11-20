@@ -3,7 +3,7 @@
  * The preload script puts an object of this shape on `window.jalada`; the window never
  * reaches Node.js, the file system or the network itself.
  */
-import type { LocalEntry } from "./records";
+import type { LocalChange, LocalEntry } from "./records";
 
 export type Connection = "online" | "offline";
 
@@ -52,6 +52,18 @@ export type JaladaBridge = {
     refresh: () => Promise<void>;
     onChange: (changed: (status: LedgerStatus) => void) => () => void;
   };
+  changes: {
+    /**
+     * Keeps a pasted M-Pesa message on this computer to send when online. False when the
+     * text is empty or too long.
+     */
+    pasteMessage: (text: string) => Promise<boolean>;
+    /** Changes made here, newest first, with where each one is. */
+    list: () => Promise<LocalChange[]>;
+    /** How many the server does not have yet. */
+    unsent: () => Promise<number>;
+    onChange: (changed: () => void) => () => void;
+  };
 };
 
 /** The names of the messages between the bridge and the main process. */
@@ -70,4 +82,8 @@ export const CHANNELS = {
   ledgerStatus: "ledger:status",
   ledgerRefresh: "ledger:refresh",
   ledgerChanged: "ledger:changed",
+  changesPaste: "changes:paste-message",
+  changesList: "changes:list",
+  changesUnsent: "changes:unsent",
+  changesChanged: "changes:changed",
 } as const;

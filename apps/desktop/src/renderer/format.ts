@@ -43,3 +43,8 @@ export function updatedLine(updatedAt: string | null): string {
   if (!updatedAt) return "Not copied from the server yet";
   return `Updated ${TIME.format(new Date(updatedAt))}`;
 }
+
+/** "20 Nov, 09:15" in Nairobi time, for when a change was made here. */
+export function moment(at: string): string {
+  return TIME.format(new Date(at));
+}
