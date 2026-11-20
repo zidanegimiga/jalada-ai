@@ -2264,6 +2264,22 @@
               ],
               "title": "Jalada Google"
             }
+          },
+          {
+            "in": "cookie",
+            "name": "jalada_google_next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jalada Google Next"
+            }
           }
         ],
         "responses": {
@@ -2295,6 +2311,24 @@
     "/v1/auth/google/start": {
       "get": {
         "operationId": "start_google_sign_in_v1_auth_google_start_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2303,6 +2337,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Start Google Sign In",

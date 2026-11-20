@@ -1910,6 +1910,7 @@ export interface operations {
             path?: never;
             cookie?: {
                 jalada_google?: string | null;
+                jalada_google_next?: string | null;
             };
         };
         requestBody?: never;
@@ -1936,7 +1937,9 @@ export interface operations {
     };
     start_google_sign_in_v1_auth_google_start_get: {
         parameters: {
-            query?: never;
+            query?: {
+                next?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1950,6 +1953,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

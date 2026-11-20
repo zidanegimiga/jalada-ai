@@ -96,3 +96,23 @@ def test_sign_in_options_say_when_google_is_on(make_app: Callable[..., FastAPI])
     assert TestClient(make_app(with_google=False)).get("/v1/auth/providers").json() == {
         "google": False
     }
+
+
+def test_signing_in_with_google_goes_back_to_the_page_that_asked(client: TestClient) -> None:
+    page = "/desktop/sign-in?challenge=abc&state=def"
+    started = client.get("/v1/auth/google/start", params={"next": page}, follow_redirects=False)
+    state = started.headers["location"].split("state=")[1]
+
+    response = client.get(
+        f"/v1/auth/google/callback?code=good-code&state={state}", follow_redirects=False
+    )
+
+    assert response.headers["location"] == f"http://localhost:3000{page}"
+
+
+def test_google_never_sends_anyone_to_another_site(client: TestClient) -> None:
+    for elsewhere in ["//evil.example/x", "https://evil.example", "/\\evil.example", "ledger"]:
+        started = client.get(
+            "/v1/auth/google/start", params={"next": elsewhere}, follow_redirects=False
+        )
+        assert "jalada_google_next" not in started.headers.get("set-cookie", ""), elsewhere
