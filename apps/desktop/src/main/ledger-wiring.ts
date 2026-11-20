@@ -59,6 +59,12 @@ export function wireLedger(
   );
   ipcMain.handle(CHANNELS.changesList, () => ledger.changes());
   ipcMain.handle(CHANNELS.changesUnsent, () => ledger.unsent());
+  ipcMain.handle(CHANNELS.changesTryAgain, (_event, id: unknown) =>
+    typeof id === "string" ? ledger.tryAgain(id) : false,
+  );
+  ipcMain.handle(CHANNELS.changesDiscard, (_event, id: unknown) =>
+    typeof id === "string" ? ledger.discard(id) : false,
+  );
   return ledger;
 }
 

@@ -52,7 +52,10 @@ export function App() {
         <>
           <ChangesPanel
             changes={changes.changes}
+            unsent={changes.unsent}
+            connection={connection}
             pasteMessage={changes.pasteMessage}
+            actions={changes.actions}
           />
           <LedgerView connection={connection} />
         </>

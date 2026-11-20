@@ -105,6 +105,58 @@ describe("keeping changes on this computer", () => {
   });
 });
 
+describe("changes the person looks at", () => {
+  it("sends a refused one again, in its place, without the old reason", () => {
+    const store = openStore();
+    const one = add(store, message(1));
+    add(store, message(2));
+    store.changes.sending(one);
+    store.changes.needsAttention(one, "Refused.", NOW.toISOString());
+
+    expect(store.changes.tryAgain(one)).toBe(true);
+
+    expect(store.changes.next()?.id).toBe(one);
+    expect(store.changes.list()[1]).toMatchObject({
+      id: one,
+      state: "saved",
+      problem: null,
+    });
+  });
+
+  it("only sends again what needs attention", () => {
+    const store = openStore();
+    const id = add(store, message(1));
+
+    expect(store.changes.tryAgain(id)).toBe(false);
+    expect(store.changes.tryAgain("no-such-change")).toBe(false);
+  });
+
+  it("drops one not yet sent, never one on its way or sent", () => {
+    const store = openStore();
+    const waiting = add(store, message(1));
+    const onItsWay = add(store, message(2));
+    const sent = add(store, message(3));
+    store.changes.sending(onItsWay);
+    store.changes.confirmed(sent, NOW.toISOString());
+
+    expect(store.changes.discard(waiting)).toBe(true);
+    expect(store.changes.discard(onItsWay)).toBe(false);
+    expect(store.changes.discard(sent)).toBe(false);
+    expect(store.changes.list().map((c) => c.id)).toEqual([sent, onItsWay]);
+  });
+
+  it("forgets sent changes after a while, and nothing else", () => {
+    const store = openStore();
+    const old = add(store, message(1));
+    const waiting = add(store, message(2));
+    store.changes.confirmed(old, "2026-11-01T09:00:00.000Z");
+
+    store.changes.clearSentBefore("2026-11-13T09:00:00.000Z");
+
+    expect(store.changes.list().map((c) => c.id)).toEqual([waiting]);
+  });
+});
+
 describe("sending changes", () => {
   it("sends each in order with its id as the Idempotency-Key", async () => {
     const store = openStore();
@@ -261,6 +313,31 @@ describe("changes made in the app", () => {
       "/v1/entries",
     ]);
     expect(ledger.changes()).toMatchObject([{ state: "confirmed" }]);
+    ledger.switchTo(null);
+  });
+
+  it("sends a change again once the person asks", async () => {
+    let answer = () => refused(422, "empty", "Nothing to save.");
+    const fetch = vi
+      .fn<Fetch>()
+      .mockImplementation(async (url) =>
+        new URL(url).pathname === "/v1/entries" ? emptyLedger() : answer(),
+      );
+    const { ledger, ports } = sync(fetch);
+    ledger.addChange("pasted_message", message(1));
+    await vi.waitFor(() =>
+      expect(ledger.changes()).toMatchObject([{ state: "needs_attention" }]),
+    );
+    await ledger.pull();
+    answer = accepted;
+    ports.changesChanged.mockClear();
+
+    expect(ledger.tryAgain(ledger.changes()[0]!.id)).toBe(true);
+
+    expect(ports.changesChanged).toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(ledger.changes()).toMatchObject([{ state: "confirmed" }]),
+    );
     ledger.switchTo(null);
   });
 

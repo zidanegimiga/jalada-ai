@@ -40,6 +40,8 @@ const bridge: JaladaBridge = {
     pasteMessage: (text) => ipcRenderer.invoke(CHANNELS.changesPaste, text),
     list: () => ipcRenderer.invoke(CHANNELS.changesList),
     unsent: () => ipcRenderer.invoke(CHANNELS.changesUnsent),
+    tryAgain: (id) => ipcRenderer.invoke(CHANNELS.changesTryAgain, id),
+    discard: (id) => ipcRenderer.invoke(CHANNELS.changesDiscard, id),
     onChange: (changed) => listen(CHANNELS.changesChanged, changed),
   },
 };

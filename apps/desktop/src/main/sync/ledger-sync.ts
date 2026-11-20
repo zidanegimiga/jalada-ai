@@ -25,6 +25,9 @@ type LedgerSyncPorts = {
   now?: () => Date;
 };
 
+/** Sent changes stay in the list a week, so people can see what went. */
+const KEEP_SENT_MS = 7 * 24 * 60 * 60 * 1000;
+
 /**
  * Keeps the signed-in person's ledger on this computer and up to date (decision 0029). The
  * window always reads from here, online or not. Each sync sends the changes made here
@@ -86,10 +89,27 @@ export class LedgerSync {
       summary: known.summary(payload),
       createdAt: this.now().toISOString(),
     });
+    this.changeMade();
+    return true;
+  }
+
+  private changeMade(): void {
     this.ports.changesChanged();
     if (this.pulling) this.again = true;
     else void this.pull();
-    return true;
+  }
+
+  /** Sends a change that needs attention again, after the person has looked at it. */
+  tryAgain(id: string): boolean {
+    const done = this.open?.changes.tryAgain(id) ?? false;
+    if (done) this.changeMade();
+    return done;
+  }
+
+  discard(id: string): boolean {
+    const done = this.open?.changes.discard(id) ?? false;
+    if (done) this.ports.changesChanged();
+    return done;
   }
 
   changes(): LocalChange[] {
@@ -130,6 +150,9 @@ export class LedgerSync {
         changed: this.ports.changesChanged,
       });
       if (sent.outcome === "signed-out") return this.ports.sessionEnded();
+      store.changes.clearSentBefore(
+        new Date(this.now().getTime() - KEEP_SENT_MS).toISOString(),
+      );
       const result = await pullLedger(connection);
       if (result.outcome === "signed-out") this.ports.sessionEnded();
     } catch {

@@ -62,6 +62,10 @@ export type JaladaBridge = {
     list: () => Promise<LocalChange[]>;
     /** How many the server does not have yet. */
     unsent: () => Promise<number>;
+    /** Sends a change that needs attention again. False if it no longer needs it. */
+    tryAgain: (id: string) => Promise<boolean>;
+    /** Drops a change not yet sent. False if it is already on its way or sent. */
+    discard: (id: string) => Promise<boolean>;
     onChange: (changed: () => void) => () => void;
   };
 };
@@ -85,5 +89,7 @@ export const CHANNELS = {
   changesPaste: "changes:paste-message",
   changesList: "changes:list",
   changesUnsent: "changes:unsent",
+  changesTryAgain: "changes:try-again",
+  changesDiscard: "changes:discard",
   changesChanged: "changes:changed",
 } as const;

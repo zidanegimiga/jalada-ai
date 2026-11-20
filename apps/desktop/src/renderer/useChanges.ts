@@ -25,5 +25,9 @@ export function useChanges() {
     changes,
     unsent,
     pasteMessage: (text: string) => window.jalada.changes.pasteMessage(text),
+    actions: {
+      tryAgain: (id: string) => void window.jalada.changes.tryAgain(id),
+      discard: (id: string) => void window.jalada.changes.discard(id),
+    },
   };
 }

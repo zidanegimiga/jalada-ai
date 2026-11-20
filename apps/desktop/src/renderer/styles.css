@@ -298,6 +298,7 @@ body {
 
 .change-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -308,8 +309,10 @@ body {
   border-top: 1px solid light-dark(#e3e2d3, #2d2d29);
 }
 
+/* Text keeps a readable width; on a narrow window the state and buttons go below it. */
 .change-what {
   display: flex;
+  flex: 1 1 16rem;
   min-width: 0;
   flex-direction: column;
   overflow-wrap: anywhere;
@@ -333,4 +336,36 @@ body {
   background: var(--flax);
   color: var(--black);
   box-shadow: none;
+}
+
+.change-summary {
+  font-weight: 600;
+}
+
+.change-group {
+  width: 100%;
+}
+
+.change-group h3 {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+}
+
+.change-side {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.change-problem {
+  color: light-dark(#c62828, #ef6461);
+}
+
+.button-small {
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
 }

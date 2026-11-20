@@ -78,6 +78,44 @@ export class ChangeStore {
     this.settle(id, "needs_attention", problem, at);
   }
 
+  /**
+   * The person asks for a refused change to go again. It keeps its place, so it still goes
+   * in the order it was made; if refused again, it is set aside again and the rest go on.
+   */
+  tryAgain(id: string): boolean {
+    return (
+      this.db
+        .prepare(
+          `UPDATE changes SET state = 'saved', problem = NULL, settled_at = NULL
+           WHERE id = ? AND state = 'needs_attention'`,
+        )
+        .run(id).changes === 1
+    );
+  }
+
+  /**
+   * The person drops a change the server has not taken. One on its way cannot be dropped:
+   * the server may already have it.
+   */
+  discard(id: string): boolean {
+    return (
+      this.db
+        .prepare(
+          "DELETE FROM changes WHERE id = ? AND state IN ('saved', 'needs_attention')",
+        )
+        .run(id).changes === 1
+    );
+  }
+
+  /** Sent changes are in the ledger now; the list only keeps them for a while. */
+  clearSentBefore(at: string): void {
+    this.db
+      .prepare(
+        "DELETE FROM changes WHERE state = 'confirmed' AND settled_at < ?",
+      )
+      .run(at);
+  }
+
   /** Newest first, for the window. */
   list(limit = 50): LocalChange[] {
     return this.db
