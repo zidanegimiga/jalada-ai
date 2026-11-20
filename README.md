@@ -31,14 +31,18 @@ Each run records its steps, timings and model usage, so any entry can be traced 
 
 Early. You can create an account with email or Google, upload receipts and PDFs, and paste M-Pesa messages. M-Pesa messages and withholding certificates are read with rules, photos with Tesseract, and anything else with a language model when one is set up. Each proposed entry is confirmed or corrected with one tap, and every choice teaches the classifier for next time. Confirmed entries make up the ledger and the monthly view of money in and out, split between business and personal, and can be downloaded as an Excel workbook for one tax year, grouped the way the iTax return asks. Receipts and messages can also be sent through a Telegram bot. You can download everything held about you, originals included, or delete your account and all of it. It is set up to run on free hosting.
 
+Visitors who are not signed in see a landing page that explains the app. The web app can be installed on a phone or computer, and shows a clear page when the connection drops. An assistant answers questions about your own records on the web and in Telegram, once you agree to a language model reading them; nothing goes to a model before that. A desktop app is under way: it signs in through the browser and keeps an encrypted copy of your records on the computer, so they can be read and added to offline.
+
 ## Stack
 
 | Part | Tools |
 | --- | --- |
 | API and worker | Python 3.12, FastAPI, Pydantic, uv |
-| Web app | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui with Base UI |
+| Web app | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui with Base UI; GSAP and Lenis on the landing page only |
+| Desktop app | Electron, React with Vite, SQLite encrypted with SQLCipher, keys in the system keychain |
 | Reading evidence | pdfplumber, Tesseract, Gemini or Ollama behind one interface |
-| Tests | pytest, Vitest, Testing Library |
+| Assistant | LangGraph inside one adapter, over the same model chain |
+| Tests | pytest, Vitest, Testing Library, Playwright |
 | Quality | ruff, mypy (strict), ESLint, pip-audit, npm audit, gitleaks |
 | Storage | PostgreSQL, S3-compatible object storage (SeaweedFS locally), evidence encrypted with AES-GCM |
 | Running it | Docker, docker compose, GitHub Actions |
@@ -54,7 +58,7 @@ jalada-ai/
 │   │   ├── src/jalada/
 │   │   │   ├── core/         settings, logging, clock, jobs, storage, resilience
 │   │   │   ├── shared/       money, dates, errors and HTTP helpers every module uses
-│   │   │   ├── modules/      accounts, evidence, pipeline, ledger, exports, telegram, health
+│   │   │   ├── modules/      accounts, evidence, pipeline, ledger, exports, telegram, agent, health
 │   │   │   │   └── <module>/
 │   │   │   │       ├── domain/       business rules, no input or output
 │   │   │   │       ├── application/  use cases and the interfaces (ports) they need
@@ -66,13 +70,21 @@ jalada-ai/
 │   │   │   └── composition.py  wires the modules together
 │   │   └── tests/
 │   ├── worker/               runs pipeline jobs, reuses the jalada package
-│   └── web/                  Next.js app
+│   ├── web/                  Next.js app
+│   │   ├── src/
+│   │   │   ├── app/          routes: (app) for signed-in pages, (auth) for sign-in and sign-up
+│   │   │   ├── features/     one folder per feature: api/, server/, hooks/, components/
+│   │   │   └── shared/       components, api client, format, styles and config used everywhere
+│   │   ├── tests/            component/, unit/ and support/
+│   │   └── e2e/              Playwright journeys
+│   └── desktop/              Electron app that works offline
 │       ├── src/
-│       │   ├── app/          routes: (app) for signed-in pages, (auth) for sign-in and sign-up
-│       │   ├── features/     one folder per feature: api/, server/, hooks/, components/
-│       │   └── shared/       components, api client, format, styles and config used everywhere
-│       ├── tests/            component/, unit/ and support/
-│       └── e2e/              Playwright journeys
+│       │   ├── main/         the database, sign-in, sync and all network access
+│       │   ├── preload/      the bridge, the window's only way to the main process
+│       │   ├── renderer/     the window, a React app
+│       │   └── shared/       types both sides use
+│       ├── tests/            unit tests, run inside Electron's own Node
+│       └── e2e/              starts the built app and checks it
 ├── evals/                    invented fixtures and the pipeline scoring script
 ├── infra/                    docker compose
 ├── docs/
@@ -178,6 +190,22 @@ The assistant is off unless the API has `JALADA_AGENT_ENABLED=true` and a `JALAD
 cd apps/web && ASSISTANT=on npm run dev
 ```
 
+The service worker that makes the web app installable and shows the offline page only runs in production builds (`make up`, or `npm run build && npm start`), so development reloads are never served stale code.
+
+### Desktop app
+
+The desktop app talks to an API and opens the web app in your browser to sign in. It does not read `.env`; it takes two addresses, both defaulting to the live ones:
+
+```bash
+cd apps/desktop && npm install
+```
+
+```bash
+JALADA_API_URL=http://localhost:8000 JALADA_WEB_URL=http://localhost:3000 npm start
+```
+
+Installing rebuilds the encrypted SQLite driver for Electron. Each person's records are kept in the app's data folder, encrypted with a key held by the system keychain; on Linux this needs a keyring such as GNOME Keyring, and without one nothing is kept. Signing out deletes them.
+
 ## Checks
 
 ```bash
@@ -190,7 +218,17 @@ The API's contract lives in `apps/api/openapi.json`, and a test fails when the c
 
 `make e2e` runs the main journey in a browser with Playwright: sign up, paste an M-Pesa message, wait for the worker to read it, confirm it, find it in the ledger, download the year's workbook and delete the account. It also opens every page in the light and dark themes and checks it with axe against WCAG 2.2 AA, and checks that every link, button and field is at least 44px for a thumb. It builds a separate copy of the whole stack under its own Docker project, so your local data is untouched, and removes it afterwards. Stop your own stack first (`make down`), because both use the same ports. Running it several times within a minute trips the sign-in rate limit. CI runs the same journey on every pull request.
 
-After changing a table in `apps/api/src/jalada/adapters/database/tables.py`, generate a migration with `make migration name="what changed"`.
+The desktop app has its own checks, also run in CI. The tests run inside Electron's own Node, so the native database driver is built once, for Electron, and the end-to-end test starts the built app with a fresh data folder:
+
+```bash
+cd apps/desktop && npm run typecheck && npm test
+```
+
+```bash
+cd apps/desktop && npm run build && npm run e2e
+```
+
+After changing a table in a module's `adapters/tables.py`, generate a migration with `make migration name="what changed"`.
 
 ## Design
 
