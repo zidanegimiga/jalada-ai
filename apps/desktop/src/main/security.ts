@@ -48,10 +48,14 @@ export function isOwnPage(address: string, appEntry: string): boolean {
   }
 }
 
-/** Links the app may hand to the system browser: web pages only, never files or commands. */
-export function mayOpenOutside(address: string): boolean {
+/**
+ * Links the app may hand to the system browser: pages of the Jalada AI web app, such as the
+ * privacy notice, and nothing else. Never another website, a file or a command, so neither
+ * the app nor anything shown in it can send the person somewhere they did not choose.
+ */
+export function mayOpenOutside(address: string, webOrigin: string): boolean {
   try {
-    return new URL(address).protocol === "https:";
+    return new URL(address).origin === webOrigin;
   } catch {
     return false;
   }

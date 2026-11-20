@@ -6,6 +6,7 @@ import {
   isOwnPage,
   mayOpenOutside,
 } from "./security";
+import type { DesktopConfig } from "./config";
 
 /** The site a blocked request was for, never its full address, which may carry data. */
 function originOf(address: string): string {
@@ -23,7 +24,7 @@ function originOf(address: string): string {
  */
 export function applySecurity(
   session: Session,
-  apiOrigin: string,
+  { apiOrigin, webOrigin }: DesktopConfig,
   appEntry: string,
 ) {
   session.webRequest.onBeforeRequest((details, respond) => {
@@ -51,11 +52,11 @@ export function applySecurity(
     contents.on("will-navigate", (event, address) => {
       if (isOwnPage(address, appEntry)) return;
       event.preventDefault();
-      if (mayOpenOutside(address)) void shell.openExternal(address);
+      if (mayOpenOutside(address, webOrigin)) void shell.openExternal(address);
     });
     contents.on("will-attach-webview", (event) => event.preventDefault());
     contents.setWindowOpenHandler(({ url }) => {
-      if (mayOpenOutside(url)) void shell.openExternal(url);
+      if (mayOpenOutside(url, webOrigin)) void shell.openExternal(url);
       return { action: "deny" };
     });
   });

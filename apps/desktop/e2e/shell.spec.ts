@@ -33,6 +33,14 @@ test.beforeAll(async () => {
   page = await app.firstWindow();
   await page.getByRole("heading", { name: /on this computer/ }).waitFor();
   firstScreenMs = Date.now() - started;
+  // Tests must never open the real browser: record what the app would hand it instead.
+  await app.evaluate(({ shell }) => {
+    const handed: string[] = [];
+    Object.assign(globalThis, { handedToBrowser: handed });
+    shell.openExternal = async (url: string) => {
+      handed.push(url);
+    };
+  });
 });
 
 test.afterAll(async () => {
@@ -57,16 +65,25 @@ test("gives the page the bridge and nothing of Node.js", async () => {
   });
 });
 
-test("lets the page reach no server and open no window itself", async () => {
-  const outcome = await page.evaluate(async () => ({
-    fetched: await fetch("https://example.com").then(
-      () => "reached",
-      () => "blocked",
-    ),
-    opened: window.open("https://example.com") === null ? "refused" : "opened",
-  }));
+test("lets the page reach no server, open no window and send no one elsewhere", async () => {
+  // An address that does not exist, so even a mistake here could not reach a real site.
+  const elsewhere = "https://not-jalada.invalid/";
+  const outcome = await page.evaluate(
+    async (address) => ({
+      fetched: await fetch(address).then(
+        () => "reached",
+        () => "blocked",
+      ),
+      opened: window.open(address) === null ? "refused" : "opened",
+    }),
+    elsewhere,
+  );
+  const handed = await app.evaluate(
+    () => (globalThis as { handedToBrowser?: string[] }).handedToBrowser,
+  );
 
   expect(outcome).toEqual({ fetched: "blocked", opened: "refused" });
+  expect(handed).toEqual([]);
 });
 
 test("says which server it syncs with, and whether it is online", async () => {

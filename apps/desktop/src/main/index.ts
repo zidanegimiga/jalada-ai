@@ -49,7 +49,7 @@ ipcMain.handle(CHANNELS.appInfo, () => ({
 ipcMain.handle(CHANNELS.connection, () => current());
 
 void app.whenReady().then(() => {
-  applySecurity(session.defaultSession, config.apiOrigin, appEntry);
+  applySecurity(session.defaultSession, config, appEntry);
   const window = createWindow();
   watchConnection((connection) => {
     window.webContents.send(CHANNELS.connectionChanged, connection);

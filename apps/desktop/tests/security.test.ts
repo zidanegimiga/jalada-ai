@@ -54,11 +54,19 @@ describe("navigation", () => {
     expect(isOwnPage("https://jalada.example", ENTRY)).toBe(false);
   });
 
-  it("only hands web pages to the system browser, never files or commands", () => {
-    expect(mayOpenOutside("https://jalada.example/privacy")).toBe(true);
-    expect(mayOpenOutside("file:///etc/passwd")).toBe(false);
-    expect(mayOpenOutside("smb://share/run.exe")).toBe(false);
-    expect(mayOpenOutside("javascript:alert(1)")).toBe(false);
+  it("only hands the web app's own pages to the system browser", () => {
+    const web = "https://jalada.example";
+    expect(mayOpenOutside("https://jalada.example/privacy", web)).toBe(true);
+    for (const address of [
+      "https://example.com",
+      "https://jalada.example.evil.example/privacy",
+      "http://jalada.example/privacy",
+      "file:///etc/passwd",
+      "smb://share/run.exe",
+      "javascript:alert(1)",
+    ]) {
+      expect(mayOpenOutside(address, web), address).toBe(false);
+    }
   });
 });
 
