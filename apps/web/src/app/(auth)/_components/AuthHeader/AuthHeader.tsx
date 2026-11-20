@@ -8,7 +8,7 @@ export function AuthHeader() {
   return (
     <header className="mx-auto flex w-full max-w-wide items-center gap-3 px-gutter pt-[calc(env(safe-area-inset-top)+1rem)] pb-4">
       <Link
-        href="/signin"
+        href="/"
         className="mr-auto flex min-h-tap items-center rounded-control"
       >
         <Brand />
