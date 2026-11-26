@@ -36,6 +36,14 @@ const bridge: JaladaBridge = {
     refresh: () => ipcRenderer.invoke(CHANNELS.ledgerRefresh),
     onChange: (changed) => listen(CHANNELS.ledgerChanged, changed),
   },
+  changes: {
+    pasteMessage: (text) => ipcRenderer.invoke(CHANNELS.changesPaste, text),
+    list: () => ipcRenderer.invoke(CHANNELS.changesList),
+    unsent: () => ipcRenderer.invoke(CHANNELS.changesUnsent),
+    tryAgain: (id) => ipcRenderer.invoke(CHANNELS.changesTryAgain, id),
+    discard: (id) => ipcRenderer.invoke(CHANNELS.changesDiscard, id),
+    onChange: (changed) => listen(CHANNELS.changesChanged, changed),
+  },
 };
 
 contextBridge.exposeInMainWorld("jalada", bridge);

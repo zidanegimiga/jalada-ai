@@ -6,7 +6,7 @@ You send it a receipt photo, a PDF or a forwarded M-Pesa message. It works out w
 
 ## Why I'm building it
 
-In 2025 I was salaried for part of the year, freelanced for the rest, had clients deduct withholding tax, and got support from family between jobs. When it came to filing my return, I had to rebuild the whole year from bank and M-Pesa statements and work out which deposits were income and which weren't. Receipts and withholding certificates were spread across email, WhatsApp and paper.
+I've been salaried for some time, freelanced for some, had clients deduct withholding tax, and got support from family between jobs. When it came to filing my return, I had to rebuild the whole year from bank and M-Pesa statements and work out which deposits were income and which weren't. Receipts and withholding certificates were spread across email, WhatsApp and paper.
 
 A lot of people are in the same position: mixed income, many small payments, money for the business and for the house going through the same M-Pesa line, and often a small phone with little data. Jalada AI is meant to make keeping records take seconds, and make filing time boring.
 

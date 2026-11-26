@@ -39,6 +39,7 @@ from jalada.modules.evidence.domain.evidence import EvidenceSource
 from jalada.modules.exports.adapters.workbook import ExcelWorkbookWriter
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.application.entry_changes import EntryChanges
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
@@ -167,6 +168,7 @@ def make_app(
             own_accounts=OwnAccounts(lambda: FakeUnitOfWork(store), FixedClock()),
             ledger=Ledger(lambda: FakeUnitOfWork(store)),
             certificate_payments=CertificatePayments(lambda: FakeUnitOfWork(store), FixedClock()),
+            entry_changes=EntryChanges(lambda: FakeUnitOfWork(store)),
             tax_year_export=TaxYearExport(
                 lambda: FakeUnitOfWork(store),
                 ExcelWorkbookWriter(),

@@ -108,6 +108,8 @@ class Transaction:
     # The user's other account in a transfer: where money went, or where money in came
     # from. None for anything else.
     to_account_id: UUID | None = None
+    # Goes up by one every time the transaction is saved (decision 0029).
+    version: int = 1
 
 
 def line_problems(transaction: Transaction) -> list[str]:
@@ -177,6 +179,7 @@ def as_entry(transaction: Transaction) -> Entry:
         confidence=transaction.confidence,
         created_at=transaction.created_at,
         confirmed_at=transaction.confirmed_at,
+        version=transaction.version,
     )
 
 

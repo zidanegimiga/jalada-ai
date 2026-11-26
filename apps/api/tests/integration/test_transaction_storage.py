@@ -204,7 +204,8 @@ def test_a_transfer_keeps_where_it_went_and_is_not_counted(
         work.commit()
 
     with SqlUnitOfWork(session_factory) as work:
-        assert work.transactions_for(transaction.user_id).get(transaction.id) == transfer
+        stored = work.transactions_for(transaction.user_id).get(transaction.id)
+        assert stored == replace(transfer, version=2)
         assert bank in work.money_accounts_for(transaction.user_id).all()
         year = transaction.occurred_on.year if transaction.occurred_on else 0
         assert work.transactions_for(transaction.user_id).monthly_totals(year) == []

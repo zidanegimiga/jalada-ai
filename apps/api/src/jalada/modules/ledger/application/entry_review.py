@@ -16,6 +16,7 @@ from jalada.modules.ledger.domain.entries import (
     missing_fields,
 )
 from jalada.modules.ledger.domain.transactions import TransactionStatus, as_entry
+from jalada.modules.ledger.domain.versions import still_current
 from jalada.shared.errors import EntryNotFound, EvidenceNotFound, InvalidEntry
 from jalada.unit_of_work import UnitOfWork
 
@@ -31,18 +32,29 @@ class EntryReview:
         with self._unit_of_work() as work:
             return review_queue(work, user_id, limit, self._clock.now())
 
-    def confirm(self, user_id: UUID, entry_id: UUID, correction: Correction | None = None) -> Entry:
+    def confirm(
+        self,
+        user_id: UUID,
+        entry_id: UUID,
+        correction: Correction | None = None,
+        based_on: int | None = None,
+    ) -> Entry:
+        """`based_on` is the version the edit was made from. When the entry has moved on
+        since, nothing changes and ChangedElsewhere carries the current copy."""
         with self._unit_of_work() as work:
             payment = work.transactions_for(user_id).get(entry_id)
             if payment is not None:
+                still_current(payment.version, based_on, lambda: as_entry(payment))
                 if payment.status == TransactionStatus.CONFIRMED and correction is None:
                     return as_entry(payment)
                 done = payment_review.confirm(
                     work, payment, correction or Correction(), self._clock.now()
                 )
+                # Read back for the version the save gave it.
+                saved = work.transactions_for(user_id).get(entry_id) or done
                 work.commit()
-                return as_entry(done)
-            confirmed = self._confirm_certificate(work, user_id, entry_id, correction)
+                return as_entry(saved)
+            confirmed = self._confirm_certificate(work, user_id, entry_id, correction, based_on)
             work.commit()
         return confirmed
 
@@ -88,11 +100,17 @@ class EntryReview:
             work.commit()
 
     def _confirm_certificate(
-        self, work: UnitOfWork, user_id: UUID, entry_id: UUID, correction: Correction | None
+        self,
+        work: UnitOfWork,
+        user_id: UUID,
+        entry_id: UUID,
+        correction: Correction | None,
+        based_on: int | None,
     ) -> Entry:
         entry = work.entries_for(user_id).get(entry_id)
         if entry is None:
             raise EntryNotFound
+        still_current(entry.version, based_on, lambda: entry)
         if entry.status == EntryStatus.CONFIRMED and correction is None:
             return entry
         confirmed = self._confirmed(_corrected(entry, correction or Correction()))
@@ -104,7 +122,7 @@ class EntryReview:
         history.record_entry(work, entry, confirmed, Actor.USER, action, now)
         self._learn(work, user_id, confirmed)
         work.evidence_for(user_id).set_status(entry.evidence_id, EvidenceStatus.CONFIRMED)
-        return confirmed
+        return work.entries_for(user_id).get(entry_id) or confirmed
 
     def _reject_certificate(self, work: UnitOfWork, user_id: UUID, evidence_id: UUID) -> None:
         entry = work.entries_for(user_id).for_evidence(evidence_id)

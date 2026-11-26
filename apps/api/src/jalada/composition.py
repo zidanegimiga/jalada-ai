@@ -97,6 +97,7 @@ def build_services(settings: Settings) -> Services:
         own_accounts=ledger.own_accounts,
         ledger=ledger.ledger,
         certificate_payments=ledger.certificate_payments,
+        entry_changes=ledger.changes,
         tax_year_export=build_tax_year_export(
             unit_of_work, clock, evidence_link=f"{settings.public_url}/v1/evidence/{{id}}/file"
         ),

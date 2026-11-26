@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from jalada.core.database.base import Base
+from jalada.core.database.changes import CURRENT_TRANSACTION
 
 
 class EntryRow(Base):
@@ -40,6 +41,7 @@ class EntryRow(Base):
             postgresql_where="certificate_serial IS NOT NULL",
         ),
         Index("ix_entries_user_id_occurred_on", "user_id", "occurred_on"),
+        Index("ix_entries_user_id_changed_in", "user_id", "changed_in", "id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
@@ -62,6 +64,8 @@ class EntryRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     payer_tax_number: Mapped[str | None] = mapped_column(String(20))
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    changed_in: Mapped[int] = mapped_column(BigInteger, server_default=CURRENT_TRANSACTION)
 
 
 class EntryRevisionRow(Base):
@@ -140,6 +144,7 @@ class TransactionRow(Base):
             postgresql_where="payment_code IS NOT NULL",
         ),
         Index("ix_transactions_user_id_occurred_on", "user_id", "occurred_on"),
+        Index("ix_transactions_user_id_changed_in", "user_id", "changed_in", "id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
@@ -158,6 +163,8 @@ class TransactionRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     to_account_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("money_accounts.id"))
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    changed_in: Mapped[int] = mapped_column(BigInteger, server_default=CURRENT_TRANSACTION)
 
 
 class TransactionLineRow(Base):

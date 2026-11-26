@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from jalada.core.ports import Clock
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.application.entry_changes import EntryChanges
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
@@ -21,6 +22,7 @@ class LedgerServices:
     own_accounts: OwnAccounts
     ledger: Ledger
     certificate_payments: CertificatePayments
+    changes: EntryChanges
 
 
 def build_ledger(unit_of_work: Callable[[], UnitOfWork], clock: Clock) -> LedgerServices:
@@ -31,4 +33,5 @@ def build_ledger(unit_of_work: Callable[[], UnitOfWork], clock: Clock) -> Ledger
         own_accounts=OwnAccounts(unit_of_work, clock),
         ledger=Ledger(unit_of_work),
         certificate_payments=CertificatePayments(unit_of_work, clock),
+        changes=EntryChanges(unit_of_work),
     )

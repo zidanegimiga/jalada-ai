@@ -7,6 +7,7 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
+from jalada.core.database.changes import settled_before
 from jalada.core.jobs.ports import JobQueue
 from jalada.core.jobs.queue import SqlJobQueue
 from jalada.modules.accounts.adapters.repositories import (
@@ -113,3 +114,6 @@ class SqlUnitOfWork:
 
     def commit(self) -> None:
         self._db.commit()
+
+    def settled_before(self) -> int:
+        return settled_before(self._db)

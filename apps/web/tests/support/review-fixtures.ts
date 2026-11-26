@@ -28,6 +28,7 @@ export function entry(overrides: Partial<Entry> = {}): Entry {
     tax_withheld_cents: null,
     payer_tax_number: null,
     confidence: 1,
+    version: 1,
     occurred_on: "2026-11-04",
     direction: "out",
     amount_cents: 15000,

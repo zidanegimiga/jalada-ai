@@ -5,6 +5,7 @@ from uuid import UUID
 
 from jalada.modules.ledger.domain.audit import AuditEvent
 from jalada.modules.ledger.domain.categories import Purpose
+from jalada.modules.ledger.domain.changes import ChangePosition
 
 if TYPE_CHECKING:
     pass
@@ -31,6 +32,12 @@ class Revision:
 
 class EntryRepository(Protocol):
     """Ledger entries for one user."""
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Entry]]:
+        """Saved after `after` by a transaction before `until`, in position order."""
+        ...
 
     def add(self, entry: Entry) -> None: ...
     def get(self, entry_id: UUID) -> Entry | None: ...
@@ -82,6 +89,12 @@ class MoneyAccountRepository(Protocol):
 
 class TransactionRepository(Protocol):
     """One user's transactions, with their lines and evidence."""
+
+    def changed_after(
+        self, after: ChangePosition, until: int, limit: int
+    ) -> list[tuple[ChangePosition, Transaction]]:
+        """Saved after `after` by a transaction before `until`, in position order."""
+        ...
 
     def add(self, transaction: Transaction) -> None: ...
     def get(self, transaction_id: UUID) -> Transaction | None: ...

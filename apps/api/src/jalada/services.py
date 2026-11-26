@@ -13,6 +13,7 @@ from jalada.modules.agent.application.conversations import Conversations
 from jalada.modules.evidence.application.evidence_capture import EvidenceCapture
 from jalada.modules.exports.application.tax_year_export import TaxYearExport
 from jalada.modules.ledger.application.certificate_payments import CertificatePayments
+from jalada.modules.ledger.application.entry_changes import EntryChanges
 from jalada.modules.ledger.application.entry_review import EntryReview
 from jalada.modules.ledger.application.how_paid import HowPaid
 from jalada.modules.ledger.application.ledger import Ledger
@@ -37,6 +38,8 @@ class Services:
     own_accounts: OwnAccounts
     ledger: Ledger
     certificate_payments: CertificatePayments
+    # What changed in a person's entries, for the desktop app's copy (decision 0029).
+    entry_changes: EntryChanges
     tax_year_export: TaxYearExport
     telegram_linking: TelegramLinking
     account_export: AccountExport

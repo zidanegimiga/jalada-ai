@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import type { AppInfo } from "@shared/bridge";
 
 import { AccountPanel } from "./AccountPanel";
+import { ChangesPanel } from "./ChangesPanel";
 import { LedgerView } from "./LedgerView";
 import { useAccount } from "./useAccount";
+import { useChanges } from "./useChanges";
 import { useConnection } from "./useConnection";
 
 const CONNECTION_TEXT = {
@@ -13,12 +15,13 @@ const CONNECTION_TEXT = {
 };
 
 /**
- * The desktop app's frame: who is signed in, and their ledger read from this computer.
- * Changes made here, queued while offline, arrive in the next step (decision 0029).
+ * The desktop app's frame: who is signed in, messages added here and where each one is,
+ * and their ledger read from this computer (decision 0029).
  */
 export function App() {
   const connection = useConnection();
   const accountState = useAccount();
+  const changes = useChanges();
   const [info, setInfo] = useState<AppInfo | null>(null);
 
   useEffect(() => {
@@ -44,8 +47,19 @@ export function App() {
         </p>
         {connection && <p className="muted">{CONNECTION_TEXT[connection]}</p>}
       </section>
-      <AccountPanel state={accountState} />
-      {accountState.account && <LedgerView connection={connection} />}
+      <AccountPanel state={accountState} unsent={changes.unsent} />
+      {accountState.account && (
+        <>
+          <ChangesPanel
+            changes={changes.changes}
+            unsent={changes.unsent}
+            connection={connection}
+            pasteMessage={changes.pasteMessage}
+            actions={changes.actions}
+          />
+          <LedgerView connection={connection} />
+        </>
+      )}
       {info && (
         <footer className="muted small">
           Version {info.version}. Syncs with {info.apiOrigin}.

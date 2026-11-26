@@ -33,6 +33,15 @@ pytestmark = pytest.mark.integration
 NOW = datetime(2026, 11, 14, 9, 0, tzinfo=UTC)
 
 
+def entry_amount(session_factory: sessionmaker[DbSession], entry_id: uuid.UUID) -> int | None:
+    """Read with plain SQL: at an older revision the entry table lacks today's columns."""
+    with session_factory() as db:
+        found = db.execute(
+            text("SELECT amount_cents FROM entries WHERE id = :id"), {"id": entry_id}
+        ).scalar_one_or_none()
+    return int(found) if found is not None else None
+
+
 def run_copy() -> None:
     """Runs migration 0011 again over whatever the test has saved."""
     assert DATABASE_URL
@@ -154,8 +163,9 @@ def test_payment_entries_are_removed_and_certificates_kept(
     assert DATABASE_URL
     command.downgrade(alembic_config(DATABASE_URL), "0013")
     try:
-        with SqlUnitOfWork(session_factory) as work:
-            assert work.entries_for(user.id).get(paid.id) == paid, "going back puts it back"
+        assert entry_amount(session_factory, paid.id) == paid.amount_cents, (
+            "going back puts it back"
+        )
     finally:
         command.upgrade(alembic_config(DATABASE_URL), "head")
 
@@ -178,8 +188,7 @@ def test_a_payment_entry_with_no_transaction_stops_the_removal(
     try:
         with pytest.raises(RuntimeError, match="1 payment entries have no transaction"):
             command.upgrade(config, "head")
-        with SqlUnitOfWork(session_factory) as work:
-            assert work.entries_for(user.id).get(orphan.id) == orphan, "nothing was removed"
+        assert entry_amount(session_factory, orphan.id) == orphan.amount_cents, "nothing removed"
     finally:
         with session_factory() as db:
             db.execute(text("DELETE FROM entries WHERE id = :id"), {"id": orphan.id})

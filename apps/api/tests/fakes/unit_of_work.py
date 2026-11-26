@@ -14,6 +14,7 @@ from fakes.accounts import (
 from fakes.agent import FakeActions, FakeAgentRuns, FakeThreads
 from fakes.evidence import FakeEvidence, FakeJobs
 from fakes.ledger import (
+    SAVES,
     FakeAuditTrail,
     FakeCertificatePayments,
     FakeEntries,
@@ -76,6 +77,7 @@ class FakeUnitOfWork:
         self._certificate_payments = dict(self._store.certificate_payments)
         self._money_accounts = dict(self._store.money_accounts)
         self._transactions = dict(self._store.transactions)
+        self._saved_in = dict(self._store.saved_in)
         self._audit_events = list(self._store.audit_events)
         self._suggestions = dict(self._store.suggestions)
         self._runs = FakeRuns(list(self._store.runs))
@@ -95,7 +97,9 @@ class FakeUnitOfWork:
         return FakeEvidence(self._evidence, user_id, self._entries, self._transactions)
 
     def entries_for(self, user_id: UUID) -> EntryRepository:
-        return FakeEntries(self._entries, user_id, self._revisions, self._certificate_payments)
+        return FakeEntries(
+            self._entries, user_id, self._revisions, self._certificate_payments, self._saved_in
+        )
 
     def preferences_for(self, user_id: UUID) -> PreferenceRepository:
         return FakePreferences(self._preferences.setdefault(user_id, {}))
@@ -119,7 +123,9 @@ class FakeUnitOfWork:
         return FakeActions(self._agent_actions, user_id)
 
     def transactions_for(self, user_id: UUID) -> TransactionRepository:
-        return FakeTransactions(self._transactions, user_id, self._certificate_payments)
+        return FakeTransactions(
+            self._transactions, user_id, self._certificate_payments, self._saved_in
+        )
 
     def __exit__(
         self,
@@ -128,6 +134,10 @@ class FakeUnitOfWork:
         traceback: TracebackType | None,
     ) -> None:
         pass
+
+    def settled_before(self) -> int:
+        # Nothing here runs at the same time as anything else: every save so far is done.
+        return SAVES.last + 1
 
     def commit(self) -> None:
         self._store.users = self._users.rows
@@ -147,6 +157,7 @@ class FakeUnitOfWork:
         self._store.certificate_payments = self._certificate_payments
         self._store.money_accounts = self._money_accounts
         self._store.transactions = self._transactions
+        self._store.saved_in = self._saved_in
         self._store.audit_events = self._audit_events
         self._store.suggestions = self._suggestions
         self._store.agent_threads = self._agent_threads

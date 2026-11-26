@@ -844,6 +844,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sync/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Entry Changes
+         * @description Every entry saved since `after`, in any state, so a device can keep its copy up to
+         *     date. Leave `after` out the first time to get everything.
+         */
+        get: operations["read_entry_changes_v1_sync_entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/telegram/link-code": {
         parameters: {
             query?: never;
@@ -964,6 +985,14 @@ export interface components {
             /** Suggestions */
             suggestions: components["schemas"]["EntryResponse"][];
         };
+        /**
+         * ChangedElsewhereResponse
+         * @description The edit was made from an older copy. Nothing changed; here is the entry as it is.
+         */
+        ChangedElsewhereResponse: {
+            current: components["schemas"]["EntryResponse"];
+            error: components["schemas"]["ErrorDetail"];
+        };
         /** ConfirmAllRequest */
         ConfirmAllRequest: {
             /** Entry Ids */
@@ -973,6 +1002,11 @@ export interface components {
         ConfirmAllResponse: {
             /** Confirmed */
             confirmed: components["schemas"]["EntryResponse"][];
+        };
+        /** ConfirmRequest */
+        ConfirmRequest: {
+            /** Version */
+            version?: number | null;
         };
         /** ConsentResponse */
         ConsentResponse: {
@@ -994,6 +1028,8 @@ export interface components {
             direction?: components["schemas"]["Direction"] | null;
             /** Occurred On */
             occurred_on?: string | null;
+            /** Version */
+            version?: number | null;
         };
         /** DeleteAccountRequest */
         DeleteAccountRequest: {
@@ -1041,6 +1077,30 @@ export interface components {
          * @enum {string}
          */
         Direction: "in" | "out";
+        /** EntryChangeResponse */
+        EntryChangeResponse: {
+            entry: components["schemas"]["EntryResponse"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * EntryChangesResponse
+         * @description Entries saved since `after`, oldest first. Keep `next` and send it as `after` next
+         *     time; when `more` is true, ask again straight away.
+         */
+        EntryChangesResponse: {
+            /** Changes */
+            changes: components["schemas"]["EntryChangeResponse"][];
+            /** More */
+            more: boolean;
+            /** Next */
+            next: string;
+        };
         /**
          * EntryDetailResponse
          * @description One payment with the evidence linked to it and its history, oldest first.
@@ -1104,12 +1164,21 @@ export interface components {
             status: components["schemas"]["EntryStatus"];
             /** Tax Withheld Cents */
             tax_withheld_cents: number | null;
+            /** Version */
+            version: number;
         };
         /**
          * EntryStatus
          * @enum {string}
          */
         EntryStatus: "proposed" | "needs_review" | "confirmed" | "rejected";
+        /** ErrorDetail */
+        ErrorDetail: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
         /**
          * EvidenceKind
          * @enum {string}
@@ -2303,6 +2372,15 @@ export interface operations {
                     "application/json": components["schemas"]["EntryResponse"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedElsewhereResponse"];
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2325,7 +2403,11 @@ export interface operations {
                 jalada_session?: string | null;
             };
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2334,6 +2416,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntryResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedElsewhereResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3017,6 +3108,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["YearResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_entry_changes_v1_sync_entries_get: {
+        parameters: {
+            query?: {
+                after?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                jalada_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryChangesResponse"];
                 };
             };
             /** @description Validation Error */
