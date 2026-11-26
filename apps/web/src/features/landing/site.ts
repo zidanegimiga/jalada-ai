@@ -18,5 +18,5 @@ export const NAV = SECTIONS.filter((section) => section.inHeader).map(
 
 export const CREDIT = {
   name: "Zidane Gimiga",
-  href: "https://github.com/zidanegimiga",
+  href: "https://linkedin.com/in/zidane-gimiga",
 };
